@@ -20,6 +20,12 @@ export default {
         landingHeader: Object,
     },
     computed: {
+    appLogoUrl() {
+      const headers = window.headers || [];
+      const locale = this.$page?.props?.selectedLocale || 'en';
+      const header = headers.find(h => h.locale === locale);
+      return header?.header_logo_url || (headers[0]?.header_logo_url) || '';
+    },
     splitServices() {
       // Check if landingHome.data is a string and split it by commas
       if (typeof this.landingHome.services === 'string') {
@@ -40,6 +46,7 @@ export default {
     data() {
         return {
             Autoplay, Navigation, Pagination,
+            showFullContent: false, // true لاستعادة عرض كل المحتوى
         };
     },
     methods: {
@@ -67,46 +74,21 @@ export default {
 <template>
     <div class="layout-wrapper landing">
         <Head :title="$t('home')" />
-        <LandingHeader :headers="landingHeader">
-            
-        </LandingHeader>
-        
-        <div class="vertical-overlay" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent.show"></div>
-        <section class="section pb-0 hero-section" id="hero">
+        <template v-if="showFullContent">
+            <LandingHeader :headers="landingHeader" />
+            <div class="vertical-overlay" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent.show"></div>
+        </template>
+        <section class="section pb-0 hero-section min-vh-100 d-flex align-items-center justify-content-center" id="hero">
             <div class="bg-overlay bg-overlay-pattern"></div>
-            <BContainer class="download-app">
-                <BRow class="justify-content-center">
-                    <BCol lg="8" sm="10">
-                        <div class="text-center mt-lg-5 pt-5">
-                            <h1 class="display-6 fw-semibold mb-3 lh-base">{{ landingHome.hero_title }}</h1>
-                            <div class="d-flex align-items-center justify-content-center gap-4 mb-5">
-                            <div class="d-block">
-                            <h2  style="color: var(--landing_header_act_text);">{{ landingHeader.user_app }}</h2>
-
-                            <div class="d-flex gap-2 justify-content-center mt-4">
-                                <BLink :href="landingHome.hero_user_link_android" target="_blank" class="btn btn-primary">{{ landingHeader.user_play }} <i
-                                        class="ri-google-play-fill align-middle ms-1"></i></BLink>
-                                <BLink :href="landingHome.hero_user_link_apple" target="_blank" class="btn btn-dark">{{ landingHeader.user_apple }} <i
-                                        class="ri-apple-fill align-middle ms-1"></i></BLink>
-                            </div>
-                            </div>
-                        <div class="d-block">
-                            <h2 style="color: var(--landing_header_act_text);">{{ landingHeader.driver_app }}</h2>
-
-                            <div class="d-flex gap-2 justify-content-center mt-4">
-                                <BLink :href="landingHome.hero_driver_link_android" target="_blank" class="btn btn-primary">{{ landingHeader.driver_play }} <i
-                                        class="ri-google-play-fill align-middle ms-1"></i></BLink>
-                                <BLink :href="landingHome.hero_driver_link_apple" target="_blank" class="btn btn-dark">{{ landingHeader.driver_apple }} <i
-                                        class="ri-apple-fill align-middle ms-1"></i></BLink>
-                            </div>
-                        </div>
-                            </div>
-                        </div>
-                    </BCol>
-                </BRow>
+            <BContainer>
+                <div class="text-center">
+                    <img v-if="appLogoUrl" :src="appLogoUrl" alt="Logo" class="img-fluid" style="max-width: 280px;">
+                </div>
             </BContainer>
         </section>
 
+        <!-- محتوى الصفحة (مخفي مؤقتاً - غيّر showFullContent إلى true في data لاستعادته) -->
+        <template v-if="showFullContent">
         <!-- <Cookie /> -->
 
         <section class="section" id="services">
@@ -381,6 +363,7 @@ export default {
         </section>
 
 <LandingFooter></LandingFooter>
+        </template>
     </div>
 </template>
 
