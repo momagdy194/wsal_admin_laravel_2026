@@ -24,7 +24,7 @@ export default {
       const headers = window.headers || [];
       const locale = this.$page?.props?.selectedLocale || 'en';
       const header = headers.find(h => h.locale === locale);
-      return header?.header_logo_url || (headers[0]?.header_logo_url) || '';
+      return          'https://wssal.net/storage/uploads/system-admin/logo/Nmz5cHNARgdjRnmA2Ff4eG4GvZRFzau9pPzEcPtw.png';      ;
     },
     splitServices() {
       // Check if landingHome.data is a string and split it by commas
