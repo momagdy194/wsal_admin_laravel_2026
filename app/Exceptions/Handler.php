@@ -117,15 +117,17 @@ class Handler extends ExceptionHandler
             'message' => $message,
             'status_code' => $statusCode,
         ];
-        // Always include the actual exception message so the client can show the real problem
-        if ($exceptionMessage !== '' && $exceptionMessage !== null) {
+        // Include the actual exception message for server errors (not for validation - errors are in 'errors')
+        $isValidation = $exception instanceof ValidationException || $exception instanceof CustomValidationException;
+        if (!$isValidation && $exceptionMessage !== '' && $exceptionMessage !== null) {
             $data['exception_message'] = $exceptionMessage;
         }
 
-        if ($exception instanceof ValidationException || $exception instanceof CustomValidationException) {
+        if ($isValidation) {
             $data['status_code'] = $statusCode = Response::HTTP_UNPROCESSABLE_ENTITY;
-            $data['errors'] = $exception instanceof ValidationException ?
-            $exception->validator->errors()->getMessages() : $exception->getMessages();
+            $data['errors'] = $exception instanceof ValidationException
+                ? $exception->validator->errors()->getMessages()
+                : $exception->getMessages();
         }
 
         if ($code = $exception->getCode()) {
