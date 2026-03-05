@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1\Request;
 
 use App\Events\Event;
 use App\AccountApproved;
-use App\AccountActivated;
+use App\AccountActivated; 
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Contract\Database;
 use App\Http\Requests\User\EtaRequest;

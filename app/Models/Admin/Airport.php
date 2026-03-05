@@ -4,7 +4,7 @@ namespace App\Models\Admin;
 
 use Carbon\Carbon;
 use App\Models\User;
-use App\Base\Uuid\UuidModel;
+use App\Base\Uuid\UuidModel; 
 use App\Models\Traits\HasActive;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\HasActiveCompanyKey;

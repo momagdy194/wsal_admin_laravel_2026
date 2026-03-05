@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Web\Admin;
 
-use App\Models\User;
+use App\Models\User; 
 use App\Models\Admin\Airport;
 use App\Http\Controllers\ApiController;
 use Inertia\Inertia;
