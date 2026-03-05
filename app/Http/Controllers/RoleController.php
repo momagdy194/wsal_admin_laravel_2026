@@ -6,6 +6,8 @@ use Inertia\Inertia;
 use App\Models\Access\Role;
 use App\Base\Constants\Auth\Role as RoleSlug;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 
 class RoleController extends Controller
 {
@@ -61,8 +63,15 @@ class RoleController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        $slug = str_replace(' ', '-', strtolower($validatedData['name']));
+        Validator::make(
+            ['slug' => $slug],
+            ['slug' => ['required', 'unique:roles,slug']],
+            ['slug.unique' => __('A role with this name already exists.')]
+        )->validate();
+
         $currentUser = auth()->user();
-        $validatedData['slug'] = str_replace(' ', '-', strtolower($validatedData['name']));
+        $validatedData['slug'] = $slug;
         $validatedData['created_by'] = $currentUser->id; // Track creator of the role
 
         $role = Role::create($validatedData);
@@ -97,6 +106,14 @@ public function convertToSnakeCase(string $str): string
             'description' => 'nullable',
         ]);
 
+        $slug = str_replace(' ', '-', strtolower($validatedData['name']));
+        Validator::make(
+            ['slug' => $slug],
+            ['slug' => ['required', Rule::unique('roles', 'slug')->ignore($role->id)]],
+            ['slug.unique' => __('A role with this name already exists.')]
+        )->validate();
+
+        $validatedData['slug'] = $slug;
         $role->update($validatedData);
 
         return response()->json([
