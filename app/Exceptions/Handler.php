@@ -125,13 +125,20 @@ class Handler extends ExceptionHandler
             $data['code'] = $code;
         }
 
+        // When debug is on, return the real error so you can see what went wrong
         if ($this->runningInDebugMode()) {
+            $data['exception_message'] = $exception->getMessage();
             $data['debug'] = [
+                'message' => $exception->getMessage(),
                 'line' => $exception->getLine(),
                 'file' => $exception->getFile(),
                 'class' => get_class($exception),
-                'trace' => explode('\n', $exception->getTraceAsString()),
+                'trace' => explode("\n", $exception->getTraceAsString()),
             ];
+            if ($exception instanceof QueryException) {
+                $data['debug']['sql'] = $exception->getSql();
+                $data['debug']['bindings'] = $exception->getBindings();
+            }
         }
 
         return response()->json($data, $statusCode);
