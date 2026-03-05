@@ -122,12 +122,11 @@ class ZoneController extends Controller
             throw ValidationException::withMessages(['name' => __('Please Complete the shape before submit')]);
         }
 
-        // Decode the coordinates (may be JSON string or already array when sent as application/json)
-        $decodedCoordinates = is_string($request->coordinates)
-            ? json_decode($request->coordinates, true)
-            : $request->coordinates;
+        // Decode the coordinates JSON string
+        $decodedCoordinates = json_decode($request->coordinates, true);
 
-        if ($decodedCoordinates === null || !is_array($decodedCoordinates)) {
+        // Check if the decoding was successful
+        if ($decodedCoordinates === null) {
             throw ValidationException::withMessages(['coordinates' => __('Invalid coordinates format')]);
         }
 
@@ -174,6 +173,7 @@ class ZoneController extends Controller
 
         $zone = Zone::create($created_params);
         $translations_data = [];
+        $now = now();
         foreach ($validated['languageFields'] as $code => $language) {
             $zone->zoneTranslationWords()->create([
                 'name' => $language,
@@ -287,12 +287,11 @@ class ZoneController extends Controller
             throw ValidationException::withMessages(['name' => __('Please Complete the shape before submit')]);
         }
 
-        // Decode the coordinates (may be JSON string or already array when sent as application/json)
-        $decodedCoordinates = is_string($request->coordinates)
-            ? json_decode($request->coordinates, true)
-            : $request->coordinates;
+        // Decode the coordinates JSON string
+        $decodedCoordinates = json_decode($request->coordinates, true);
 
-        if ($decodedCoordinates === null || !is_array($decodedCoordinates)) {
+        // Check if the decoding was successful
+        if ($decodedCoordinates === null) {
             throw ValidationException::withMessages(['coordinates' => __('Invalid coordinates format')]);
         }
 
@@ -305,8 +304,8 @@ class ZoneController extends Controller
                  {
 
                     if ($key == 0) {
-                        $updated_params['lat'] = $coordinate[1];
-                        $updated_params['lng'] = $coordinate[0];
+                        $created_params['lat'] = $coordinate[1];
+                        $created_params['lng'] = $coordinate[0];
                     }
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
@@ -339,17 +338,13 @@ class ZoneController extends Controller
         $updated_params['coordinates'] = $multi_polygon;
         // Update New translated names
         $zone->zoneTranslationWords()->delete();
-        $translations_data = [];
         foreach ($validated['languageFields'] as $code => $language) {
-            $zone->zoneTranslationWords()->create([
-                'name' => $language,
-                'locale' => $code,
-                'zone_id' => $zone->id,
-            ]);
+            $translationData[] = ['name' => $language, 'locale' => $code, 'zone_id' => $zone->id];
             $translations_data[$code] = new \stdClass();
             $translations_data[$code]->locale = $code;
             $translations_data[$code]->name = $language;
         }
+        $zone->zoneTranslationWords()->insert($translationData);
         $updated_params['translation_dataset'] = json_encode($translations_data);
         // Update the zone with the updated parameters
         $zone->update($updated_params);

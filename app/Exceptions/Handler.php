@@ -111,10 +111,6 @@ class Handler extends ExceptionHandler
             $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode]);
         }
 
-        if ($exception instanceof QueryException && !$this->runningInDebugMode()) {
-            $message = 'Internal Server Error';
-        }
-
         $data = [
             'success' => false,
             'message' => $message,
