@@ -145,7 +145,7 @@ class ZoneController extends Controller
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
 
-                    $check_if_exists = Zone::companyKey()->contains('coordinates', $point)->exists();
+                    $check_if_exists = Zone::companyKey()->containsPoint('coordinates', $point)->exists();
                     if ($check_if_exists) {
                         throw ValidationException::withMessages(['zone_name' => __('Coordinates already exists with our exists zone')]);
                     }
@@ -173,7 +173,6 @@ class ZoneController extends Controller
 
         $zone = Zone::create($created_params);
         $translations_data = [];
-        $now = now();
         foreach ($validated['languageFields'] as $code => $language) {
             $zone->zoneTranslationWords()->create([
                 'name' => $language,
@@ -310,7 +309,7 @@ class ZoneController extends Controller
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
 
-                    $check_if_exists = Zone::companyKey()->contains('coordinates', $point)->where('id','!=',$zone->id)->exists();
+                    $check_if_exists = Zone::companyKey()->containsPoint('coordinates', $point)->where('id','!=',$zone->id)->exists();
                     if ($check_if_exists) {
                         throw ValidationException::withMessages(['zone_name' => __('Coordinates already exists with our exists zone')]);
                     }
