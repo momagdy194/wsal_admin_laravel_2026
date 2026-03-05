@@ -166,7 +166,7 @@ class AirportController extends BaseController
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
 
-                    $check_if_exists = Airport::companyKey()->contains('coordinates', $point)->exists();
+                    $check_if_exists = Airport::companyKey()->containsPoint('coordinates', $point)->exists();
                     if ($check_if_exists) {
                         throw ValidationException::withMessages(['airport_name' => __('Coordinates already exists with our exists airport')]);
                     }
@@ -256,7 +256,7 @@ class AirportController extends BaseController
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
 
-                    $check_if_exists = Airport::companyKey()->contains('coordinates', $point)->where('id','!=',$airport->id)->exists();
+                    $check_if_exists = Airport::companyKey()->containsPoint('coordinates', $point)->where('id','!=',$airport->id)->exists();
                     if ($check_if_exists) {
                         throw ValidationException::withMessages(['airport_name' => __('Coordinates already exists with our exists airport')]);
                     }

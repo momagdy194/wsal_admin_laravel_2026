@@ -1244,7 +1244,7 @@ if (!function_exists('find_peak_zone')) {
     {
         $point = new Point($lat, $lng);
 
-        $zone = PeakZone::contains('coordinates', $point)->first();
+        $zone = PeakZone::containsPoint('coordinates', $point)->first();
 
         return $zone;
     }
@@ -1259,7 +1259,9 @@ if (!function_exists('find_zone')) {
     {
         $point = new Point($lat, $lng);
 
-        $zone = Zone::contains('coordinates', $point)->whereHas('serviceLocation',function($query) {
+        // Use scopeContainsPoint (ST_GeomFromText with 2 args) for MySQL compatibility;
+        // the package's contains() uses 3 args and fails on older MySQL.
+        $zone = Zone::containsPoint('coordinates', $point)->whereHas('serviceLocation',function($query) {
             $query->where('active',true);
         })->where('active', 1)->first();
 
@@ -1319,7 +1321,7 @@ if (!function_exists('find_airport')) {
     {
         $point = new Point($lat, $lng);
 
-        $zone = Airport::companyKey()->contains('coordinates', $point)->where('active', 1)->first();
+        $zone = Airport::companyKey()->containsPoint('coordinates', $point)->where('active', 1)->first();
 
         return $zone;
     }

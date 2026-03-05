@@ -656,7 +656,7 @@ class EtaController extends ApiController
             
             $drop_location = new Point($drop_address['latitude'], $drop_address['longitude']);
 
-            $drop_zone = Zone::contains('coordinates', $drop_location)->whereHas('serviceLocation',function($query) {
+            $drop_zone = Zone::containsPoint('coordinates', $drop_location)->whereHas('serviceLocation',function($query) {
                 $query->where('active',true);
             })->where('active', 1)->where('id',$pick_zone->id)->first();
     

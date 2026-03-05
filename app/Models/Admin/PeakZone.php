@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\HasActiveCompanyKey;
 use Nicolaslopezj\Searchable\SearchableTrait;
 use Fleetbase\LaravelMysqlSpatial\Eloquent\SpatialTrait;
+use Fleetbase\LaravelMysqlSpatial\Types\Point;
 
 class PeakZone extends Model
 {
@@ -34,6 +35,15 @@ class PeakZone extends Model
     protected $spatialFields = [
         'coordinates'
     ];
+
+    /**
+     * Scope: geometry contains the given point (MySQL-compatible ST_GeomFromText with 2 args only).
+     */
+    public function scopeContainsPoint($query, string $column, Point $point)
+    {
+        $wkt = 'POINT(' . $point->getLng() . ' ' . $point->getLat() . ')';
+        return $query->whereRaw('ST_Contains(`' . $column . '`, ST_GeomFromText(?, 0))', [$wkt]);
+    }
 
     protected $searchable = [
         /**
