@@ -10,6 +10,7 @@ use Fleetbase\LaravelMysqlSpatial\Types\LineString;
 use Fleetbase\LaravelMysqlSpatial\Types\Polygon;
 use Illuminate\Validation\ValidationException;
 use Fleetbase\LaravelMysqlSpatial\Types\MultiPolygon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Base\Libraries\QueryFilter\QueryFilterContract;
 use App\Base\Filters\Admin\ZoneFilter;
@@ -118,20 +119,23 @@ class ZoneController extends Controller
         'distance_price_percentage',]);
         $created_params['unit'] = (int) $request->unit;
         $set = [];
+        $polygonsWkt = [];
         if ($request->coordinates == null) {
             throw ValidationException::withMessages(['name' => __('Please Complete the shape before submit')]);
         }
 
-        // Decode the coordinates JSON string
-        $decodedCoordinates = json_decode($request->coordinates, true);
+        // Decode the coordinates (may be JSON string or already array when sent as application/json)
+        $decodedCoordinates = is_string($request->coordinates)
+            ? json_decode($request->coordinates, true)
+            : $request->coordinates;
 
-        // Check if the decoding was successful
-        if ($decodedCoordinates === null) {
+        if ($decodedCoordinates === null || !is_array($decodedCoordinates)) {
             throw ValidationException::withMessages(['coordinates' => __('Invalid coordinates format')]);
         }
 
         foreach ($decodedCoordinates as $coordinates) {
             $points = [];
+            $ring = [];
             foreach ($coordinates as $key => $coordinate) {
 
                 // Check if the coordinate is an array with exactly two elements (lng, lat)
@@ -151,6 +155,7 @@ class ZoneController extends Controller
                     }
 
                     $points[] = $point;
+                    $ring[] = $coordinate[0] . ' ' . $coordinate[1];
                 } else {
                     throw ValidationException::withMessages(['coordinates' => __('Invalid coordinate data')]);
                 }
@@ -158,20 +163,23 @@ class ZoneController extends Controller
             // Close the polygon by repeating the first point
             if (count($points) > 0) {
                 array_push($points, $points[0]);
+                $ring[] = $ring[0];
             }
+            $polygonsWkt[] = '((' . implode(',', $ring) . '))';
 
             $lineStrings = [new LineString($points)];
             $set[] = new Polygon($lineStrings);
         }
 
-        $multi_polygon = new MultiPolygon($set);
-
-        $created_params['coordinates'] = $multi_polygon;
-
-
+        $wkt = 'MULTIPOLYGON(' . implode(',', $polygonsWkt) . ')';
         $created_params['name'] = $validated['languageFields']['en'];
+        unset($created_params['coordinates']);
 
         $zone = Zone::create($created_params);
+        DB::table('zones')->where('id', $zone->id)->update([
+            'coordinates' => DB::raw("ST_GeomFromText('" . str_replace("'", "''", $wkt) . "', 0)"),
+        ]);
+        $zone->refresh();
         $translations_data = [];
         foreach ($validated['languageFields'] as $code => $language) {
             $zone->zoneTranslationWords()->create([
@@ -281,21 +289,24 @@ class ZoneController extends Controller
         $updated_params['service_location_id'] = $request->service_location_id;
         
         $set = [];
+        $polygonsWkt = [];
 
         if ($request->coordinates == null) {
             throw ValidationException::withMessages(['name' => __('Please Complete the shape before submit')]);
         }
 
-        // Decode the coordinates JSON string
-        $decodedCoordinates = json_decode($request->coordinates, true);
+        // Decode the coordinates (may be JSON string or already array when sent as application/json)
+        $decodedCoordinates = is_string($request->coordinates)
+            ? json_decode($request->coordinates, true)
+            : $request->coordinates;
 
-        // Check if the decoding was successful
-        if ($decodedCoordinates === null) {
+        if ($decodedCoordinates === null || !is_array($decodedCoordinates)) {
             throw ValidationException::withMessages(['coordinates' => __('Invalid coordinates format')]);
         }
 
         foreach ($decodedCoordinates as $coordinates) {
             $points = [];
+            $ring = [];
             foreach ($coordinates as $key => $coordinate) {
 
                 // Check if the coordinate is an array with exactly two elements (lng, lat)
@@ -303,8 +314,8 @@ class ZoneController extends Controller
                  {
 
                     if ($key == 0) {
-                        $created_params['lat'] = $coordinate[1];
-                        $created_params['lng'] = $coordinate[0];
+                        $updated_params['lat'] = $coordinate[1];
+                        $updated_params['lng'] = $coordinate[0];
                     }
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
@@ -315,6 +326,7 @@ class ZoneController extends Controller
                     }
 
                     $points[] = $point;
+                    $ring[] = $coordinate[0] . ' ' . $coordinate[1];
                 } else {
                     throw ValidationException::withMessages(['coordinates' => __('Invalid coordinate data')]);
                 }
@@ -322,31 +334,37 @@ class ZoneController extends Controller
             // Close the polygon by repeating the first point
             if (count($points) > 0) {
                 array_push($points, $points[0]);
+                $ring[] = $ring[0];
             }
+            $polygonsWkt[] = '((' . implode(',', $ring) . '))';
 
             $lineStrings = [new LineString($points)];
             $set[] = new Polygon($lineStrings);
         }
 
-
-        // Create a MultiPolygon from the set of polygons
-        $multi_polygon = new MultiPolygon($set);
-
-        // Update additional parameters
+        $wkt = 'MULTIPOLYGON(' . implode(',', $polygonsWkt) . ')';
         $updated_params['name'] = $validated['languageFields']['en'];
-        $updated_params['coordinates'] = $multi_polygon;
+        unset($updated_params['coordinates']);
+
         // Update New translated names
         $zone->zoneTranslationWords()->delete();
+        $translations_data = [];
         foreach ($validated['languageFields'] as $code => $language) {
-            $translationData[] = ['name' => $language, 'locale' => $code, 'zone_id' => $zone->id];
+            $zone->zoneTranslationWords()->create([
+                'name' => $language,
+                'locale' => $code,
+                'zone_id' => $zone->id,
+            ]);
             $translations_data[$code] = new \stdClass();
             $translations_data[$code]->locale = $code;
             $translations_data[$code]->name = $language;
         }
-        $zone->zoneTranslationWords()->insert($translationData);
         $updated_params['translation_dataset'] = json_encode($translations_data);
-        // Update the zone with the updated parameters
         $zone->update($updated_params);
+        DB::table('zones')->where('id', $zone->id)->update([
+            'coordinates' => DB::raw("ST_GeomFromText('" . str_replace("'", "''", $wkt) . "', 0)"),
+        ]);
+        $zone->refresh();
 
         // Return a response indicating success
         return response()->json(['zone' => $zone], 200);
