@@ -44,18 +44,24 @@ class Handler extends ExceptionHandler
      */
     public function report(Throwable $exception)
     {        
-        $isDebugSendMailOpen = \Config::get('app.debug_sendmail_open');
-        $debugSendMailEmail = \Config::get('app.debug_sendmail_email');
+        $isDebugSendMailOpen = Config::get('app.debug_sendmail_open');
+        $debugSendMailEmail = Config::get('app.debug_sendmail_email');
 
         if ($isDebugSendMailOpen && $debugSendMailEmail != '' && $exception instanceof Throwable && !in_array(get_class($exception), $this->dontReport)) {
-            $debugSetting = \Config::get('app.debug');
-            $appName = \Config::get('app.name');
+            $debugSetting = Config::get('app.debug');
+            $appName = Config::get('app.name');
 
-            \Config::set('app.debug', true);
+            Config::set('app.debug', true);
 
-            $content = ExceptionHandler::isHttpException($exception) ? ExceptionHandler::toIlluminateResponse(ExceptionHandler::renderHttpException($exception), $exception) : ExceptionHandler::toIlluminateResponse(ExceptionHandler::convertExceptionToResponse($exception), $exception);
+            if (ExceptionHandler::isHttpException($exception)) {
+                /** @var \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $httpException */
+                $httpException = $exception;
+                $content = ExceptionHandler::toIlluminateResponse(ExceptionHandler::renderHttpException($httpException), $exception);
+            } else {
+                $content = ExceptionHandler::toIlluminateResponse(ExceptionHandler::convertExceptionToResponse($exception), $exception);
+            }
 
-            \Config::set('app.debug', $debugSetting);
+            Config::set('app.debug', $debugSetting);
 
             try {
                 $request = request();
@@ -173,6 +179,7 @@ class Handler extends ExceptionHandler
     protected function getStatusCode(Throwable $exception, $defaultStatusCode = Response::HTTP_INTERNAL_SERVER_ERROR)
     {
         if ($this->isHttpException($exception)) {
+            /** @var \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $exception */
             return $exception->getStatusCode();
         }
 
