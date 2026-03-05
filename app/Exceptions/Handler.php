@@ -107,7 +107,8 @@ class Handler extends ExceptionHandler
 
         $statusCode = $this->getStatusCode($exception);
 
-        if ($exception instanceof NotFoundHttpException || !($message = $exception->getMessage())) {
+        $exceptionMessage = $exception->getMessage();
+        if ($exception instanceof NotFoundHttpException || !($message = $exceptionMessage)) {
             $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode]);
         }
 
@@ -116,6 +117,10 @@ class Handler extends ExceptionHandler
             'message' => $message,
             'status_code' => $statusCode,
         ];
+        // Always include the actual exception message so the client can show the real problem
+        if ($exceptionMessage !== '' && $exceptionMessage !== null) {
+            $data['exception_message'] = $exceptionMessage;
+        }
 
         if ($exception instanceof ValidationException || $exception instanceof CustomValidationException) {
             $data['status_code'] = $statusCode = Response::HTTP_UNPROCESSABLE_ENTITY;
@@ -205,7 +210,8 @@ class Handler extends ExceptionHandler
         if ($request->expectsJson()) {
             return true;
         }
-
-        return (!empty($request->segments()) && $request->segments()[0] === 'api');
+        // Treat these web routes as JSON when they send JSON (e.g. XHR from admin panel)
+        $jsonSegments = ['api', 'roles', 'zones'];
+        return !empty($request->segments()) && in_array($request->segments()[0], $jsonSegments, true);
     }
 }
