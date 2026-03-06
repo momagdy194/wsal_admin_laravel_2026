@@ -54,18 +54,18 @@ class VehicleTypeController extends BaseController
     */
     public function getVehicleTypesByServiceLocation(ServiceLocation $service_location)
     {
-        
+        $transportType = strtolower((string) (request()->query('transport_type') ?? 'taxi'));
 
-    $response = $this->vehicle_type
-    ->where('active', true)
-    ->whereHas('zoneType.zone', function ($query) use ($service_location) {
-        $query->where('service_location_id', $service_location->id);
-    })
-    ->where(function ($query) {
-        $query->where('is_taxi', request()->transport_type)
-              ->orWhere('is_taxi', 'both');
-    })
-    ->get();
+        $response = $this->vehicle_type
+            ->where('active', true)
+            ->whereHas('zoneType.zone', function ($query) use ($service_location) {
+                $query->where('service_location_id', $service_location->id);
+            })
+            ->where(function ($query) use ($transportType) {
+                $query->where('is_taxi', $transportType)
+                      ->orWhere('is_taxi', 'both');
+            })
+            ->get();
 
         return $this->respondSuccess($response);
     }
