@@ -108,8 +108,15 @@ class Handler extends ExceptionHandler
         $statusCode = $this->getStatusCode($exception);
 
         $exceptionMessage = $exception->getMessage();
-        if ($exception instanceof NotFoundHttpException || !($message = $exceptionMessage)) {
-            $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode]);
+        // Normalize OAuth-style auth errors to 401 with a clear message
+        $authErrorMessages = ['invalid_grant', 'invalid_token', 'expired_token', 'revoked_token'];
+        if (in_array(strtolower($exceptionMessage), $authErrorMessages, true) || $exception instanceof AuthenticationException) {
+            $statusCode = Response::HTTP_UNAUTHORIZED;
+            $message = 'Unauthenticated. Invalid or expired token.';
+        } elseif ($exception instanceof NotFoundHttpException || !($message = $exceptionMessage)) {
+            $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode] ?? 'Error');
+        } else {
+            $message = $exceptionMessage;
         }
 
         $data = [
