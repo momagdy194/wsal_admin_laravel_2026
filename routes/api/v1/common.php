@@ -35,6 +35,9 @@ Route::namespace('Common')->group(function () {
         // Get owner driverModule
         Route::get('modules', 'CarMakeAndModelController@getAppModule');     
         
+        // Map settings for User / Driver apps (no auth required)
+        Route::get('map-settings', 'MapSettingsController@index');
+
         // Test Api
         Route::get('test-api','CarMakeAndModelController@testApi');
 
