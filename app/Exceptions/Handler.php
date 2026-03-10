@@ -132,6 +132,10 @@ class Handler extends ExceptionHandler
             'message' => $message,
             'status_code' => $statusCode,
         ];
+        // So API clients (e.g. Flutter app) can show login screen when token is invalid/expired
+        if ($statusCode === Response::HTTP_UNAUTHORIZED && (in_array(strtolower($exceptionMessage ?? ''), ['invalid_grant', 'invalid_token', 'expired_token', 'revoked_token'], true) || $exception instanceof AuthenticationException)) {
+            $data['login_required'] = true;
+        }
         // Include the actual exception message for server errors (not for validation - errors are in 'errors')
         $isValidation = $exception instanceof ValidationException || $exception instanceof CustomValidationException;
         if (!$isValidation && $exceptionMessage !== '' && $exceptionMessage !== null) {

@@ -635,8 +635,18 @@ class LoginController extends ApiController
      */
     protected function authenticateAndRespond(User $user, $request, $needsToken = false)
     {
-        $user->tokens()->delete();
-        // dd($user);
+        // Allow multiple devices: keep last N tokens (delete oldest when over limit)
+        $maxTokensPerUser = (int) config('sanctum.max_tokens_per_user', 5);
+        if ($maxTokensPerUser > 0) {
+            $count = $user->tokens()->count();
+            $toDelete = $count - $maxTokensPerUser + 1; // +1 because we are about to add a new token
+            if ($toDelete > 0) {
+                $idsToDelete = $user->tokens()->orderBy('created_at')->limit($toDelete)->pluck('id');
+                $user->tokens()->whereIn('id', $idsToDelete)->delete();
+            }
+        } else {
+            $user->tokens()->delete();
+        }
         if ($needsToken) {
             
           

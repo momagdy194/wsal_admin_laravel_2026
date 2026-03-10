@@ -65,6 +65,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Max tokens per user (multiple devices)
+    |--------------------------------------------------------------------------
+    | When > 0, login keeps this many tokens per user (deletes oldest). Set to 0 to delete all tokens on each login (single device).
+    */
+    'max_tokens_per_user' => (int) env('SANCTUM_MAX_TOKENS_PER_USER', 5),
+
+    /*
+    |--------------------------------------------------------------------------
     | Sanctum Middleware
     |--------------------------------------------------------------------------
     |
