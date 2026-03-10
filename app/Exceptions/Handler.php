@@ -114,10 +114,12 @@ class Handler extends ExceptionHandler
             $statusCode = Response::HTTP_UNAUTHORIZED;
             $message = 'Unauthenticated. Invalid or expired token.';
             // Log auth failures for debugging (token from other server, expired, or deleted)
+            $req = request();
             Log::channel('single')->info('API auth failure', [
                 'exception_class' => get_class($exception),
                 'exception_message' => $exceptionMessage,
-                'path' => request()?->path(),
+                'path' => $req?->path(),
+                'has_bearer' => $req && $req->bearerToken() !== null,
             ]);
         } elseif ($exception instanceof NotFoundHttpException || !($message = $exceptionMessage)) {
             $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode] ?? 'Error');
