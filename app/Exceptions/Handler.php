@@ -12,7 +12,7 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Jobs\Notifications\Exception\SendExceptionToEmailNotification;
 use App\Models\Setting;
-use Log;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 
 class Handler extends ExceptionHandler
@@ -113,6 +113,12 @@ class Handler extends ExceptionHandler
         if (in_array(strtolower($exceptionMessage), $authErrorMessages, true) || $exception instanceof AuthenticationException) {
             $statusCode = Response::HTTP_UNAUTHORIZED;
             $message = 'Unauthenticated. Invalid or expired token.';
+            // Log auth failures for debugging (token from other server, expired, or deleted)
+            Log::channel('single')->info('API auth failure', [
+                'exception_class' => get_class($exception),
+                'exception_message' => $exceptionMessage,
+                'path' => request()?->path(),
+            ]);
         } elseif ($exception instanceof NotFoundHttpException || !($message = $exceptionMessage)) {
             $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode] ?? 'Error');
         } else {
@@ -132,9 +138,11 @@ class Handler extends ExceptionHandler
 
         if ($isValidation) {
             $data['status_code'] = $statusCode = Response::HTTP_UNPROCESSABLE_ENTITY;
-            $data['errors'] = $exception instanceof ValidationException
-                ? $exception->validator->errors()->getMessages()
-                : $exception->getMessages();
+            if ($exception instanceof ValidationException) {
+                $data['errors'] = $exception->validator->errors()->getMessages();
+            } elseif ($exception instanceof CustomValidationException) {
+                $data['errors'] = $exception->getMessages();
+            }
         }
 
         if ($code = $exception->getCode()) {
@@ -144,6 +152,9 @@ class Handler extends ExceptionHandler
         // When debug is on, return the real error so you can see what went wrong
         if ($this->runningInDebugMode()) {
             $data['exception_message'] = $exception->getMessage();
+            if ($statusCode === Response::HTTP_UNAUTHORIZED) {
+                $data['hint'] = 'Token may be expired, deleted (e.g. after re-login), or created on another server (different APP_KEY). Re-login and use the new token on this server.';
+            }
             $data['debug'] = [
                 'message' => $exception->getMessage(),
                 'line' => $exception->getLine(),
