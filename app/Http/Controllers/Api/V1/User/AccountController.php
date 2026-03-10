@@ -59,22 +59,15 @@ class AccountController extends ApiController
 
         } else if(auth()->user()->hasRole(Role::USER)) {
 
-            // if(!$user->zone_id){
+                $zone = find_zone($user->current_lat, $user->current_lng);
 
-                $zone = find_zone($user->current_lat,$user->current_lng);
-
-                if(!$user->service_location_id && $zone){
-
-                    $service_location_id = $zone->serviceLocation->id;
-
-                    $user->update(['service_location_id'=>$service_location_id]);
-                    
-
-                   }
-
-            // }
-
-            
+                if (!$user->service_location_id && $zone) {
+                    $serviceLocation = $zone->serviceLocation;
+                    if ($serviceLocation) {
+                        $service_location_id = $serviceLocation->id;
+                        $user->update(['service_location_id' => $service_location_id]);
+                    }
+                }
 
             $user = fractal($user, new UserTransformer)->parseIncludes(['onTripRequest.driverDetail','onTripRequest.requestBill','metaRequest.driverDetail','favouriteLocations','laterMetaRequest.driverDetail']);
         }else{
