@@ -101,12 +101,10 @@ class Handler extends ExceptionHandler
 
         $statusCode = $this->getStatusCode($exception);
 
-        if ($exception instanceof NotFoundHttpException || !($message = $exception->getMessage())) {
-            $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode]);
-        }
-
-        if ($exception instanceof QueryException && !$this->runningInDebugMode()) {
-            $message = 'Internal Server Error';
+        // استخدم رسالة الخطأ الفعلية دائماً للـ API؛ استخدم نص الحالة فقط إن لم توجد رسالة
+        $message = $exception->getMessage();
+        if ($exception instanceof NotFoundHttpException || $message === '' || $message === null) {
+            $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode] ?? 'Server Error');
         }
 
         $data = [
