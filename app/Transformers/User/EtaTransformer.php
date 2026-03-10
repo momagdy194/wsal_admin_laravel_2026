@@ -20,6 +20,7 @@ use App\Transformers\Access\RoleTransformer;
 use App\Base\Constants\Auth\Role;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\Rides\RidePriceCalculationHelpers;
+use App\Models\Admin\FranchisePromo;
 
 class EtaTransformer extends Transformer
 {
@@ -348,28 +349,81 @@ class EtaTransformer extends Transformer
         // Validate if the promo is expired
         $current_date = Carbon::today()->toDateTimeString();
 
-        if($app_for=='taxi' || $app_for=='delivery')
+         if(get_settings('franchise-addons') == 1){        
+
+            if($app_for=='taxi' || $app_for=='delivery')
+            {      
+                $franchise_promo = FranchisePromo::where('code', $promo_code)->where('service_location_id',$service_location)->exists();
+                if($franchise_promo == true){
+                    $expired = FranchisePromo::where('code', $promo_code)->where('service_location_id',$service_location)->where('to', '>', $current_date)->first();
+                }
+                else{
+                    $expired = Promo::where('code', $promo_code)->where('service_location_id',$service_location)->where('to', '>', $current_date)->first();
+                }
+            }
+            else{
+                $transport_type = request()->transport_type;
+
+                $franchise_promo = FranchisePromo::where('code', $promo_code)->where('service_location_id',$service_location)->exists();
+                if($franchise_promo == true){                
+                    $expired = FranchisePromo::where('code', $promo_code)->where('service_location_id',$service_location)->where(function($query)use($transport_type){
+                    $query->where('transport_type',$transport_type)->orWhere('transport_type','both');
+                    })->where('to', '>', $current_date)->where('active',true)->first();
+                }
+                else{
+                    
+                    $expired = Promo::where('code', $promo_code)->where('service_location_id',$service_location)->where(function($query)use($transport_type){
+                    $query->where('transport_type',$transport_type)->orWhere('transport_type','both');
+                    })->where('to', '>', $current_date)->where('active',true)->first();
+                }
+            }
+
+            if (!$expired) {
+                $this->throwCustomException('Invalid Promo Code');
+            }
+            $validate_promo_code = true;
+            if($expired->user_specific){
+                $validate_promo_code = $expired->promoCodeUsers()->where('user_id',$user->id)->first();
+                // Log::info($validate_promo_code);
+            }
+            if(!$validate_promo_code)
+            {
+                $this->throwCustomException('provided promo code invalid');
+            }
+
+            $exceed_usage = PromoUser::where('promo_code_id', $expired->id)->where('user_id', $user->id)->count();
+            // Log::info($user);
+            // Log::info($exceed_usage);
+            // Log::info("testt");
+            // Log::info(json_encode($expired));
+            if ($exceed_usage >= $expired->uses_per_user) {
+                $this->throwCustomException('provided promo code expired or invalid');
+            }
+
+            return $expired;
+
+        }
+        else{
+            if($app_for=='taxi' || $app_for=='delivery')
         {      
-        $expired = Promo::where('code', $promo_code)->where('service_location_id',$service_location)->where('to', '>', $current_date)->first();
+        $expired = Promo::where('code', $promo_code)->where('to', '>', $current_date)->first();
         }else{
             $transport_type = request()->transport_type;
-            $expired = Promo::where('code', $promo_code)->where('service_location_id',$service_location)->where(function($query)use($transport_type){
+            $expired = Promo::where('code', $promo_code)->where(function($query)use($transport_type){
             $query->where('transport_type',$transport_type)->orWhere('transport_type','both');
             })->where('to', '>', $current_date)->where('active',true)->first();
 
         }
-
         if (!$expired) {
-            $this->throwCustomException('Invalid Promo Code');
+            $this->throwCustomException('provided promo code expired or invalid');
         }
-        $validate_promo_code = true;
-        if($expired->user_specific){
-            $validate_promo_code = $expired->promoCodeUsers()->where('user_id',$user->id)->first();
-            // Log::info($validate_promo_code);
-        }
-        if(!$validate_promo_code)
+        if($expired->promo_code_users_availabe == "yes")
         {
-            $this->throwCustomException('provided promo code invalid');
+            $validate_promo_code = PromoCodeUser::where('promo_code_id', $expired->id)->where('user_id', $user->id)->where('service_location_id', $service_location)->first();
+            if(!$validate_promo_code)
+            {
+                $this->throwCustomException('provided promo code expired or invalid');
+            }
         }
 
         $exceed_usage = PromoUser::where('promo_code_id', $expired->id)->where('user_id', $user->id)->count();
@@ -382,5 +436,6 @@ class EtaTransformer extends Transformer
         }
 
         return $expired;
+        }
     }
 }

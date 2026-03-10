@@ -129,7 +129,8 @@ class PermissionController extends Controller
             PermissionSlug::DISPATHCER_CHAT,
             PermissionSlug::DISPATHCER_SCHEDULED_RIDES,
             PermissionSlug::DISPATHCER_REQUEST_ENQUIRY,
-            PermissionSlug::OWNER_BOOKING,
+            PermissionSlug::OWNER_BOOKING,              
+            PermissionSlug::FRANCHISE_WITHDRAWAL,
         ];
         $permissions = Permission::whereNotIn('slug',$otherPermissions )->pluck('slug')->all();
         $permissions[] = 'super-admin';

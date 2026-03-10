@@ -33,14 +33,14 @@ trait FetchDriversFromFirebaseHelpers
      * @return \Illuminate\Http\JsonResponse
      */
     //
-    protected function fetchDriversFromFirebase($request_detail,$database)
+    protected function fetchDriversFromFirebase($request_detail, $database)
     {
-        Log::channel('activity')->info(['FetchDrivers'=>'FromFirebaseHelpers']);
+        Log::channel('activity')->info(['FetchDrivers' => 'FromFirebaseHelpers']);
         if ($request_detail->requestMeta()->exists()) {
-             
-             return null;   
+
+            return null;
         }
-       
+
 
         $pick_lat = $request_detail->pick_lat;
         $pick_lng = $request_detail->pick_lng;
@@ -50,11 +50,11 @@ trait FetchDriversFromFirebaseHelpers
         $type_id = $request_detail->zoneType->type_id;
         $type_Capacity = $request_detail->zoneType->vehicleType->capacity;
 
-        $driver_search_radius = get_settings('driver_search_radius')?:30;
-        
+        $driver_search_radius = get_settings('driver_search_radius') ?: 30;
+
         $radius = kilometer_to_miles($driver_search_radius);
 
-        $calculatable_radius = ($radius/2);
+        $calculatable_radius = ($radius / 2);
 
         $calulatable_lat = 0.0144927536231884 * $calculatable_radius;
         $calulatable_long = 0.0181818181818182 * $calculatable_radius;
@@ -67,8 +67,8 @@ trait FetchDriversFromFirebaseHelpers
 
         $g = new Geohash();
 
-        $lower_hash = $g->encode($lower_lat,$lower_long, 12);
-        $higher_hash = $g->encode($higher_lat,$higher_long, 12);
+        $lower_hash = $g->encode($lower_lat, $lower_long, 12);
+        $higher_hash = $g->encode($higher_lat, $higher_long, 12);
 
         $conditional_timestamp = Carbon::now()->subMinutes(7)->timestamp;
 
@@ -77,34 +77,34 @@ trait FetchDriversFromFirebaseHelpers
 
 
         $fire_drivers = $database->getReference('drivers')->orderByChild('g')->startAt($lower_hash)->endAt($higher_hash)->getValue();
-        
+
         $firebase_drivers = [];
 
-        $i=-1;
-    
+        $i = -1;
+
         foreach ($fire_drivers as $key => $fire_driver) {
-            $i +=1; 
-            
+            $i += 1;
+
             $driver_updated_at = Carbon::createFromTimestamp($fire_driver['updated_at'] / 1000)->timestamp;
 
             $flag = true;
             $preferenceIds = [];
             $ridePreferences = $request_detail->preferenceDetail()->pluck('preference_price_id');
 
-            if(count($ridePreferences) > 0){
-                $preferenceIds = PreferencePrices::whereIn('id',$ridePreferences)->pluck('preference_id')->toArray();
-                
+            if (count($ridePreferences) > 0) {
+                $preferenceIds = PreferencePrices::whereIn('id', $ridePreferences)->pluck('preference_id')->toArray();
+
             }
 
-            if(count($ridePreferences) > 0){
+            if (count($ridePreferences) > 0) {
 
                 $flag = false;
 
-                if(array_key_exists('preferences',$fire_driver)){
+                if (array_key_exists('preferences', $fire_driver)) {
 
-                    foreach($preferenceIds as $key=> $pref){
-                        $flag = in_array($pref,$fire_driver['preferences']);
-                        if(!$flag){
+                    foreach ($preferenceIds as $key => $pref) {
+                        $flag = in_array($pref, $fire_driver['preferences']);
+                        if (!$flag) {
                             break;
                         }
                     }
@@ -113,40 +113,45 @@ trait FetchDriversFromFirebaseHelpers
                 }
             }
 
-            if($request_detail->shared_ride){
-                if($flag && array_key_exists('vehicle_types',$fire_driver)  && in_array($vehicle_type, $fire_driver['vehicle_types']) && $fire_driver['is_active']==1 && $conditional_timestamp < $driver_updated_at){
+            if ($request_detail->shared_ride) {
+                if ($flag && array_key_exists('vehicle_types', $fire_driver) && in_array($vehicle_type, $fire_driver['vehicle_types']) && $fire_driver['is_active'] == 1 && $conditional_timestamp < $driver_updated_at) {
 
-                    $shared_route_flag=true;
-                    
-                    $current_ride_route_coordinates=null;
+                    $shared_route_flag = true;
+
+                    $current_ride_route_coordinates = null;
                     //get line string from helper
                     $current_ride_route_coordinates = get_line_string($pick_lat, $pick_lng, $drop_lat, $drop_lng);
 
-                    if($current_ride_route_coordinates!=null){
+                    if ($current_ride_route_coordinates != null) {
 
-                        $driver = Driver::where('id',$fire_driver['id'])->first();
-                        
+                        $driver = Driver::where('id', $fire_driver['id'])->first();
+
                         $shared_rides = $driver->requestDetail()
-                                ->where('is_cancelled', false)
-                                ->where('is_completed', false)
-                                ->where('shared_ride', true)
-                                ->get();
+                            ->where('is_cancelled', false)
+                            ->where('is_completed', false)
+                            ->where('shared_ride', true)
+                            ->get();
 
-                        if(count($shared_rides)){
+                        if (count($shared_rides)) {
 
-                            $shared_route_flag=false;
+                            $shared_route_flag = false;
                         }
 
                         foreach ($shared_rides as $key => $shared_ride) {
-                            
-                            $shared_ride_route_coordinates=null;
-                                
-                            $shared_ride_route_coordinates = get_line_string($fire_driver['l'][0],$fire_driver['l'][1], $shared_ride->drop_lat ,$shared_ride->drop_lng);
 
-                            if($shared_ride_route_coordinates != null){
+                            $shared_ride_route_coordinates = null;
 
-                                $current_ride_points = collect($current_ride_route_coordinates->getPoints())->map(fn($p) => [$p->getLat(), $p->getLng()]);
-                                $shared_ride_points = collect($shared_ride_route_coordinates->getPoints())->map(fn($p) => [$p->getLat(), $p->getLng()]);
+                            $shared_ride_route_coordinates = get_line_string($fire_driver['l'][0], $fire_driver['l'][1], $shared_ride->drop_lat, $shared_ride->drop_lng);
+
+                            if ($shared_ride_route_coordinates != null) {
+
+                                // $current_ride_points = collect($current_ride_route_coordinates->getPoints())->map(fn($p) => [$p->getLat(), $p->getLng()]);
+                                // $shared_ride_points = collect($shared_ride_route_coordinates->getPoints())->map(fn($p) => [$p->getLat(), $p->getLng()]);
+                                $current_ride_points = collect($current_ride_route_coordinates->toArray()['coordinates'])
+                                    ->map(fn($p) => [$p[1], $p[0]]); // lat, lng
+
+                                $shared_ride_points = collect($shared_ride_route_coordinates->toArray()['coordinates'])
+                                    ->map(fn($p) => [$p[1], $p[0]]);
 
                                 // tolerance in meters
                                 $tolerance = 50;
@@ -163,41 +168,42 @@ trait FetchDriversFromFirebaseHelpers
                         }
                     }
 
-                    $distance = distance_between_two_coordinates($pick_lat,$pick_lng,$fire_driver['l'][0],$fire_driver['l'][1],'K');
+                    $distance = distance_between_two_coordinates($pick_lat, $pick_lng, $fire_driver['l'][0], $fire_driver['l'][1], 'K');
 
-                    $driver = Driver::where('id',$fire_driver['id'])->first();
+                    $driver = Driver::where('id', $fire_driver['id'])->first();
                     $shared_capacity_flag = ($type_Capacity - $driver->occupied_seats) >= $request_detail->seats_taken;
 
 
-                    if($shared_route_flag && $shared_capacity_flag && $distance <= $driver_search_radius){
+                    if ($shared_route_flag && $shared_capacity_flag && $distance <= $driver_search_radius) {
 
-                        $firebase_drivers[$fire_driver['id']]['distance']= $distance;
+                        $firebase_drivers[$fire_driver['id']]['distance'] = $distance;
 
                     }
 
                 }
-            }else{
+            }
+            else {
 
-                if($flag && array_key_exists('vehicle_type',$fire_driver) && $fire_driver['vehicle_type']==$vehicle_type && $fire_driver['is_active']==1 && $fire_driver['is_available']==1 && $conditional_timestamp < $driver_updated_at){
+                if ($flag && array_key_exists('vehicle_type', $fire_driver) && $fire_driver['vehicle_type'] == $vehicle_type && $fire_driver['is_active'] == 1 && $fire_driver['is_available'] == 1 && $conditional_timestamp < $driver_updated_at) {
 
 
-                    $distance = distance_between_two_coordinates($pick_lat,$pick_lng,$fire_driver['l'][0],$fire_driver['l'][1],'K');
+                    $distance = distance_between_two_coordinates($pick_lat, $pick_lng, $fire_driver['l'][0], $fire_driver['l'][1], 'K');
 
-                    if($distance <= $driver_search_radius){
+                    if ($distance <= $driver_search_radius) {
 
-                        $firebase_drivers[$fire_driver['id']]['distance']= $distance;
+                        $firebase_drivers[$fire_driver['id']]['distance'] = $distance;
 
                     }
 
-                }elseif($flag && array_key_exists('vehicle_types',$fire_driver)  && in_array($vehicle_type, $fire_driver['vehicle_types']) && $fire_driver['is_active']==1 && $fire_driver['is_available']==1 && $conditional_timestamp < $driver_updated_at)
-                    {
+                }
+                elseif ($flag && array_key_exists('vehicle_types', $fire_driver) && in_array($vehicle_type, $fire_driver['vehicle_types']) && $fire_driver['is_active'] == 1 && $fire_driver['is_available'] == 1 && $conditional_timestamp < $driver_updated_at) {
 
 
-                    $distance = distance_between_two_coordinates($pick_lat,$pick_lng,$fire_driver['l'][0],$fire_driver['l'][1],'K');
+                    $distance = distance_between_two_coordinates($pick_lat, $pick_lng, $fire_driver['l'][0], $fire_driver['l'][1], 'K');
 
-                    if($distance <= $driver_search_radius){
+                    if ($distance <= $driver_search_radius) {
 
-                        $firebase_drivers[$fire_driver['id']]['distance']= $distance;
+                        $firebase_drivers[$fire_driver['id']]['distance'] = $distance;
 
                     }
 
@@ -206,267 +212,269 @@ trait FetchDriversFromFirebaseHelpers
             }
 
         }
-        
+
         asort($firebase_drivers);
 
         $current_date = Carbon::now();
 
-         if (!empty($firebase_drivers)) {
+        if (!empty($firebase_drivers)) {
 
             $nearest_driver_ids = [];
 
-            $removable_driver_ids=[];
+            $removable_driver_ids = [];
 
-                foreach ($firebase_drivers as $key => $firebase_driver) {
-                    
-                    $nearest_driver_ids[]=$key;
+            foreach ($firebase_drivers as $key => $firebase_driver) {
+
+                $nearest_driver_ids[] = $key;
 
 
 
-                if($drop_lat==null){
+                if ($drop_lat == null) {
                     goto for_each_end;
                 }
 
-                $has_enabled_my_route_drivers=Driver::where('id',$key)->where('active', 1)->where('approve', 1)->where(function($query)use($request_detail){
+                $has_enabled_my_route_drivers = Driver::where('id', $key)->where('active', 1)->where('approve', 1)->where(function ($query) use ($request_detail) {
                     $query->where('transport_type', $request_detail->transport_type)->orWhere('transport_type', 'both');
-                })->where('enable_my_route_booking',1)->whereNotNull('my_route_address')->whereNotNull('my_route_lat')->first();
+                })->where('enable_my_route_booking', 1)->whereNotNull('my_route_address')->whereNotNull('my_route_lat')->first();
 
-                $route_coordinates=null;
+                $route_coordinates = null;
 
-                if($has_enabled_my_route_drivers){
+                if ($has_enabled_my_route_drivers) {
 
                     Log::info("my-route-driver");
 
                     //get line string from helper
                     $route_coordinates = get_line_string($pick_lat, $pick_lng, $drop_lat, $drop_lng);
 
-                }       
-                        if($has_enabled_my_route_drivers!=null &$route_coordinates!=null){
+                }
+                if ($has_enabled_my_route_drivers != null& $route_coordinates != null) {
 
-                            Log::info("coming-to-check");
+                    Log::info("coming-to-check");
 
-                            $enabled_route_matched = $has_enabled_my_route_drivers->intersects('route_coordinates',$route_coordinates)->first();
-                            Log::info("route-match-or-not");
+                    $enabled_route_matched = $has_enabled_my_route_drivers->whereIntersects('route_coordinates', $route_coordinates)->first();
+                    Log::info("route-match-or-not");
 
-                            if(!$enabled_route_matched){
+                    if (!$enabled_route_matched) {
 
-                                $removable_driver_ids[]=$key;
-                            }
+                        $removable_driver_ids[] = $key;
+                    }
 
-                            $current_location_of_driver = $has_enabled_my_route_drivers->enabledRoutes()->whereDate('created_at',$current_date)->orderBy('created_at','desc')->first();
+                    $current_location_of_driver = $has_enabled_my_route_drivers->enabledRoutes()->whereDate('created_at', $current_date)->orderBy('created_at', 'desc')->first();
 
-                            if($current_location_of_driver){
+                    if ($current_location_of_driver) {
 
-                         $distance_between_drop_to_my_route = distance_between_two_coordinates($drop_lat, $drop_lng, $has_enabled_my_route_drivers->my_route_lat, $has_enabled_my_route_drivers->my_route_lng,'K');
+                        $distance_between_drop_to_my_route = distance_between_two_coordinates($drop_lat, $drop_lng, $has_enabled_my_route_drivers->my_route_lat, $has_enabled_my_route_drivers->my_route_lng, 'K');
 
-                        if($distance_between_drop_to_my_route > 5){
+                        if ($distance_between_drop_to_my_route > 5) {
 
-                                $removable_driver_ids[]=$key;
+                            $removable_driver_ids[] = $key;
 
                         }
-                            
-    
-                            }
-                            
-                        }
 
-                        for_each_end:
+
+                    }
+
                 }
 
-            $rejected_driver_ids = DriverRejectedRequest::where('request_id',$request_detail->id)->pluck('driver_id')->toArray();
+                for_each_end:
+            }
 
-            $nearest_driver_ids = array_diff($nearest_driver_ids,$removable_driver_ids);
-            $nearest_driver_ids = array_diff($nearest_driver_ids,$rejected_driver_ids);
+            $rejected_driver_ids = DriverRejectedRequest::where('request_id', $request_detail->id)->pluck('driver_id')->toArray();
 
-            if(count($nearest_driver_ids)==0){
+            $nearest_driver_ids = array_diff($nearest_driver_ids, $removable_driver_ids);
+            $nearest_driver_ids = array_diff($nearest_driver_ids, $rejected_driver_ids);
+
+            if (count($nearest_driver_ids) == 0) {
 
                 $request_detail->attempt_for_schedule += 1;
                 $request_detail->save();
 
                 $no_of_attempts = get_settings('maximum_time_for_find_drivers_for_regular_ride');
 
-                $no_of_attempts +=3;
+                $no_of_attempts += 3;
 
-                if ($request_detail->attempt_for_schedule>$no_of_attempts) {
-                        
-                        // Update cancel param in firebase
-                        $database->getReference('requests/'.$request_detail->id)->update(['is_cancel' => 1]);
-                     
-                        $database->getReference('request-meta/'.$request_detail->id)->remove();
-                        $database->getReference('requests/'.$request_detail->id)->remove();
+                if (!$request_detail->is_later && $request_detail->attempt_for_schedule > $no_of_attempts) {
 
-                        $no_driver_request_ids = [];
-                        $no_driver_request_ids[0] = $request_detail->id;
-                        $this->noDriverFound($no_driver_request_ids,$database);
+                    // Update cancel param in firebase
+                    $database->getReference('requests/' . $request_detail->id)->update(['is_cancel' => 1]);
+
+                    $database->getReference('request-meta/' . $request_detail->id)->remove();
+                    $database->getReference('requests/' . $request_detail->id)->remove();
+
+                    $no_driver_request_ids = [];
+                    $no_driver_request_ids[0] = $request_detail->id;
+                    $this->noDriverFound($no_driver_request_ids, $database);
                 }
 
-                return null; 
+                return null;
 
 
-                }
+            }
 
-            $driver_search_radius = get_settings('driver_search_radius')?:30;
+            $driver_search_radius = get_settings('driver_search_radius') ?: 30;
 
-                $haversine = "(6371 * acos(cos(radians($pick_lat)) * cos(radians(pick_lat)) * cos(radians(pick_lng) - radians($pick_lng)) + sin(radians($pick_lat)) * sin(radians(pick_lat))))";
-                // Get Drivers who are all going to accept or reject the some request that nears the user's current location.
+            $haversine = "(6371 * acos(cos(radians($pick_lat)) * cos(radians(pick_lat)) * cos(radians(pick_lng) - radians($pick_lng)) + sin(radians($pick_lat)) * sin(radians(pick_lat))))";
+            // Get Drivers who are all going to accept or reject the some request that nears the user's current location.
 
-                $meta_drivers = RequestMeta::whereHas('request.requestPlace', function ($query) use ($haversine,$driver_search_radius) {
-                    $query->select('request_places.*')->selectRaw("{$haversine} AS distance")
-                ->whereRaw("{$haversine} < ?", [$driver_search_radius]);
-                })->pluck('driver_id')->toArray();
+            $meta_drivers = RequestMeta::whereHas('request.requestPlace', function ($query) use ($haversine, $driver_search_radius) {
+                $query->select('request_places.*')->selectRaw("{$haversine} AS distance")
+                    ->whereRaw("{$haversine} < ?", [$driver_search_radius]);
+            })->pluck('driver_id')->toArray();
 
 
-                $nearest_drivers = Driver::where('active', 1)
+            $nearest_drivers = Driver::where('active', 1)
                 ->where('approve', 1)
                 ->whereIn('id', $nearest_driver_ids)
                 ->whereNotIn('id', $meta_drivers)
                 ->orderByRaw("FIELD(id, " . implode(',', $nearest_driver_ids) . ")")
                 ->limit(10)
                 ->get();
-            
 
 
-                if ($nearest_drivers->count()==0) {
-                    
+
+            if ($nearest_drivers->count() == 0) {
+
                 $request_detail->attempt_for_schedule += 1;
                 $request_detail->save();
 
                 $no_of_attempts = get_settings('maximum_time_for_find_drivers_for_regular_ride');
 
-                $no_of_attempts +=3;
+                $no_of_attempts += 3;
 
-                if ($request_detail->attempt_for_schedule>$no_of_attempts) {
+                if (!$request_detail->is_later && $request_detail->attempt_for_schedule > $no_of_attempts) {
 
-                        $database->getReference('requests/'.$request_detail->id)->update(['is_cancel' => 1]);
-                        $database->getReference('request-meta/'.$request_detail->id)->remove();
- 
-                        $no_driver_request_ids = [];
-                        $no_driver_request_ids[0] = $request_detail->id;
-                        $this->noDriverFound($no_driver_request_ids,$database);
+                    $database->getReference('requests/' . $request_detail->id)->update(['is_cancel' => 1]);
+                    $database->getReference('request-meta/' . $request_detail->id)->remove();
+
+                    $no_driver_request_ids = [];
+                    $no_driver_request_ids[0] = $request_detail->id;
+                    $this->noDriverFound($no_driver_request_ids, $database);
                 }
 
-                    return null; 
-                }
-        //Create Meta & Send Ride Request to the Nearest Drivers
-        $selected_drivers = [];
-        $i = 0;
-        foreach ($nearest_drivers as $driver_key => $driver) {
+                return null;
+            }
+            //Create Meta & Send Ride Request to the Nearest Drivers
+            $selected_drivers = [];
+            $i = 0;
+            foreach ($nearest_drivers as $driver_key => $driver) {
 
-            // $selected_drivers[$i]["request_id"] = $request_detail->id;
-            foreach ($firebase_drivers as $key => $firebase_driver) {
+                // $selected_drivers[$i]["request_id"] = $request_detail->id;
+                foreach ($firebase_drivers as $key => $firebase_driver) {
 
-                    if($driver->id==$key){
+                    if ($driver->id == $key) {
                         $selected_drivers[$i]["distance_to_pickup"] = $firebase_driver['distance'];
                     }
-            }
-            
-            if(!$request_detail->if_dispatch){
-                $selected_drivers[$i]["user_id"] = $user_detail->id;                
-            }
-            $selected_drivers[$i]["driver_id"] = $driver->id;
-            $selected_drivers[$i]["active"] = 1;
-            $selected_drivers[$i]["assign_method"] = 1;
-            $selected_drivers[$i]["created_at"] = date('Y-m-d H:i:s');
-            $selected_drivers[$i]["updated_at"] = date('Y-m-d H:i:s');
+                }
+
+                if (!$request_detail->if_dispatch) {
+                    $selected_drivers[$i]["user_id"] = $user_detail->id;
+                }
+                $selected_drivers[$i]["driver_id"] = $driver->id;
+                $selected_drivers[$i]["active"] = 1;
+                $selected_drivers[$i]["assign_method"] = 1;
+                $selected_drivers[$i]["created_at"] = date('Y-m-d H:i:s');
+                $selected_drivers[$i]["updated_at"] = date('Y-m-d H:i:s');
 
 
-        // Add Driver into Firebase Request Meta
-        $database->getReference('request-meta/'.$request_detail->id)->set(['driver_id'=>$driver->id,'request_id'=>$request_detail->id,'user_id'=>$request_detail->user_id,'active'=>1,'updated_at'=> Database::SERVER_TIMESTAMP]);
-
-        
-        $driver = Driver::find($driver->id);
-
-        $notifable_driver = $driver->user;
+                // Add Driver into Firebase Request Meta
+                $database->getReference('request-meta/' . $request_detail->id)->set(['driver_id' => $driver->id, 'request_id' => $request_detail->id, 'user_id' => $request_detail->user_id, 'active' => 1, 'updated_at' => Database::SERVER_TIMESTAMP]);
 
 
-        // Log::info("notifable_driver Assigned Driver");
+                $driver = Driver::find($driver->id);
 
-        // Log::info($notifable_driver);
+                $notifable_driver = $driver->user;
 
 
-        // $title = custom_trans('new_request_title',[],$notifable_driver->lang);
-        // $body = custom_trans('new_request_body',[],$notifable_driver->lang);
-        // $push_data = ['title' => $title,'message' => $body,'push_type'=>'meta-request'];
+                // Log::info("notifable_driver Assigned Driver");
 
-        // dispatch(new SendPushNotification($notifable_driver,$title,$body,$push_data));
+                // Log::info($notifable_driver);
 
-        $notification = \DB::table('notification_channels')
-                ->where('topics', 'User Ride Later') // Match the correct topic
-                ->first();
 
-            //    send push notification 
+                // $title = custom_trans('new_request_title',[],$notifable_driver->lang);
+                // $body = custom_trans('new_request_body',[],$notifable_driver->lang);
+                // $push_data = ['title' => $title,'message' => $body,'push_type'=>'meta-request'];
+
+                // dispatch(new SendPushNotification($notifable_driver,$title,$body,$push_data));
+
+                $notification = DB::table('notification_channels')
+                    ->where('topics', 'User Ride Later') // Match the correct topic
+                    ->first();
+
+                //    send push notification 
                 if ($notification && $notification->push_notification == 1) {
-                     // Determine the user's language or default to 'en'
+                    // Determine the user's language or default to 'en'
                     $userLang = $notifable_driver->lang ?? 'en';
                     // dd($userLang);
-    
+
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
-    
+
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
-                    }            
-                    
-                    $title =  $translation->push_title ?? $notification->push_title;
+                    }
+
+                    $title = $translation->push_title ?? $notification->push_title;
                     $body = strip_tags($translation->push_body ?? $notification->push_body);
-                    $push_data = ['title' => $title,'message' => $body,'push_type'=>'meta-request'];
+                    $push_data = ['title' => $title, 'message' => $body, 'push_type' => 'meta-request'];
                     dispatch(new SendPushNotification($notifable_driver, $title, $body, $push_data));
                 }
 
 
-        if(get_settings('trip_dispatch_type')==0){
-            $selected_drivers[$i]["active"] = 1;
-        }else{
-            if($driver_key==0){
-                break;                
+                if (get_settings('trip_dispatch_type') == 0) {
+                    $selected_drivers[$i]["active"] = 1;
+                }
+                else {
+                    if ($driver_key == 0) {
+                        break;
+                    }
+                }
+
+                $i++;
             }
+
+
+            foreach ($selected_drivers as $key => $selected_driver) {
+                $request_detail->requestMeta()->create($selected_driver);
+            }
+
+            return "success";
+
+
         }
-
-            $i++;
-        }
-
-       
-        foreach ($selected_drivers as $key => $selected_driver) {
-            $request_detail->requestMeta()->create($selected_driver);
-        }
-
-        return "success";
-
-            
-        } else {
+        else {
 
             $request_detail->attempt_for_schedule += 1;
-                $request_detail->save();
+            $request_detail->save();
 
-                $no_of_attempts = get_settings('maximum_time_for_find_drivers_for_regular_ride');
+            $no_of_attempts = get_settings('maximum_time_for_find_drivers_for_regular_ride');
 
-                $no_of_attempts +=3;
+            $no_of_attempts += 3;
 
-                if ($request_detail->attempt_for_schedule>$no_of_attempts) {
+            if (!$request_detail->is_later && $request_detail->attempt_for_schedule > $no_of_attempts) {
 
-                    $database->getReference('requests/'.$request_detail->id)->update(['is_cancel' => 1]);
-                    $database->getReference('request-meta/'.$request_detail->id)->remove();
-                    $database->getReference('requests/'.$request_detail->id)->remove();
+                $database->getReference('requests/' . $request_detail->id)->update(['is_cancel' => 1]);
+                $database->getReference('request-meta/' . $request_detail->id)->remove();
+                $database->getReference('requests/' . $request_detail->id)->remove();
 
-                        $no_driver_request_ids = [];
-                        $no_driver_request_ids[0] = $request_detail->id;
-                        $this->noDriverFound($no_driver_request_ids,$database);
+                $no_driver_request_ids = [];
+                $no_driver_request_ids[0] = $request_detail->id;
+                $this->noDriverFound($no_driver_request_ids, $database);
             }
             return null;
 
         }
 
-        
+
 
     }
 
- 
-    
+
+
 }

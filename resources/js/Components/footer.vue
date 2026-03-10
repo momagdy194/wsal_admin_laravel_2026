@@ -17,7 +17,7 @@
                 <BCol cols="4">
                     <div class="text-sm-end  d-sm-block">
                         <!-- {{$t("design_and_develop_by_misoftwares")}} -->
-                        App version <span class="badge bg-success-subtle text-success fs-12">2.2</span>
+                        App version <span class="badge bg-success-subtle text-success fs-12">2.4</span>
                     </div>
                 </BCol>
             </BRow>

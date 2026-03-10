@@ -52,6 +52,9 @@ class UserController extends BaseController
         if (access()->hasRole('employee')) {
             return redirect('/support-tickets');
         }
+        if (access()->hasRole('franchise_owner')) {
+            return redirect()->route('franchiseowner.dashboard');
+        }
         return Inertia::render('pages/user/index',['app_for'=>$app_for]);
     }
     // List of User

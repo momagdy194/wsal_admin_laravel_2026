@@ -90,10 +90,22 @@ class DriverSignupController extends LoginController
 
         $email = $request->email;
         
-        $validate_exists_email = $this->user->belongsTorole(Role::DRIVER)->where('email', $email)->exists();
+        // $validate_exists_email = $this->user->belongsTorole(Role::DRIVER)->where('email', $email)->exists();
 
-        if ($validate_exists_email) {
-            $this->throwCustomException('Provided email has already been taken');
+        // if ($validate_exists_email) {
+        //     $this->throwCustomException('Provided email has already been taken');
+        // }
+
+          if ($request->filled('email')) {
+
+            $validate_exists_email = $this->user
+                ->belongsTorole(Role::DRIVER)
+                ->where('email', $request->email)
+                ->exists();
+        
+            if ($validate_exists_email) {
+                $this->throwCustomException('Provided email has already been taken');
+            }
         }
 
         if ($validate_exists_mobile) {
@@ -480,10 +492,22 @@ if ($request->has('mobile') && $request->has('email')) {
 
         $email = $request->email;
         
-        $validate_exists_email = $this->user->belongsTorole(Role::OWNER)->where('email', $email)->exists();
+        // $validate_exists_email = $this->user->belongsTorole(Role::OWNER)->where('email', $email)->exists();
 
-        if ($validate_exists_email) {
-            $this->throwCustomException('Provided email has already been taken');
+        // if ($validate_exists_email) {
+        //     $this->throwCustomException('Provided email has already been taken');
+        // }
+
+        if ($request->filled('email')) {
+
+            $validate_exists_email = $this->user
+                ->belongsTorole(Role::OWNER)
+                ->where('email', $request->email)
+                ->exists();
+        
+            if ($validate_exists_email) {
+                $this->throwCustomException('Provided email has already been taken');
+            }
         }
 
         if ($validate_exists_mobile) {

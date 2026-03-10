@@ -14,6 +14,7 @@ use App\Console\Commands\ClearRequestTable;
 use App\Console\Commands\ClearOtp;
 use App\Console\Commands\CancelRequests;
 use App\Console\Commands\ExpireSubscription;
+use App\Console\Commands\DeactivateExpiredPromotions;
 
 
 class Kernel extends ConsoleKernel
@@ -34,6 +35,7 @@ class Kernel extends ConsoleKernel
         ExpireSubscription::class,
         ClearOtp::class,
         CancelRequests::class,
+        DeactivateExpiredPromotions::class,
 
     ];
 
@@ -50,7 +52,7 @@ class Kernel extends ConsoleKernel
          $schedule->command('assign_drivers:for_regular_rides')
                  ->everyMinute();
          $schedule->command('assign_drivers:for_schedule_rides')
-                 ->everyFiveMinutes();
+                 ->everyMinute();
          $schedule->command('offline:drivers')
                  ->everyFiveMinutes();
          $schedule->command('notify:document:expires')
@@ -59,7 +61,9 @@ class Kernel extends ConsoleKernel
          $schedule->command('clear:otp')
                  ->everyFiveMinutes();
          $schedule->command('cancel:request')
-                 ->everyMinute();                 
+                 ->everyMinute();      
+                 
+        $schedule->command('promotion:deactivate-expired')->everyMinute();
     }
 
     /**

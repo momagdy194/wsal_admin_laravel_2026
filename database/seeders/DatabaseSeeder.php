@@ -40,6 +40,12 @@ class DatabaseSeeder extends Seeder
             $this->call(LandingSiteSeeder::class);
         }
 
+         if (env('APP_FOR') == 'demo') {
+            $this->call(SingleLandingHomeSeeder::class);
+        } else {
+            $this->call(SingleLandingSiteSeeder::class);
+        }
+
         
 
     }

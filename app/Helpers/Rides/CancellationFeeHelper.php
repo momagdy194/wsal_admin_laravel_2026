@@ -38,78 +38,86 @@ use App\Http\Controllers\Api\V1\Payment\Stripe\StripeController;
 
 trait CancellationFeeHelper
 {
-    protected function handleCancellationFee($request_detail , $request)
+    protected function handleCancellationFee($request_detail, $request)
     {
 
         Log::info('user cancel helper');
         Log::info($request->all());
-    
+
         $cancel_method = UserType::USER;
-    
+
         $request_detail->update([
-            'is_cancelled'   => true,
-            'reason'         => $request->reason,
-            'custom_reason'  => $request->custom_reason,
-            'cancel_method'  => $cancel_method,
-            'cancelled_at'   => now()
+            'is_cancelled' => true,
+            'reason' => $request->reason,
+            'custom_reason' => $request->custom_reason,
+            'cancel_method' => $cancel_method,
+            'cancelled_at' => now()
         ]);
-    
+
         $request_detail->fresh();
-    
+
         $charge_applicable = false;
         $reason = null;
-    
+
         if ($request->reason) {
             $reason = CancellationReason::find($request->reason);
-    
+
             if ($reason) {
                 if ($reason->payment_type === 'free') {
                     $charge_applicable = false;
-                } elseif ($reason->payment_type === 'compensate') {
+                }
+                elseif ($reason->payment_type === 'compensate') {
                     $charge_applicable = true;
                 }
             }
         }
-    
+
         // if ($request->custom_reason && !$request->reason) {
         //     $charge_applicable = true; // custom reason = chargeable
         // }
-         // If no reason ID, but custom_reason is present => treat as custom reason
-    if (!$reason && !empty($request->custom_reason)) {
-        $charge_applicable = true;
-        Log::info('Custom reason only, treating as chargeable');
-    }
+        // If no reason ID, but custom_reason is present => treat as custom reason
+        if (!$reason && !empty($request->custom_reason)) {
+            $charge_applicable = true;
+            Log::info('Custom reason only, treating as chargeable');
+        }
 
-    
+
         if (!$charge_applicable) {
             return;
         }
-    
+
         $zoneTypePrice = $request_detail->zoneType->zoneTypePrice()
             ->where('price_type', 1)
             ->first();
-    
-        if (!$zoneTypePrice) return;
-    
+
+        if (!$zoneTypePrice)
+            return;
+
         $totalFare = $request_detail->request_eta_amount ?? 0;
-        $feePercent = $zoneTypePrice->cancellation_fee_for_user;
-        $cancellation_fee = ($totalFare * $feePercent) / 100;
-    
+
+        if ($request_detail->shared_ride) {
+            $cancellation_fee = $request_detail->zoneType->shared_cancel_fee;
+        }
+        else {
+            $feePercent = $zoneTypePrice->cancellation_fee_for_user;
+            $cancellation_fee = ($totalFare * $feePercent) / 100;
+        }
+
         $requested_driver = $request_detail->driverDetail;
         $is_paid = false;
         $paid_by = null;
-    
+
         // ====> New: Handle driver compensation
         if ($reason && empty($request->custom_reason) && $reason->compensate_from === 'compensate_from_driver') {
             Log::info("Compensation to be taken from DRIVER/OWNER");
-    
+
             if ($requested_driver->owner()->exists()) {
                 $owner_wallet = $requested_driver->owner->ownerWalletDetail;
                 if ($owner_wallet && $owner_wallet->amount_balance >= $cancellation_fee) {
                     $owner_wallet->amount_spent += $cancellation_fee;
                     $owner_wallet->amount_balance -= $cancellation_fee;
                     $owner_wallet->save();
-    
+
                     $requested_driver->owner->ownerWalletHistoryDetail()->create([
                         'amount' => $cancellation_fee,
                         'transaction_id' => $request_detail->id,
@@ -117,17 +125,18 @@ trait CancellationFeeHelper
                         'request_id' => $request_detail->id,
                         'is_credit' => false,
                     ]);
-    
+
                     $is_paid = true;
                     $paid_by = 'owner';
                 }
-            } else {
+            }
+            else {
                 $driver_wallet = $requested_driver->driverWallet;
                 if ($driver_wallet && $driver_wallet->amount_balance >= $cancellation_fee) {
                     $driver_wallet->amount_spent += $cancellation_fee;
                     $driver_wallet->amount_balance -= $cancellation_fee;
                     $driver_wallet->save();
-    
+
                     $requested_driver->driverWalletHistory()->create([
                         'amount' => $cancellation_fee,
                         'transaction_id' => $request_detail->id,
@@ -135,12 +144,12 @@ trait CancellationFeeHelper
                         'request_id' => $request_detail->id,
                         'is_credit' => false,
                     ]);
-    
+
                     $is_paid = true;
                     $paid_by = 'driver';
                 }
             }
-    
+
             $request_detail->requestCancellationFee()->create([
                 'driver_id' => $request_detail->driver_id,
                 'cancellation_reason_id' => $request->reason,
@@ -149,15 +158,15 @@ trait CancellationFeeHelper
                 'cancellation_fee' => $cancellation_fee,
                 'paid_request_id' => $request_detail->id,
             ]);
-    
+
             return;
         }
-    
+
         // ====> Existing logic: Fee taken from USER
         $feeGoesTo = $zoneTypePrice->fee_goes_to;
         $driverShare = 0;
         $adminShare = 0;
-    
+
         if ($feeGoesTo === 'driver') {
             if ($requested_driver->owner()->exists()) {
                 Log::info("Owner wallet");
@@ -165,7 +174,7 @@ trait CancellationFeeHelper
                 $owner_wallet->amount_added += $cancellation_fee;
                 $owner_wallet->amount_balance += $cancellation_fee;
                 $owner_wallet->save();
-    
+
                 $requested_driver->owner->ownerWalletHistoryDetail()->create([
                     'amount' => $cancellation_fee,
                     'transaction_id' => $request_detail->id,
@@ -173,13 +182,14 @@ trait CancellationFeeHelper
                     'request_id' => $request_detail->id,
                     'is_credit' => true,
                 ]);
-            } else {
+            }
+            else {
                 Log::info("Driver wallet");
                 $driver_wallet = $requested_driver->driverWallet;
                 $driver_wallet->amount_added += $cancellation_fee;
                 $driver_wallet->amount_balance += $cancellation_fee;
                 $driver_wallet->save();
-    
+
                 $requested_driver->driverWalletHistory()->create([
                     'amount' => $cancellation_fee,
                     'transaction_id' => $request_detail->id,
@@ -188,19 +198,21 @@ trait CancellationFeeHelper
                     'is_credit' => true,
                 ]);
             }
-    
+
             $driverShare = $cancellation_fee;
-    
-        } elseif ($feeGoesTo === 'admin') {
+
+        }
+        elseif ($feeGoesTo === 'admin') {
             $adminShare = $cancellation_fee;
-    
-        } elseif ($feeGoesTo === 'partially_driver_admin') {
+
+        }
+        elseif ($feeGoesTo === 'partially_driver_admin') {
             $driverPercentage = $zoneTypePrice->driver_get_fee_percentage ?? 0;
             $adminPercentage = $zoneTypePrice->admin_get_fee_percentage ?? 0;
             $driverShare = ($cancellation_fee * $driverPercentage) / 100;
             $adminShare = ($cancellation_fee * $adminPercentage) / 100;
         }
-    
+
         // Deduct from USER's wallet
         if ($request_detail->payment_opt == PaymentType::WALLET) {
             $user = $request_detail->userDetail;
@@ -209,7 +221,7 @@ trait CancellationFeeHelper
                 $wallet->amount_spent += $cancellation_fee;
                 $wallet->amount_balance -= $cancellation_fee;
                 $wallet->save();
-    
+
                 $user->userWalletHistory()->create([
                     'amount' => $cancellation_fee,
                     'transaction_id' => $request_detail->id,
@@ -217,13 +229,13 @@ trait CancellationFeeHelper
                     'request_id' => $request_detail->id,
                     'is_credit' => false,
                 ]);
-    
+
                 $is_paid = true;
             }
         }
-    
+
         $paid_id = $is_paid ? $request_detail->id : null;
-    
+
         $request_detail->requestCancellationFee()->create([
             'user_id' => $request_detail->user_id,
             'is_paid' => $is_paid,

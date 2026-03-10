@@ -22,7 +22,7 @@ class InstallController extends Controller
         // BYPASS PURCHASE CODE VALIDATION - Always return success
         $UpdateSettingcontract = app("update-service");
         $softwarecheck = $UpdateSettingcontract->softupdate();
-        // return json_encode($softwarecheck);
+        return json_encode($softwarecheck);
 
         /*
         $format = check_code_format($request->purchase_code);
@@ -37,6 +37,7 @@ class InstallController extends Controller
             return json_encode($format);
         }
         */
+
     }
 
 

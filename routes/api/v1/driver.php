@@ -17,51 +17,55 @@ use App\Base\Constants\Auth\Role;
  * These routes use the middleware group 'auth'.
  */
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\Driver\DriverDocumentController;
+use App\Http\Controllers\Api\V1\Driver\OnlineOfflineController;
+use App\Http\Controllers\Api\V1\Driver\EarningsController;
+use App\Http\Controllers\Api\V1\Driver\SubscriptionController;
+use App\Http\Controllers\Api\V1\Driver\IncentiveController;
+use App\Http\Controllers\Api\V1\Driver\DriverLevelController;
 
 
-Route::prefix('driver')->namespace('Driver')->middleware(['auth:sanctum','throttle:120,1'])->group(function () {
-        // get DriverDocument
-        Route::get('documents/needed', 'DriverDocumentController@index');
-        // Upload Driver document
-        Route::post('upload/documents', 'DriverDocumentController@uploadDocuments');
-        // Online-offline
-        Route::post('online-offline', 'OnlineOfflineController@toggle');
-        Route::get('diagnostic', 'DriverDocumentController@diagnostics');
-        Route::get('today-earnings', 'EarningsController@index');
-        Route::get('weekly-earnings', 'EarningsController@weeklyEarnings');
-        Route::get('earnings-report/{from_date}/{to_date}', 'EarningsController@earningsReport');
-        Route::get('history-report', 'EarningsController@historyReport');
-        Route::post('add-my-route-address','OnlineOfflineController@addMyRouteAddress');
-        Route::post('enable-my-route-booking','OnlineOfflineController@enableMyRouteBooking');
 
-        Route::post('update-price','EarningsController@updatePrice');
+Route::prefix('driver')
+    ->middleware(['auth:sanctum', 'throttle:120,1'])
+    ->group(function () {
 
-        
-        Route::get('new-earnings', 'EarningsController@newEarnings');
-        Route::post('earnings-by-date','EarningsController@earningsByDate');
+        // Driver Documents
+        Route::get('documents/needed', [DriverDocumentController::class, 'index']);
+        Route::post('upload/documents', [DriverDocumentController::class, 'uploadDocuments']);
+        Route::get('diagnostic', [DriverDocumentController::class, 'diagnostics']);
 
-        Route::get('all-earnings', 'EarningsController@allEarnings');
-        // Route::get('earnings-report/{from_date}/{to_date}', 'EarningsController@earningsReport');
+        // Online / Offline
+        Route::post('online-offline', [OnlineOfflineController::class, 'toggle']);
+        Route::post('add-my-route-address', [OnlineOfflineController::class, 'addMyRouteAddress']);
+        Route::post('enable-my-route-booking', [OnlineOfflineController::class, 'enableMyRouteBooking']);
 
-        Route::get('list_of_plans', 'SubscriptionController@listOfSubscription');
-        Route::post('subscribe', 'SubscriptionController@addSubscription');
+        // Earnings
+        Route::get('today-earnings', [EarningsController::class, 'index']);
+        Route::get('weekly-earnings', [EarningsController::class, 'weeklyEarnings']);
+        Route::get('earnings-report/{from_date}/{to_date}', [EarningsController::class, 'earningsReport']);
+        Route::get('history-report', [EarningsController::class, 'historyReport']);
+        Route::post('update-price', [EarningsController::class, 'updatePrice']);
+        Route::get('new-earnings', [EarningsController::class, 'newEarnings']);
+        Route::post('earnings-by-date', [EarningsController::class, 'earningsByDate']);
+        Route::get('all-earnings', [EarningsController::class, 'allEarnings']);
+        Route::get('leader-board/trips', [EarningsController::class, 'leaderBoardTrips']);
+        Route::get('leader-board/earnings', [EarningsController::class, 'leaderBoardEarnings']);
+        Route::get('invoice-history', [EarningsController::class, 'invoiceHistory']);
 
-        Route::get('leader-board/trips','EarningsController@leaderBoardTrips');
-        Route::get('leader-board/earnings','EarningsController@leaderBoardEarnings');    
+        // Subscription
+        Route::get('list_of_plans', [SubscriptionController::class, 'listOfSubscription']);
+        Route::post('subscribe', [SubscriptionController::class, 'addSubscription']);
 
-        /*incentives*/
-        Route::get('invoice-history', 'EarningsController@invoiceHistory');
+        // Incentives
+        Route::get('new-incentives', [IncentiveController::class, 'newIncentive']);
+        Route::get('week-incentives', [IncentiveController::class, 'weekIncentives']);
 
-        //newIncentive
-        Route::get('new-incentives', 'IncentiveController@newIncentive');
-        Route::get('week-incentives', 'IncentiveController@weekIncentives');
+        // Bank Info
+        Route::get('list/bankinfo', [DriverDocumentController::class, 'listBankInfo']);
+        Route::post('update/bankinfo', [DriverDocumentController::class, 'updateBankinfoNew']);
 
-
-        Route::get('list/bankinfo', 'DriverDocumentController@listBankInfo');
-        Route::post('update/bankinfo', 'DriverDocumentController@updateBankinfoNew');
-
-        Route::get('loyalty/history', 'DriverLevelController@listLevel');
-        Route::get('rewards/history', 'DriverLevelController@listRewards');
-
-
-});
+        // Loyalty & Rewards
+        Route::get('loyalty/history', [DriverLevelController::class, 'listLevel']);
+        Route::get('rewards/history', [DriverLevelController::class, 'listRewards']);
+    });

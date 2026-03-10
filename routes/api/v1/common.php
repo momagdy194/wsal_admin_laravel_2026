@@ -1,111 +1,110 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Admin API Routes
-|--------------------------------------------------------------------------
-|
-| These routes are prefixed with 'api/v1'.
-| These routes use the root namespace 'App\Http\Controllers\Api\V1'.
-|
- */
-
-/**
- * These routes are prefixed with 'api/v1/masters'.
- * These routes use the root namespace 'App\Http\Controllers\Api\V1\Master'.
- * These routes use the middleware group 'auth'.
- */
-
-use App\Base\Constants\Auth\Role;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\V1\Common\CountryController;
+use App\Http\Controllers\Api\V1\Common\CarMakeAndModelController;
+use App\Http\Controllers\Api\V1\Common\GoodsTypesController;
+use App\Http\Controllers\Api\V1\Common\CancellationReasonsController;
+use App\Http\Controllers\Api\V1\Common\FaqController;
+use App\Http\Controllers\Api\V1\Common\SosController;
+use App\Http\Controllers\Api\V1\Common\SupportTicketController;
+use App\Http\Controllers\Api\V1\Common\PreferenceController;
+use App\Http\Controllers\Api\V1\Common\ReferralController;
+use App\Http\Controllers\Api\V1\Common\LandingQuickLinkController;
 
-Route::namespace('Common')->group(function () {
+use App\Http\Controllers\Api\V1\VehicleType\VehicleTypeController;
 
-    Route::get('countries', 'CountryController@index'); 
-    Route::get('on-boarding', 'CountryController@onBoarding');    
-    Route::get('on-boarding-driver', 'CountryController@onBoardingDriver');    
-    Route::get('on-boarding-owner', 'CountryController@onBoardingOwner');    
-
-    
-    // Masters Crud
-    Route::prefix('common')->group(function () {
-
-        
-        // Get owner driverModule
-        Route::get('modules', 'CarMakeAndModelController@getAppModule');     
-        
-        // Map settings for User / Driver apps (no auth required)
-        Route::get('map-settings', 'MapSettingsController@index');
-
-        // Test Api
-        Route::get('test-api','CarMakeAndModelController@testApi');
+use App\Http\Controllers\Api\V1\Notification\ShowNotificationController;
+use App\Http\Controllers\Api\V1\PromotionTemplateController;
 
 
-        Route::get('ride_modules', 'CarMakeAndModelController@mobileAppMenu');        
+/*
+|--------------------------------------------------------------------------
+| Common Routes
+|--------------------------------------------------------------------------
+*/
 
-         // goods type
-        //  Route::get('goods-types', 'GoodsTypesController@index');
-   
-
-        Route::middleware(['auth:sanctum','throttle:120,1'])->group(function () {
-
-            // goods type
-            Route::get('goods-types', 'GoodsTypesController@index');
-
-            // List Cancallation Reasons
-            Route::get('cancallation/reasons', 'CancellationReasonsController@index');
-            // List Faq
-            Route::get('faq/list/{lat}/{lng}', 'FaqController@index');
-            // List Sos
-            Route::get('sos/list/{lat}/{lng}', 'SosController@index');
-            // Store Sos by users
-            Route::post('sos/store', 'SosController@store');
-            // Delete Sos by User
-            Route::post('sos/delete/{sos}', 'SosController@delete');
-
-            //List Ticket Titles
-            Route::get('ticket-titles', 'SupportTicketController@index');
-            // Make a Ticket
-            Route::post('make-ticket', 'SupportTicketController@makeTicket');
-            // Reply message for ticket
-            Route::post('reply-message/{supportTicket}', 'SupportTicketController@replyMessage');
-            //View Ticket Details
-            Route::get('view-ticket/{supportTicket}', 'SupportTicketController@viewTicketDetails');
-            //Ticket List 
-            Route::get('list', 'SupportTicketController@tikcetList');
-           
-
-            // Preferencs
-            Route::get('preferences', 'PreferenceController@index');
-            Route::post('preferences/store', 'PreferenceController@update');
+Route::get('countries', [CountryController::class, 'index']);
+Route::get('on-boarding', [CountryController::class, 'onBoarding']);
+Route::get('on-boarding-driver', [CountryController::class, 'onBoardingDriver']);
+Route::get('on-boarding-owner', [CountryController::class, 'onBoardingOwner']);
 
 
-            // Preferencs
-            Route::prefix('referral')->group(function(){
-                Route::get('progress', 'ReferralController@progress');
-                Route::get('history', 'ReferralController@history');
-                Route::get('referral-condition', 'ReferralController@referralCondition');
-                Route::get('driver-referral-condition', 'ReferralController@driverReferralCondition');
-            });
+Route::prefix('common')->group(function () {
 
+    Route::get('modules', [CarMakeAndModelController::class, 'getAppModule']);
+    Route::get('test-api', [CarMakeAndModelController::class, 'testApi']);
+    Route::get('ride_modules', [CarMakeAndModelController::class, 'mobileAppMenu']);
+
+    Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
+
+        // Goods Types
+        Route::get('goods-types', [GoodsTypesController::class, 'index']);
+
+        // Cancellation Reasons
+        Route::get('cancallation/reasons', [CancellationReasonsController::class, 'index']);
+
+        // FAQ
+        Route::get('faq/list/{lat}/{lng}', [FaqController::class, 'index']);
+
+        // SOS
+        Route::get('sos/list/{lat}/{lng}', [SosController::class, 'index']);
+        Route::post('sos/store', [SosController::class, 'store']);
+        Route::post('sos/delete/{sos}', [SosController::class, 'delete']);
+
+        // Support Tickets
+        Route::get('ticket-titles', [SupportTicketController::class, 'index']);
+        Route::post('make-ticket', [SupportTicketController::class, 'makeTicket']);
+        Route::post('reply-message/{supportTicket}', [SupportTicketController::class, 'replyMessage']);
+        Route::get('view-ticket/{supportTicket}', [SupportTicketController::class, 'viewTicketDetails']);
+        Route::get('list', [SupportTicketController::class, 'tikcetList']);
+
+        // Preferences
+        Route::get('preferences', [PreferenceController::class, 'index']);
+        Route::post('preferences/store', [PreferenceController::class, 'update']);
+
+        // Referral
+        Route::prefix('referral')->group(function () {
+            Route::get('progress', [ReferralController::class, 'progress']);
+            Route::get('history', [ReferralController::class, 'history']);
+            Route::get('referral-condition', [ReferralController::class, 'referralCondition']);
+            Route::get('driver-referral-condition', [ReferralController::class, 'driverReferralCondition']);
         });
-        Route::get('/mobile/privacy', 'LandingQuickLinkController@showPrivacyPage');
-        Route::get('/mobile/terms', 'LandingQuickLinkController@showTermsPage');
     });
-    // Validate Company key api
-    // Route::post('validate-company-key', 'CompanyKeyController@validateCompanyKey');
+
+    // Public Quick Links
+    Route::get('/mobile/privacy', [LandingQuickLinkController::class, 'showPrivacyPage']);
+    Route::get('/mobile/terms', [LandingQuickLinkController::class, 'showTermsPage']);
 });
 
-Route::namespace('VehicleType')->prefix('types')->group(function () {
-    // get types depends service location
-    Route::get('/{service_location}', 'VehicleTypeController@getVehicleTypesByServiceLocation');
-    Route::get('/sub-vehicle/{service_location}', 'VehicleTypeController@getSubVehicleTypesByServiceLocation');
+
+/*
+|--------------------------------------------------------------------------
+| Vehicle Type Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('types')->group(function () {
+    Route::get('/{service_location}', [VehicleTypeController::class, 'getVehicleTypesByServiceLocation']);
+    Route::get('/sub-vehicle/{service_location}', [VehicleTypeController::class, 'getSubVehicleTypesByServiceLocation']);
 });
 
-Route::namespace('Notification')->prefix('notifications')->middleware(['auth:sanctum','throttle:120,1'])->group(function (){
-    Route::get('get-notification', 'ShowNotificationController@getNotifications');
-    Route::any('delete-notification/{notification}', 'ShowNotificationController@deleteNotification');
-    Route::any('delete-all-notification', 'ShowNotificationController@deleteAllNotification');
 
-});
+/*
+|--------------------------------------------------------------------------
+| Notification Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('notifications')
+    ->middleware(['auth:sanctum', 'throttle:120,1'])
+    ->group(function () {
+
+        Route::get('get-notification', [ShowNotificationController::class, 'getNotifications']);
+        Route::any('delete-notification/{notification}', [ShowNotificationController::class, 'deleteNotification']);
+        Route::any('delete-all-notification', [ShowNotificationController::class, 'deleteAllNotification']);
+    });
+
+        // promotion
+        Route::get('/promotions/popup', [PromotionTemplateController::class, 'index']);  

@@ -15,6 +15,7 @@
     "discounted_amount_for_trip":"Discounted Amount For Trip",
     "user_cancellation_fee":"User Cancellation Fee",
     "additional_charge_amount":"Additional Charges Amount",
-    "agent_commission_for_trip":"Agent Commission For Trip"
+    "agent_commission_for_trip":"Agent Commission For Trip",
+    "franchise_commision_for_trip":"Franchise Commision For Trip"
 
 }

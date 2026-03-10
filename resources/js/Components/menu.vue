@@ -9,7 +9,7 @@ export default {
     simplebar,
     Link
   },
-  props: ['activeMenu','supportTicket', 'agent_addons'],
+  props: ['activeMenu','supportTicket', 'agent_addons','franchise_addons'],
   data() {
     return {
       settings: {
@@ -171,6 +171,11 @@ export default {
                   <i class=" ri-home-4-line"></i> <span data-key="t-dashboard">{{ $t("dashboard") }}</span>
               </Link>
           </li>
+          <!-- <li class="nav-item" v-if="permissions.includes('access-dashboard')">
+              <Link class="nav-link menu-link" href="/dashboard-classic">
+                  <i class="ri-dashboard-2-line"></i> <span data-key="t-dashboard-classic">{{ $t("classic_dashboard") }}</span>
+              </Link>
+          </li> -->
           <!-- <li class="nav-item" v-if="permissions.includes('dispartche')">
               <Link class="nav-link menu-link" href="/dispatch">
                   <i class=" ri-taxi-fill"></i> <span data-key="t-dispatch-ride">{{ $t("dispatch-ride") }}</span>
@@ -204,6 +209,11 @@ export default {
                 <li class="nav-item" v-if="permissions.includes('banner_image')">
                 <Link href="/banner-image" class="nav-link" data-key="t-banner-image">
                   {{ $t("banner-image") }}
+                </Link>
+              </li>
+              <li class="nav-item" v-if="permissions.includes('manage-announcement')">
+                <Link href="/promotion/templates" class="nav-link" data-key="t-announcement-image">
+                  {{ $t("announcement") }}
                 </Link>
               </li>
               </ul>
@@ -255,6 +265,11 @@ export default {
                 <li class="nav-item" v-if="permissions.includes('manage-goods-types')">
                   <Link href="/goods-type" class="nav-link" data-key="t-goods-type">
                     {{ $t("goods-type") }}
+                  </Link>
+                </li>
+                <li class="nav-item" v-if="permissions.includes('app_modules_view')">
+                  <Link href="/app_modules" class="nav-link" data-key="t-app_modules">
+                    {{ $t("app_modules") }}
                   </Link>
                 </li>
               </ul>
@@ -389,7 +404,7 @@ export default {
             </ul>
           </div>
         </li>
-        <li class="nav-item"  v-if="permissions.includes('add-wallet-payment')">
+       <li class="nav-item"  v-if="permissions.includes('wallet-payment')">
           <Link href="/manage-payment" class="nav-link menu-link" data-key="t-rides-request">
             <i class=" ri-wallet-line"></i>
             <span data-key="t-add-wallet-payment">{{ $t("add-wallet-payment") }}</span>
@@ -403,6 +418,11 @@ export default {
           </a>
           <div class="collapse menu-dropdown" id="driver">
             <ul class="nav nav-sm flex-column">
+              <li class="nav-item" v-if="permissions.includes('drivers-management')">
+                <Link href="/driver-dashboard" class="nav-link" data-key="t-driver-dashboard" :class="{ 'active': $page.url.startsWith('/driver-dashboard') }">
+                  {{ $t("driver_dashboard") }}
+                </Link>
+              </li>
               <!-- <li class="nav-item">
                 <Link href="/drivers" class="nav-link" data-key="t-drivers">
                   {{ $t("drivers") }}
@@ -513,7 +533,8 @@ export default {
               aria-expanded="false" aria-controls="agentMenu">
               <i class="ri-user-settings-line"></i>
               <span>{{ $t("agent_management") }}
-                <BBadge variant="primary" class="text-uppercase">{{$t("new")}}</BBadge>
+                <BBadge variant="primary" class="text-uppercase">{{$t("addon")}}</BBadge>
+                <img src="@assets/images/new.gif" alt="Loading..." style="width:50px" />
               </span>
             </a>
             <div class="collapse menu-dropdown" id="agentMenu">
@@ -573,6 +594,78 @@ export default {
               <li class="nav-item" v-if="permissions.includes('admin')">
                 <Link href="/admins" class="nav-link" data-key="t-admins">
                   {{ $t("admins") }}
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </li>
+        <!-- franchise -->
+        <li class="nav-item" v-if="permissions.includes('franchise-owner-management') && franchise_addons == 1">
+          <a class="nav-link menu-link" href="#franchise" data-bs-toggle="collapse" role="button"
+            aria-expanded="false" aria-controls="franchise">
+            <i class=" ri-group-line"></i>
+            <span data-key="t-franchise-management"> {{ $t("franchise-management") }}
+              
+                <BBadge variant="primary" class="text-uppercase">{{$t("addon")}}</BBadge>
+                <img src="@assets/images/new.gif" alt="Loading..." style="width:50px" />
+            </span>
+          </a>
+          <div class="collapse menu-dropdown" id="franchise">
+            <ul class="nav nav-sm flex-column">
+              <li class="nav-item" v-if="permissions.includes('access-franchise-owner-dashboard')">
+                <Link href="/franchiseowner-dashboard" class="nav-link" data-key="t-franchise-dashboard">
+                  {{ $t("franchise-dashboard") }}
+                </Link>
+              </li>
+              <li class="nav-item" v-if="permissions.includes('manage-franchise-detail')">
+                <Link href="/employee-franchise" class="nav-link" data-key="t-franchise-details">
+                  {{ $t("franchise-details") }}
+                </Link>
+              </li>
+              <li class="nav-item" v-if="permissions.includes('manage-franchise-owner')">
+                <Link href="/manage-franchise-owner" class="nav-link" data-key="t-manage-franchise-owners">
+                  {{ $t("manage-franchise-owners") }}
+                </Link>
+              </li>
+               <li class="nav-item" v-if="permissions.includes('manage-franchise-drivers')">
+                <BLink class="nav-link" href="#franchise-driver" data-bs-toggle="collapse" role="button"
+                  aria-expanded="false" aria-controls="franchise" data-key="t-franchise-management">
+                  {{ $t("franchise-driver-management") }}
+                </BLink>
+                <div class="collapse menu-dropdown" id="franchise-driver">
+                  <ul class="nav nav-sm flex-column">
+                    <li class="nav-item" v-if="permissions.includes('view-franchise-approved-drivers')">
+                      <Link href="/approved-franchise-drivers" class="nav-link" data-key="t-franchise-approved-drivers">
+                        {{ $t("franchise-approved-drivers") }}
+                      </Link>
+                    </li>
+                    <li class="nav-item" v-if="permissions.includes('view-franchise-pending-drivers')">
+                      <Link href="/pending-franchise-drivers" class="nav-link" data-key="t-pending-franchise-drivers">
+                        {{ $t("franchise-pending-drivers") }}
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+              <li class="nav-item" v-if="permissions.includes('manage-franchise-owner-needed-document')"> 
+                <Link href="/franchise-owner-needed-documents" class="nav-link" data-key="t-franchise-owner-needed-document">
+                  {{ $t("franchise-owner-needed-document") }}
+                </Link>
+              </li>
+              
+              <li class="nav-item mt-4"  v-if="permissions.includes('withdrawal-franchise')">
+                <Link class="nav-link" href="/franchise/withdrawal-request" data-key="t-withdrawal-franchise">
+                  {{ $t("withdrawal") }}
+                </Link>
+              </li>
+              <li class="nav-item" v-if="permissions.includes('franchise-withdrawal-request')"> 
+                <Link href="/withdrawal-request-franchise" class="nav-link" data-key="t-withdrawal-request-franchise">
+                  {{ $t("withdrawal_request_franchise") }}
+                </Link>
+              </li>
+              <li class="nav-item" v-if="permissions.includes('manage-franchise-promo')"> 
+                <Link href="/franchise/promo-code" class="nav-link" data-key="t-franchise-promo-code">
+                  {{ $t("franchise_promo_code") }}
                 </Link>
               </li>
             </ul>
@@ -684,6 +777,11 @@ export default {
                   {{ $t("fleet_finance_report") }}
                 </Link>
               </li>   
+               <li class="nav-item" v-if="permissions.includes('franchise-owner-report') && franchise_addons == 1">
+                <Link href="/report/franchiseowner-report" class="nav-link" data-key="t-franchiseowner-report">
+                  {{ $t("franchiseowner-report") }}
+                </Link>
+              </li> 
             </ul>
           </div>
         </li>
@@ -782,11 +880,7 @@ export default {
                   {{ $t("country") }}
                 </Link>
               </li>
-              <li class="nav-item" v-if="permissions.includes('app_modules_view')">
-                <Link href="/app_modules" class="nav-link" data-key="t-app_modules">
-                  {{ $t("app_modules") }}
-                </Link>
-              </li>
+             
               <li class="nav-item" v-if="permissions.includes('onboarding-screen-settings-view')">
                 <Link href="/onboarding-screen" class="nav-link" data-key="t-onboard-screens">
                   {{ $t("onboard-screens") }}
@@ -856,7 +950,7 @@ export default {
             </ul>
           </div>
         </li>
-        <!-- <li class="nav-item" v-if="permissions.includes('addons')">
+        <li class="nav-item" v-if="permissions.includes('addons')">
           <a class="nav-link menu-link" href="#addons" data-bs-toggle="collapse" role="button"
             aria-expanded="false" aria-controls="cms">
             <i class="ri-add-circle-line"></i>
@@ -869,16 +963,24 @@ export default {
                   {{ $t("dispatcher-addons") }}
                 </Link>
               </li>
-              <!-- <li class="nav-item" v-if="permissions.includes('agent_addons')">
+              
+              <li class="nav-item" v-if="permissions.includes('franchise_addons')">
+                <Link href="/franchise-addons" class="nav-link" data-key="t-franchise_addons">
+                <span> {{ $t("franchise_addons") }}
+                  <BBadge variant="primary" class="text-uppercase">{{$t("new")}}</BBadge>
+                </span>
+                </Link>
+              </li> 
+               <!-- <li class="nav-item" v-if="permissions.includes('agent_addons')">
                 <Link href="/agent-addons" class="nav-link" data-key="t-agent_addons">
                 <span> {{ $t("agent_addons") }}
                   <BBadge variant="primary" class="text-uppercase">{{$t("new")}}</BBadge>
                 </span>
                 </Link>
-              </li>
+              </li>  -->
             </ul>
           </div>
-        </li> -->
+        </li>
         <li class="nav-item" v-if="permissions.includes('cms-landing-website')">
           <a class="nav-link menu-link" href="#cms" data-bs-toggle="collapse" role="button"
             aria-expanded="false" aria-controls="cms">
@@ -922,10 +1024,34 @@ export default {
                   {{ $t("quicklinks") }}
                 </Link>
               </li>
+              
+            </ul>
+          </div>
+        </li>
+
+        <li class="nav-item" v-if="permissions.includes('single_landing_page')">
+          <a class="nav-link menu-link" href="#single-landing-page" data-bs-toggle="collapse" role="button"
+            aria-expanded="false" aria-controls="single-landing-page">
+            <i class="ri-macbook-line"></i>
+            <span data-key="t-single-landing-page">{{ $t("cms-single-landing-page") }}</span>
+          </a>
+          <div class="collapse menu-dropdown" id="single-landing-page">
+            <ul class="nav nav-sm flex-column">
+             <li class="nav-item" v-if="permissions.includes('single_landing_page')">
+                <Link href="/single-landing-page" class="nav-link" data-key="t-single-landing-page">
+                  {{ $t("landing_page") }}
+                </Link>
+              </li>
+              <li class="nav-item" v-if="permissions.includes('single_header_footer')">
+                <Link href="/single-landing-header-footer" class="nav-link" data-key="t-single-landing-header-footer">
+                  {{ $t("landing_header_footer") }}
+                </Link>
+              </li>
             </ul>
           </div>
         </li>
       </div>
+      
         
  <!-- Masters management -->
       <div   v-if ="activeMenu === 'Masters'" class="menu">

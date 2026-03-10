@@ -295,8 +295,7 @@ km
 @else
 miles
 @endif:
-                                                    {{ number_format($data['data']['total_distance'], 2) }}
-                                                   {{ number_format($data['data']['total_distance'], 2) }}
+{{ number_format($data['data']['total_distance'], 2) }}
 @if ($data['data']['unit'] == 'KM')
 <div>km</div>
 @else
@@ -351,7 +350,7 @@ miles
                                                     style="font-family: Helvetica, Helvetica Neue, Arial, sans-serif; color: #000000; font-size: 14px; padding-left: 16px; padding-top: 8px">
                                                     Total
                                                     Mins:
-                                                    {{ $data['data']['total_time'] }}
+                                                    {{ number_format($data['data']['total_time'], 2) }}
                                                     min
                                                     </td>
                                                     </tr>

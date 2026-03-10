@@ -38,7 +38,10 @@
                             :checked="isMenuChecked(mainMenu)"
                             @change="toggleMenu(mainMenu)">
                             <label class="form-check-label mx-2" :for="mainMenu">
-                                {{ mainMenu }}
+                                {{ mainMenu }}                                
+                                <span  v-if="['agent', 'franchise', 'wallet','manage-franchise','franchise-owner'].some(p =>permission.name?.toLowerCase().includes(p))" class="ribbon-box ms-2">
+                                  <BBadge variant="danger" class="text-up/percase">{{$t("addon")}}</BBadge>
+                                </span>
                             </label>
                       </td>
                       <!-- Slugs -->

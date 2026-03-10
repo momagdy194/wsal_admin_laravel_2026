@@ -10,6 +10,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 
 
@@ -765,5 +766,72 @@ class ImageUploader implements ImageUploaderContract
 
         return $filename;
     }
+    
+
+    public function saveFranchiseOwnerDocument($franchiseownerId)
+    {
+        $this->validateFile();
+    
+        $config = $this->config('franchise-owner.upload.documents');
+
+        $image = $this->file;
+        $file_format = $image->getClientOriginalExtension();
+        $filename = $this->hashGenerator->extension($file_format)->make();
+        $filePath = file_path(data_get($config, 'path') ,$franchiseownerId); 
+        $path = Storage::disk('local')->putFileAs($filePath,$image, $filename);
+        return $filename;
+    
+    }
+
+    public function savePromotionPreview()
+    {
+        $this->validateFile();
+    
+        $config = $this->config('promotion.preview.images');
+    
+        $image = $this->file;
+        $extension = 'png'; // preview always png
+        $filename = 'preview_' . Str::uuid() . '.' . $extension;
+    
+        $path = data_get($config, 'path');
+    
+        Storage::disk('local')->putFileAs($path, $image, $filename);
+    
+        return $filename;
+    }
+
+    public function saveSingleLandingPage()
+    {
+
+        $this->validateFile(); // Validate the file if needed
+       $config = $this->config('website.upload.images');
+        $image = $this->file; // Assuming $this->file is your uploaded file
+        $fileFormat = $image->getClientOriginalExtension();
+        $filename = $this->hashGenerator->extension($fileFormat)->make(); // Generate a unique filename
+        $filePath = data_get($config, 'path'); // Get the storage path from config
+        
+        // Store the file in the 'public' disk under the specified path
+        $path = Storage::disk('local')->putFileAs($filePath, $image, $filename);
+    
+        return $filename; // Return the relative path (including filename) for storage in your database
+    }
+
+    public function saveSingleLandingHeaderImage()
+    {
+
+        $this->validateFile(); // Validate the file if needed
+    
+        $config = $this->config('website.upload.images');
+        $image = $this->file; // Assuming $this->file is your uploaded file
+        $fileFormat = $image->getClientOriginalExtension();
+        $filename = $this->hashGenerator->extension($fileFormat)->make(); // Generate a unique filename
+        $filePath = data_get($config, 'path'); // Get the storage path from config
+        
+        // Store the file in the 'public' disk under the specified path
+        $path = Storage::disk('local')->putFileAs($filePath, $image, $filename);
+    
+        return $filename; // Return the relative path (including filename) for storage in your database
+    }
+
 
 }

@@ -5,6 +5,7 @@ namespace App\Models\Admin;
 use App\Models\Admin\Promo;
 use App\Models\Request\Request;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Admin\FranchisePromo;
 
 class PromoUser extends Model
 {
@@ -21,7 +22,7 @@ class PromoUser extends Model
      *
      * @var array
      */
-    protected $fillable = ['promo_code_id','user_id','request_id'];
+    protected $fillable = ['promo_code_id','user_id','request_id','franchise_promo_id'];
 
     /**
      * The relationships that can be loaded with query string filtering includes.
@@ -39,5 +40,9 @@ class PromoUser extends Model
     public function request()
     {
         return $this->belongsTo(Request::class, 'request_id', 'id');
+    }
+     public function franchisePromo()
+    {
+        return $this->belongsTo(FranchisePromo::class, 'franchise_promo_id', 'id');
     }
 }

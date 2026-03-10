@@ -110,6 +110,9 @@ export default {
       enable_driver_mobile_login:props.settings.enable_driver_mobile_login === '1',
       enable_owner_email_login:props.settings.enable_owner_email_login === '1',
       enable_owner_mobile_login:props.settings.enable_owner_mobile_login === '1',
+      show_only_total_amount:props.settings.show_only_total_amount === '1',
+      enable_single_landing_page:props.settings.enable_single_landing_page === '1',
+      enable_driver_sign_up_feature:props.settings.enable_driver_sign_up_feature === '1',
     });
 
     const validationRules = {};
@@ -1307,7 +1310,7 @@ const confirmToggle = async (field, value) => {
                         <span v-for="(error, index) in errors.name" :key="index" class="text-danger">{{ error }}</span>
                       </div>
                     </div>  -->
-                     <div class="col-sm-6 mt-4">
+                    <div class="col-sm-6 mt-4">
                       <div class="mb-0">
                         <div class="border rounded">
                           <div class="row">
@@ -1324,6 +1327,31 @@ const confirmToggle = async (field, value) => {
                                   id="enable_fixed_fare"
                                   v-model="form.enable_fixed_fare"
                                   @change.prevent="confirmToggle('enable_fixed_fare', form.enable_fixed_fare, $event.target.placeholder, $event.target.getAttribute('offPlaceholder'))"
+                                />                         
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <span v-for="(error, index) in errors.name" :key="index" class="text-danger">{{ error }}</span>
+                      </div>
+                    </div>
+                    <div class="col-sm-6 mt-4">
+                      <div class="mb-0">
+                        <div class="border rounded">
+                          <div class="row">
+                            <div class="col">
+                              <label class="form-check-label p-2 mt-2" for="show_only_total_amount">{{$t("show_only_total_amount")}}</label>
+                            </div>
+                            <div class="col">
+                              <div class="form-check form-switch form-switch-md float-end p-2">
+                                <input
+                                  type="checkbox"
+                                  :placeholder="'Enable Invoice Download'"
+                                  :offPlaceholder="'Disable Invoice Download'"
+                                  class="form-check-input"
+                                  id="show_only_total_amount"
+                                  v-model="form.show_only_total_amount"
+                                  @change.prevent="confirmToggle('show_only_total_amount', form.show_only_total_amount, $event.target.placeholder, $event.target.getAttribute('offPlaceholder'))"
                                 />                         
                               </div>
                             </div>
@@ -1515,6 +1543,57 @@ const confirmToggle = async (field, value) => {
                     <span v-for="(error, index) in errors.how_many_times_a_driver_can_enable_the_my_route_booking_per_day" :key="index" class="text-danger">{{ error }}</span>
                   </div>
                 </div>
+                <div class="col-sm-6 mt-4">
+                  <div class="mb-0">
+                    <div class="border rounded">
+                      <div class="row">
+                        <div class="col">
+                          <label class="form-check-label p-2 mt-2" for="enable_single_landing_page">{{$t("enable_single_landing_page")}}</label>
+                        </div>
+                        <div class="col">
+                          <div class="form-check form-switch form-switch-md float-end p-2">
+                            <input
+                              type="checkbox"
+                              :placeholder="'enable single landing page'"
+                              :offPlaceholder="'Disable single landing page'"
+                              class="form-check-input"
+                              id="enable_single_landing_page"
+                              v-model="form.enable_single_landing_page"
+                              @change.prevent="confirmToggle('enable_single_landing_page', form.enable_single_landing_page, $event.target.placeholder, $event.target.getAttribute('offPlaceholder'))"
+                            />                         
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <span v-for="(error, index) in errors.name" :key="index" class="text-danger">{{ error }}</span>
+                  </div>
+                </div> 
+                <div class="col-sm-6 mt-4">
+                  <div class="mb-0">
+                    <div class="border rounded">
+                      <div class="row">
+                        <div class="col">
+                          <label class="form-check-label p-2 mt-2" for="enable_driver_sign_up_feature">{{$t("enable_driver_sign_up_feature")}}</label>
+                        </div>
+                        <div class="col">
+                          <div class="form-check form-switch form-switch-md float-end p-2">
+                            <input
+                              type="checkbox"
+                              :placeholder="'Enable Driver Sign Up Feature'"
+                              :offPlaceholder="'Disable Driver Sign Up Feature'"
+                              class="form-check-input"
+                              id="enable_driver_sign_up_feature"
+                              v-model="form.enable_driver_sign_up_feature"
+                              @change.prevent="confirmToggle('enable_driver_sign_up_feature', form.enable_driver_sign_up_feature, $event.target.placeholder, $event.target.getAttribute('offPlaceholder'))"
+                            />                         
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <span v-for="(error, index) in errors.name" :key="index" class="text-danger">{{ error }}</span>
+                  </div>
+                </div> 
+              
               </div>
             </BCardFooter>
             <BCardFooter>

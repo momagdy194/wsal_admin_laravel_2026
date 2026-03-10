@@ -28,7 +28,8 @@ export default {
       logo: window.logo,
       favicon: window.favicon,
       supportTicket:window.supportTicket,
-      agent_addons:window.agent_addons
+      agent_addons:window.agent_addons,
+      franchise_addons:window.franchise_addons
     };
   },
   computed: {
@@ -103,13 +104,13 @@ export default {
 
     if (path.startsWith('/general-settings') || path.startsWith('/wallet-settings') || path.startsWith('/tip-settings') 
     || path.startsWith ('/transport-ride-settings') || path.startsWith ('/bid-ride-settings')
-    || path.startsWith('/payment-gateway') || path.startsWith('/sms-gateway') || path.startsWith('/app_modules')
+    || path.startsWith('/payment-gateway') || path.startsWith('/sms-gateway') 
     || path.startsWith('/firebase') || path.startsWith('/map-setting') || path.startsWith('/peakzone-setting')
-    || path.startsWith('/landing-home')  || path.startsWith('/landing-driver') ||path.startsWith('/country') ||
+    || path.startsWith('/landing-home')  || path.startsWith('/landing-driver') ||path.startsWith('/country') || path.startsWith('/single-landing-page') || path.startsWith('/single-landing-header-footer') ||
     path.startsWith('/landing-user') || path.startsWith('/landing-contact') || path.startsWith('/landing-header') || path.startsWith('/onboarding-screen')
     || path.startsWith('/landing-home') || path.startsWith('/landing-header') || path.startsWith('/landing-quicklink') || path.startsWith('/onboarding-screen')
     || path.startsWith('/invoice-configuration') || path.startsWith('/mail-configuration') || path.startsWith('/map-apis') || path.startsWith('/recaptcha')
-    || path.startsWith('/landing-aboutus') || path.startsWith('/notification-channel') || path.startsWith('/customization-settings')  || path.startsWith('/dispatcher-addons') || path.startsWith('/agent-addons'))
+    || path.startsWith('/landing-aboutus') || path.startsWith('/notification-channel') || path.startsWith('/customization-settings')  || path.startsWith('/dispatcher-addons') || path.startsWith('/agent-addons')|| path.startsWith('/franchise-addons'))
     {
       this.activeMenu = 'Settings';
     } 
@@ -120,7 +121,7 @@ export default {
     } 
     else if (path.startsWith('/manage-owners') 
      || path.startsWith('/owner-needed-documents') || path.startsWith('/report/owner-report') || path.startsWith('/manage-payment') 
-     || path.startsWith('/report/finance-report') || path.startsWith('/roles') || path.startsWith('/admins')
+     || path.startsWith('/report/finance-report') || path.startsWith('/roles') || path.startsWith('/admins') || path.startsWith('/employee-franchise')
      || path.startsWith('/users') || path.startsWith('/users/deleted-user') || path.startsWith('/report/user-report')
      || path.startsWith('/negative-balance-drivers') || path.startsWith('/withdrawal-request-drivers') || path.startsWith('/delete-request-drivers')
      || path.startsWith('/driver-needed-documents') || path.startsWith('/report/driver-report') || path.startsWith('/user-dashboard') || path.startsWith('/drivers-rating')
@@ -129,7 +130,9 @@ export default {
      || path.startsWith('/driver-bank-info') || path.startsWith('/report/fleet-report')
      || path.startsWith('/report/driver-duty-report') || path.startsWith('/subscription')
      || path.startsWith('/referral-settings') ||path.startsWith('/driver-referral-settings') ||path.startsWith('/referral-translation') || path.startsWith('/referral-dashboard') || path.startsWith('/agents') || path.startsWith('/agent-commission') || path.startsWith('/owner-dashboard') || path.startsWith('/withdrawal-request-owners') ||
-        path.startsWith('/category') ||  path.startsWith('/title')||  path.startsWith('/support-tickets') ||(path.startsWith('/user-import')) || (path.startsWith('/driver-import')) || path.startsWith('/owner/bookride') ||path.startsWith('/withdrawal-request-agents')
+        path.startsWith('/category') ||  path.startsWith('/title')||  path.startsWith('/support-tickets') ||(path.startsWith('/user-import')) || (path.startsWith('/driver-import')) || path.startsWith('/owner/bookride') ||path.startsWith('/withdrawal-request-agents') || path.startsWith('/approved-franchise-drivers') || path.startsWith('/pending-franchise-drivers')
+        || path.startsWith('/manage-franchise-owner') ||path.startsWith('/withdrawal-request-franchise') || path.startsWith('/franchiseowner-dashboard')||(path.startsWith('/franchise/promo-code')) || path.startsWith('/franchise-owner-needed-documents') || path.startsWith('/franchiseowner-dashboard') || path.startsWith('/franchise/withdrawal-request')
+        ||path.startsWith('/report/franchiseowner-report')
        
     ) 
     {
@@ -178,7 +181,7 @@ export default {
         </div>
 
         <simplebar id="scrollbar" class="h-100" ref="scrollbar">
-          <Menu :activeMenu = "activeMenu"  :supportTicket="supportTicket" :agent_addons = "agent_addons"></Menu>
+          <Menu :activeMenu = "activeMenu"  :supportTicket="supportTicket" :agent_addons = "agent_addons" :franchise_addons = "franchise_addons"></Menu>
         </simplebar>
         <div class="sidebar-background"></div>
       </div>

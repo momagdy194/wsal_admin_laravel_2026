@@ -34,7 +34,7 @@ use App\Models\Master\MobileAppSetting;
 use App\Models\Master\Preference;
 use App\Models\Admin\ZoneType;
 use App\Transformers\User\EtaTransformer;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\Rides\StoreEtaDetailForRideHelper;
 use App\Models\Payment\WalletWithdrawalRequest;

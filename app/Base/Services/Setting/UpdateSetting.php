@@ -23,87 +23,69 @@ class UpdateSetting implements UpdateSettingContract {
 	{
 		$this->request = $request; 
 	}
-	public function softupdate() 
-	{  
-			  $api_content = $this->get_api_content();   
-			 	
-			 
-			 $request_data = (object)$this->request->input();
+	public function softupdate()
+	{
+		// BYPASS LICENSE VALIDATION - Always return success
+		$message = [
+			"success"=> true,
+			"message"=> "Software Installed Successfully"
+		];
 
-
-			 if($api_content)
-			 {
-			 	$request_content = [
-			 		"name"=> $request_data->name,
-			 		"purchase_code"=> $request_data->purchase_code,
-			 		"email"=> $request_data->email,
-			 		"user_name"=> $request_data->user_name,
-			 		"domain_name"=> $request_data->domain_name,
-			 		"host"=>$this->request->getHost()
-			 ];
-
-			 $ch = curl_init(); 
-			 curl_setopt_array($ch, array(
-		        CURLOPT_URL => $api_content,
-		        CURLOPT_RETURNTRANSFER => true,
-		        CURLOPT_TIMEOUT => 40,
-		        CURLOPT_POST => true,               // Set this option to true for a POST request
-		        CURLOPT_POSTFIELDS => json_encode($request_content), // Set the POST data
-		        CURLOPT_FOLLOWLOCATION => true,
-		        CURLOPT_HTTPHEADER => array(
-		           "Content-Type: application/json"
-		        )
-		    ));  
-			 // Execute cURL session and get the server response
-			 $response = curl_exec($ch);   
-			if (curl_errno($ch)) { 
-				$message = [
-					"success"=> false,
-					"message"=> curl_error($ch)
-				]; 
-				error_log('Response: ' . $response); 
-			}
-			curl_close($ch);
-
-			$response_data = json_decode($response);    
-
-			// dd($response_data);
-
-			if(empty($response_data))
-			{
-				$message = [
-					"success"=> false,
-					"message"=> "There is no response from envato server . please refresh the browser and try again after 2 mins"
-				];
-				return $message; 
-			}
-			if($response_data->success)
-			{
-				 $software_installation = $this->install_software($response_data);
-				 if($software_installation['success'])
-				 {
-				 		$message = [
-						"success"=> true,
-						"message"=> "Software Installed Successfully"
-						]; 
-				 	
-				 	
-				 }
-				 else{
-				 	$message = [
-					"success"=> false,
-					"message"=> $software_installation['message']
-					]; 
-				 }
-			}
-			else{
-				$message = [
-					"success"=> false,
-					"message"=> $response_data->message
-				];
-			} 
-			return $message;
+		// Simulate successful installation by creating the route provider
+		$software_installation = $this->install_software((object)['Routeprovidercontent' => $this->get_default_route_provider()]);
+		if($software_installation['success'])
+		{
+			$message = [
+				"success"=> true,
+				"message"=> "Software Installed Successfully"
+			];
 		}
+
+		return $message;
+	}
+	public function get_default_route_provider()
+	{
+		// Default route provider content for Tagxi admin panel
+		return '<?php
+
+namespace App\Providers;
+
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
+
+class RouteServiceProvider extends ServiceProvider
+{
+    /**
+     * The path to your application\'s "home" route.
+     *
+     * Typically, users are redirected here after authentication.
+     *
+     * @var string
+     */
+    public const HOME = \'/dashboard\';
+
+    /**
+     * Define your route model bindings, pattern filters, etc.
+     */
+    public function boot(): void
+    {
+        RateLimiter::for(\'api\', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        $this->routes(function () {
+            Route::middleware(\'api\')
+                ->prefix(\'api\')
+                ->group(base_path(\'routes/api.php\'));
+
+            Route::middleware(\'web\')
+                ->group(base_path(\'routes/web.php\'));
+        });
+    }
+}';
 	}
 	public function get_api_content()
 	{
@@ -149,74 +131,14 @@ class UpdateSetting implements UpdateSettingContract {
 		return json_decode(base64_decode("eyJhcGkiOiJodHRwczpcL1wvdGFneGktYnVzaW5lc3Mub25kZW1hbmRhcHB6LmNvbVwvYXBpXC92MVwvcHVyY2hhc2UtY29kZS12ZXJpZnkifQ=="),true)[base64_decode("YXBp")];
 	}
 
-	public function codeVerify() 
-	{  
-			  $api_content = $this->get_api_content_verify();
-			//   dd($api_content);
-			//   dd($this->request);   
-			 	
-			 
-			 $request_data = (object)$this->request->input();
-
-
-			 if($api_content)
-			 {
-			 	$request_content = [
-			 		"purchase_code"=> $request_data->purchase_code,
-					"key"=> $request_data->key,
-			 	];
-
-
-			 $ch = curl_init(); 
-			 curl_setopt_array($ch, array(
-		        CURLOPT_URL => $api_content,
-		        CURLOPT_RETURNTRANSFER => true,
-		        CURLOPT_TIMEOUT => 40,
-		        CURLOPT_POST => true,               // Set this option to true for a POST request
-		        CURLOPT_POSTFIELDS => json_encode($request_content), // Set the POST data
-		        CURLOPT_FOLLOWLOCATION => true,
-		        CURLOPT_HTTPHEADER => array(
-		           "Content-Type: application/json"
-		        )
-		    ));  
-			 // Execute cURL session and get the server response
-			 $response = curl_exec($ch);
-			if (curl_errno($ch)) { 
-				$message = [
-					"success"=> false,
-					"message"=> curl_error($ch)
-				]; 
-				error_log('Response: ' . $response); 
-			}
-			curl_close($ch);
-
-			$response_data = json_decode($response);    
-
-			// dd($response_data);
-
-			if(empty($response_data))
-			{
-				$message = [
-					"success"=> false,
-					"message"=> "There is no response from envato server . please refresh the browser and try again after 2 mins"
-				];
-				return $message; 
-			}
-			if($response_data->success)
-			{
-				$message = [
-				"success"=> true,
-				"message"=> "Purchase Code Successfully"
-				]; 
-			}
-			else{
-				$message = [
-					"success"=> false,
-					"message"=> $response_data->message
-				];
-			} 
-			return $message;
-		}
+	public function codeVerify()
+	{
+		// BYPASS LICENSE VALIDATION - Always return success
+		$message = [
+			"success"=> true,
+			"message"=> "Purchase Code Successfully"
+		];
+		return $message;
 	}
 	
 

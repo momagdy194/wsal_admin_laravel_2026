@@ -142,7 +142,8 @@ if(driverSearch.value.length > 0 && driver.name) {
 
 if (driverLocation && searchIncludes) {
 const distance = calculateDistance(result.value.pick_lat, result.value.pick_lng, driverLocation.lat, driverLocation.lon);
-
+console.log("distance",distance);
+console.log("driver_radius.value",driver_radius.value);
 if (distance <= driver_radius.value && driver.is_available && driver.is_active && driver.vehicle_types.includes(result.value.vehicle_type_id)) {
 fleetDrivers.value.push(driver);
 

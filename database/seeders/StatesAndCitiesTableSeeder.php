@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\City;
 use App\Models\State;
 use Illuminate\Database\Seeder;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class StatesAndCitiesTableSeeder extends Seeder {
 	/**

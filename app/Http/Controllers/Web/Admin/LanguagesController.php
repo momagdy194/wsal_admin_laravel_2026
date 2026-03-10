@@ -18,6 +18,9 @@ class LanguagesController extends Controller
 {
     public function index()
     {
+         if (access()->hasRole('franchise_owner')) {
+            return redirect()->route('franchiseowner.dashboard');
+        }
         return Inertia::render('pages/languages/index',['app_for'=>env('APP_FOR')]);
     }
 

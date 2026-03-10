@@ -21,7 +21,7 @@ class EtaRequest extends BaseRequest
             'vehicle_type'=>'sometimes|required|uuid|exists:zone_types,id',
             'ride_type'=>'sometimes|required|in:1',
             'drivers'=>'sometimes|required',
-            'promo_code'=>'sometimes|required|exists:promo,code',
+            // 'promo_code'=>'sometimes|required|exists:promo,code',
         ];
     }
 }

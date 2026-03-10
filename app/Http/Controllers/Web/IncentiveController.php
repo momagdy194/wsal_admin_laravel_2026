@@ -7,7 +7,7 @@ use Inertia\Inertia;
 use App\Models\Admin\ServiceLocation;
 use App\Models\Admin\Incentive;
 use Illuminate\Validation\ValidationException;
-use Fleetbase\LaravelMysqlSpatial\Types\MultiPolygon;
+use MatanYadaev\EloquentSpatial\Objects\MultiPolygon;
 use Illuminate\Support\Facades\Log;
 use App\Base\Libraries\QueryFilter\QueryFilterContract;
 use App\Http\Controllers\Controller;

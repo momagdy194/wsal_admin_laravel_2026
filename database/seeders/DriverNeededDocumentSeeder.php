@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Base\Constants\Masters\DriverNeededDocument as DriverNeededDocumentSlug;
 use App\Models\Admin\DriverNeededDocument;
+use Illuminate\Support\Facades\DB;
 
 class DriverNeededDocumentSeeder extends Seeder
 {

@@ -64,53 +64,118 @@ export default {
             form.unit = zone.unit === 1;
         };
 
-        const initializeMap = () => {
-            if (zone && zone.coordinates) {
-                map = L.map('map').setView([0, 0], 10); // Initialize map
+        // const initializeMap = () => {
+        //     if (zone && zone.coordinates) {
+        //         map = L.map('map').setView([0, 0], 10); // Initialize map
 
-                // Set up OSM tile layer
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap',
-                }).addTo(map);
+        //         // Set up OSM tile layer
+        //         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //             maxZoom: 19,
+        //             attribution: '© OpenStreetMap',
+        //         }).addTo(map);
 
-                // Add drawing functionality
-                const drawnItems = new L.FeatureGroup();
-                map.addLayer(drawnItems);
+        //         // Add drawing functionality
+        //         const drawnItems = new L.FeatureGroup();
+        //         map.addLayer(drawnItems);
 
 
-                props.existingZones.forEach((polygon) => {
-                    const currentPolygon = polygon.map((coordinates)=>[coordinates.lat,coordinates.lng])
+        //         props.existingZones.forEach((polygon) => {
+        //             const currentPolygon = polygon.map((coordinates)=>[coordinates.lat,coordinates.lng])
 
-                    // 🔒 Add a non-editable and non-deletable polygon
-                    L.polygon(currentPolygon, {
-                        color: 'red',
-                        interactive: false // disables mouse events (edit/delete prevention)
-                    }).addTo(map);
-                });
+        //             // 🔒 Add a non-editable and non-deletable polygon
+        //             L.polygon(currentPolygon, {
+        //                 color: 'red',
+        //                 interactive: false // disables mouse events (edit/delete prevention)
+        //             }).addTo(map);
+        //         });
 
-                zone.coordinates.forEach(polygon => {
+        //         zone.coordinates.forEach(polygon => {
                    
-                const polygonCoordinates = polygon[0].map(point => [point.coordinates[1], point.coordinates[0]]);
+        //         const polygonCoordinates = polygon[0].map(point => [point.coordinates[1], point.coordinates[0]]);
 
-                currentPolygon = L.polygon(polygonCoordinates, {
-                    color: 'blue',
-                    weight: 3,
-                    fillOpacity: 0.2,
-                }).addTo(drawnItems);
+        //         currentPolygon = L.polygon(polygonCoordinates, {
+        //             color: 'blue',
+        //             weight: 3,
+        //             fillOpacity: 0.2,
+        //         }).addTo(drawnItems);
 
-                // Adjust map view to fit the polygon
-                bounds.extend(currentPolygon.getBounds());
+        //         // Adjust map view to fit the polygon
+        //         bounds.extend(currentPolygon.getBounds());
 
-                polygons.push(currentPolygon);
+        //         polygons.push(currentPolygon);
 
-                });
+        //         });
 
-                map.fitBounds(bounds);
-                initializeDrawing(drawnItems);
-            }
-        };
+        //         map.fitBounds(bounds);
+        //         initializeDrawing(drawnItems);
+        //     }
+        // };
 
+const initializeMap = () => {
+    if (!zone || !zone.coordinates) return;
+
+    map = L.map('map').setView([0, 0], 10);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap',
+    }).addTo(map);
+
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    const bounds = L.latLngBounds();
+
+    /* 🔴 EXISTING ZONES (READ-ONLY) */
+    props.existingZones.forEach(polygon => {
+        if (!polygon || !polygon.length) return;
+
+        const latLngs = polygon.map(p => [p.lat, p.lng]);
+
+        const poly = L.polygon(latLngs, {
+            color: 'red',
+            interactive: false,
+        }).addTo(map);
+
+        bounds.extend(poly.getBounds());
+    });
+
+    /* 🔵 CURRENT ZONE (EDITABLE) */
+
+    // 👇 NORMALIZE HERE (no helper function needed)
+    let multiPolygons = [];
+
+    if (zone.coordinates.type === 'MultiPolygon') {
+        multiPolygons = zone.coordinates.coordinates;
+    } else if (zone.coordinates.type === 'Polygon') {
+        multiPolygons = [zone.coordinates.coordinates];
+    }
+
+    multiPolygons.forEach(polygon => {
+        polygon.forEach(ring => {
+
+            const latLngs = ring.map(([lng, lat]) => [lat, lng]);
+
+            const poly = L.polygon(latLngs, {
+                color: 'blue',
+                weight: 3,
+                fillOpacity: 0.2,
+            }).addTo(drawnItems);
+
+            bounds.extend(poly.getBounds());
+            polygons.push(poly);
+        });
+    });
+
+    if (bounds.isValid()) {
+        map.fitBounds(bounds);
+    }
+
+    initializeDrawing(drawnItems);
+
+    // 🔥 REQUIRED if map container was hidden / resized
+    setTimeout(() => map.invalidateSize(), 300);
+};
         const initializeDrawing = (drawnItems) => {
 
             // Create a draw control

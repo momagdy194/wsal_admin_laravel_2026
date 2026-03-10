@@ -12,37 +12,41 @@ use Illuminate\Support\Facades\Route;
  */
 use App\Base\Constants\Auth\Role;
 use App\Http\Controllers\TripRequestController;
+use App\Http\Controllers\Api\V1\User\AccountController;
+use App\Http\Controllers\Api\V1\User\ProfileController;
 
 /*
  * These routes are prefixed with 'api/v1/user'.
  * These routes use the root namespace 'App\Http\Controllers\Api\V1\User'.
  * These routes use the middleware group 'auth'.
  */
-Route::prefix('user')->namespace('User')->group(function () {
-    // Get the logged in user.
-    Route::middleware(['auth:sanctum','throttle:120,1'])->get('/', 'AccountController@me');
-    /**
-     * These routes use the middleware group 'role'.
-     * These routes are accessible only by a user with the 'user' role.
-     */
-    Route::middleware(['auth:sanctum','throttle:120,1'])->group(function () {
+Route::prefix('user')->group(function () {
 
-        // Update user profile.
-        Route::post('profile', 'ProfileController@updateProfile');
-        Route::post('driver-profile', 'ProfileController@updateDriverProfile');
-        Route::post('update-my-lang', 'ProfileController@updateMyLanguage');
-        Route::post('update-bank-info','ProfileController@updateBankinfo');
-        Route::get('get-bank-info','ProfileController@getBankInfo');
-        // Add Favourite location
-        Route::get('list-favourite-location','ProfileController@FavouriteLocationList');
-        Route::post('add-favourite-location','ProfileController@addFavouriteLocation');
-        Route::get('delete-favourite-location/{favourite_location}','ProfileController@deleteFavouriteLocation');
-        // Delete user Account.
-        Route::post('delete-user-account','ProfileController@userDeleteAccount');
-        Route::post('update-location', 'ProfileController@updateLocation');
-        
-         Route::get('/download-invoice/{requestId}', [TripRequestController::class, 'mobileShareInvoice']);
+    // Logged‑in user info
+    Route::middleware(['auth:sanctum', 'throttle:120,1'])
+        ->get('/', [AccountController::class, 'me']);
 
+    // Authenticated user routes
+    Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
+
+        // Profile updates
+        Route::post('profile', [ProfileController::class, 'updateProfile']);
+        Route::post('driver-profile', [ProfileController::class, 'updateDriverProfile']);
+        Route::post('update-my-lang', [ProfileController::class, 'updateMyLanguage']);
+        Route::post('update-bank-info', [ProfileController::class, 'updateBankinfo']);
+        Route::get('get-bank-info', [ProfileController::class, 'getBankInfo']);
+
+        // Favourite locations
+        Route::get('list-favourite-location', [ProfileController::class, 'FavouriteLocationList']);
+        Route::post('add-favourite-location', [ProfileController::class, 'addFavouriteLocation']);
+        Route::get('delete-favourite-location/{favourite_location}', [ProfileController::class, 'deleteFavouriteLocation']);
+
+        // Account actions
+        Route::post('delete-user-account', [ProfileController::class, 'userDeleteAccount']);
+        Route::post('update-location', [ProfileController::class, 'updateLocation']);
+
+        // Invoice download
+        Route::get('download-invoice/{requestId}', [TripRequestController::class, 'mobileShareInvoice']);
     });
 });
 

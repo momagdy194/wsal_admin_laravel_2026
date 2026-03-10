@@ -31,6 +31,7 @@ use App\Models\Admin\ZoneTypePackagePrice;
 use App\Jobs\Mails\SendUserRideLaterMailNotification;
 use App\Http\Controllers\Api\V1\Payment\Stripe\StripeController;
 use App\Models\Master\MobileAppSetting;
+use Illuminate\Support\Facades\DB;
 
 class DispatcherController extends StripeController
 {
@@ -412,7 +413,7 @@ class DispatcherController extends StripeController
         {
             $notifiable_driver = $requestmodel->driverDetail->user;
 
-             $notification = \DB::table('notification_channels')
+             $notification = DB::table('notification_channels')
                 ->where('topics', 'Trip Cancelled By System') // Match the correct topic
                 ->first();
 
@@ -423,14 +424,14 @@ class DispatcherController extends StripeController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -513,6 +514,7 @@ class DispatcherController extends StripeController
         if($request->is_cancelled || $request->driver_id){
             return redirect('rides-request/view/'.$request->id);
         }
+        $driver_radius = get_settings('driver_search_radius')?:30;
         $firebaseSettings = [
             'firebase_api_key' => get_firebase_settings('firebase_api_key'),
             'firebase_auth_domain' => get_firebase_settings('firebase_auth_domain'),
@@ -529,6 +531,7 @@ class DispatcherController extends StripeController
                 'result' => $request->data,
                 'app_for' => env('APP_FOR'),
                 'firebaseSettings' => $firebaseSettings,
+                'driver_radius'=>$driver_radius
             ]);
         }
         $map_key = get_map_settings('google_map_key');
@@ -538,6 +541,7 @@ class DispatcherController extends StripeController
             'baseUrl'=>route('landing.index'),
             'result' => $request->data,
             'firebaseSettings' => $firebaseSettings,
+            'driver_radius'=>$driver_radius
         ]);
     }
     public function assignDriver(RequestModel $requestmodel,Request $request) {
@@ -586,7 +590,7 @@ class DispatcherController extends StripeController
             dispatch(new SendUserRideLaterMailNotification($user));
         }
 
-        $notification = \DB::table('notification_channels')
+        $notification = DB::table('notification_channels')
             ->where('topics', 'User Ride Later') // Match the correct topic
             ->first();
 
@@ -597,14 +601,14 @@ class DispatcherController extends StripeController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();

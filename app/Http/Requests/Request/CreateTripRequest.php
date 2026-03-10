@@ -25,7 +25,7 @@ class CreateTripRequest extends BaseRequest
             'drivers'=>'sometimes|required',
             'is_later'=>'sometimes|required|in:1',
             'trip_start_time'=>'sometimes|required|date_format:Y-m-d H:i:s',
-            'promocode_id'=>'sometimes|required|exists:promo,id',
+            // 'promocode_id'=>'sometimes|required|exists:promo,id',
             'transport_type'=>'sometimes|required',
         ];
     }

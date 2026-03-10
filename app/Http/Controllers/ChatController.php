@@ -13,6 +13,9 @@ use Kreait\Firebase\Contract\Database;
 use App\Base\Filters\Admin\UserFilter;
 use App\Models\Admin\ServiceLocation;
 use App\Base\Libraries\QueryFilter\QueryFilterContract;
+use Illuminate\Support\Facades\DB;
+use App\Jobs\Notifications\SendPushNotification;
+use Illuminate\Support\Facades\Log;
 
 
 class ChatController extends Controller
@@ -93,6 +96,38 @@ class ChatController extends Controller
         ];
         
         $this->database->getReference('conversation/'.$request->conversationId)->set($chat);
+
+        $conversation = Conversation::where('id',$request->conversationId)->first();
+
+        $notification = DB::table('notification_channels')
+            ->where('topics', 'New Chat Message') // Match the correct topic
+            ->first();
+            
+            // send push notification 
+            if ($notification && $notification->push_notification == 1) {
+                 // Determine the user's language or default to 'en'
+                $userLang = $conversation->userDetail->lang ?? 'en';
+                // dd($userLang);
+
+                // Fetch the translation based on user language or fall back to 'en'
+                $translation = DB::table('notification_channels_translations')
+                    ->where('notification_channel_id', $notification->id)
+                    ->where('locale', $userLang)
+                    ->first();
+
+                // If no translation exists, fetch the default language (English)
+                if (!$translation) {
+                    $translation = DB::table('notification_channels_translations')
+                        ->where('notification_channel_id', $notification->id)
+                        ->where('locale', 'en')
+                        ->first();
+                }
+        
+                
+                $title =  $translation->push_title ?? $notification->push_title;
+                $body = strip_tags($translation->push_body ?? $notification->push_body);
+                dispatch(new SendPushNotification($conversation->userDetail,$title,$body));
+            }
 
         return response()->json([
             'successMessage' => 'message Sended successfully',

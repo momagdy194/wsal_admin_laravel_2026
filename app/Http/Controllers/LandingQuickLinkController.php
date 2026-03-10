@@ -160,9 +160,7 @@ class LandingQuickLinkController extends BaseController
                ->where('name', 'admin_login')
                ->value('value');
 
-           if (empty($adminRedirect)) {
-               return redirect()->route('login.admin');
-           }
+           // Pass the dynamic value to the route
            return redirect()->route('login.{redirect}', ['redirect' => $adminRedirect]);
        }
 
@@ -222,9 +220,7 @@ class LandingQuickLinkController extends BaseController
                ->where('name', 'admin_login')
                ->value('value');
 
-           if (empty($adminRedirect)) {
-               return redirect()->route('login.admin');
-           }
+           // Pass the dynamic value to the route
            return redirect()->route('login.{redirect}', ['redirect' => $adminRedirect]);
        }
 
@@ -284,9 +280,7 @@ class LandingQuickLinkController extends BaseController
                ->where('name', 'admin_login')
                ->value('value');
 
-           if (empty($adminRedirect)) {
-               return redirect()->route('login.admin');
-           }
+           // Pass the dynamic value to the route
            return redirect()->route('login.{redirect}', ['redirect' => $adminRedirect]);
        }
 
@@ -347,9 +341,7 @@ class LandingQuickLinkController extends BaseController
                    ->where('name', 'admin_login')
                    ->value('value');
     
-               if (empty($adminRedirect)) {
-                   return redirect()->route('login.admin');
-               }
+               // Pass the dynamic value to the route
                return redirect()->route('login.{redirect}', ['redirect' => $adminRedirect]);
            }
     

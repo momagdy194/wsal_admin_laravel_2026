@@ -89,7 +89,7 @@ trait PaymentReferenceHelper
 
             //     dispatch(new SendPushNotification($user,$title,$body));
 
-                $notification = \DB::table('notification_channels')
+                $notification = DB::table('notification_channels')
                 ->where('topics', 'User Wallet Amount') // Match the correct topic
                 ->first();
 
@@ -100,14 +100,14 @@ trait PaymentReferenceHelper
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -164,7 +164,7 @@ trait PaymentReferenceHelper
 
         // dispatch(new SendPushNotification($driver->user,$title,$body));
 
-        $notification = \DB::table('notification_channels')
+        $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Wallet Amount') // Match the correct topic
                 ->first();
 
@@ -175,14 +175,14 @@ trait PaymentReferenceHelper
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();

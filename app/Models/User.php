@@ -39,6 +39,9 @@ use App\Models\Request\RecentSearch;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Payment\CardInfo;
 use App\Models\Referral;
+use App\Models\Admin\Agents;
+use App\Models\Admin\Franchise;
+use App\Models\Admin\FranchiseDetail;
 
 
 class User extends Authenticatable implements CanSendOTPContract
@@ -130,6 +133,10 @@ class User extends Authenticatable implements CanSendOTPContract
                 $default_image_path = config('base.default.admin.profile_picture');
             } elseif ($this->gender === 'female') {
                 $default_image_path = config('base.default.female-user.profile_picture');
+            }elseif(auth()->check() && auth()->id() === $this->id && auth()->user()->agent) {
+                $default_image_path = config('base.default.agent.profile_picture');
+            }elseif(auth()->check() && auth()->id() === $this->id && auth()->user()->franchise) {
+                $default_image_path = config('base.default.franchise.profile_picture');
             }  
             
             else {
@@ -462,4 +469,8 @@ class User extends Authenticatable implements CanSendOTPContract
         return $this->belongsTo(User::class, 'referred_by','id');
     }
 
+    public function franchiseDetail()
+    {
+        return $this->hasOne(FranchiseDetail::class, 'user_id', 'id');
+    }
 }

@@ -548,9 +548,59 @@ public function mobileOtp(Request $request)
         if ($err) {
             return response()->json(["error" => $err], 500);
         } else {
-            return response()->json(json_decode($response, true));
+            // return response()->json(json_decode($response, true));
+            return response()->json(['message'=>'success','success'=>true]);
         }
     }
+
+       // infobip
+public function enable_infobip($mobile, $otp, $country_code)
+{
+    $baseUrl = rtrim(get_sms_settings('infobip_base_url'), '/');
+    $apiKey = get_sms_settings('infobip_api_key');
+    $sender = get_sms_settings('infobip_sender_id');
+
+    $fullMobile = $country_code . $mobile;
+
+    $message = "Dear User, your OTP is $otp.";
+
+    $payload = [
+        "messages" => [
+            [
+                // "from" => $sender,
+                "destinations" => [
+                    ["to" => $fullMobile]
+                ],
+                "text" => $message
+            ]
+        ]
+    ];
+
+    $response = Http::withHeaders([
+        'Authorization' => "App $apiKey",
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json',
+    ])->post($baseUrl . "/sms/2/text/advanced", $payload);
+
+    if (!$response->successful()) {
+
+        \Log::error('Infobip SMS Failed', [
+            'status' => $response->status(),
+            'body' => $response->body()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'SMS sending failed'
+        ], 400);
+    }
+
+    \Log::info('Infobip SMS Success', [
+        'response' => $response->json()
+    ]);
+
+    return $this->respondSuccess();
+}
 
 
 //validate-OTP

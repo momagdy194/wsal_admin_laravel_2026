@@ -12,7 +12,7 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Jobs\Notifications\Exception\SendExceptionToEmailNotification;
 use App\Models\Setting;
-use Illuminate\Support\Facades\Log;
+use Log;
 use Illuminate\Support\Facades\Config;
 
 class Handler extends ExceptionHandler
@@ -44,24 +44,18 @@ class Handler extends ExceptionHandler
      */
     public function report(Throwable $exception)
     {        
-        $isDebugSendMailOpen = Config::get('app.debug_sendmail_open');
-        $debugSendMailEmail = Config::get('app.debug_sendmail_email');
+        $isDebugSendMailOpen = \Config::get('app.debug_sendmail_open');
+        $debugSendMailEmail = \Config::get('app.debug_sendmail_email');
 
         if ($isDebugSendMailOpen && $debugSendMailEmail != '' && $exception instanceof Throwable && !in_array(get_class($exception), $this->dontReport)) {
-            $debugSetting = Config::get('app.debug');
-            $appName = Config::get('app.name');
+            $debugSetting = \Config::get('app.debug');
+            $appName = \Config::get('app.name');
 
-            Config::set('app.debug', true);
+            \Config::set('app.debug', true);
 
-            if (ExceptionHandler::isHttpException($exception)) {
-                /** @var \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $httpException */
-                $httpException = $exception;
-                $content = ExceptionHandler::toIlluminateResponse(ExceptionHandler::renderHttpException($httpException), $exception);
-            } else {
-                $content = ExceptionHandler::toIlluminateResponse(ExceptionHandler::convertExceptionToResponse($exception), $exception);
-            }
+            $content = ExceptionHandler::isHttpException($exception) ? ExceptionHandler::toIlluminateResponse(ExceptionHandler::renderHttpException($exception), $exception) : ExceptionHandler::toIlluminateResponse(ExceptionHandler::convertExceptionToResponse($exception), $exception);
 
-            Config::set('app.debug', $debugSetting);
+            \Config::set('app.debug', $debugSetting);
 
             try {
                 $request = request();
@@ -107,24 +101,12 @@ class Handler extends ExceptionHandler
 
         $statusCode = $this->getStatusCode($exception);
 
-        $exceptionMessage = $exception->getMessage();
-        // Normalize OAuth-style auth errors to 401 with a clear message
-        $authErrorMessages = ['invalid_grant', 'invalid_token', 'expired_token', 'revoked_token'];
-        if (in_array(strtolower($exceptionMessage), $authErrorMessages, true) || $exception instanceof AuthenticationException) {
-            $statusCode = Response::HTTP_UNAUTHORIZED;
-            $message = 'Unauthenticated. Invalid or expired token.';
-            // Log auth failures for debugging (token from other server, expired, or deleted)
-            $req = request();
-            Log::channel('single')->info('API auth failure', [
-                'exception_class' => get_class($exception),
-                'exception_message' => $exceptionMessage,
-                'path' => $req?->path(),
-                'has_bearer' => $req && $req->bearerToken() !== null,
-            ]);
-        } elseif ($exception instanceof NotFoundHttpException || !($message = $exceptionMessage)) {
-            $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode] ?? 'Error');
-        } else {
-            $message = $exceptionMessage;
+        if ($exception instanceof NotFoundHttpException || !($message = $exception->getMessage())) {
+            $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode]);
+        }
+
+        if ($exception instanceof QueryException && !$this->runningInDebugMode()) {
+            $message = 'Internal Server Error';
         }
 
         $data = [
@@ -132,46 +114,24 @@ class Handler extends ExceptionHandler
             'message' => $message,
             'status_code' => $statusCode,
         ];
-        // So API clients (e.g. Flutter app) can show login screen when token is invalid/expired
-        if ($statusCode === Response::HTTP_UNAUTHORIZED && (in_array(strtolower($exceptionMessage ?? ''), ['invalid_grant', 'invalid_token', 'expired_token', 'revoked_token'], true) || $exception instanceof AuthenticationException)) {
-            $data['login_required'] = true;
-        }
-        // Include the actual exception message for server errors (not for validation - errors are in 'errors')
-        $isValidation = $exception instanceof ValidationException || $exception instanceof CustomValidationException;
-        if (!$isValidation && $exceptionMessage !== '' && $exceptionMessage !== null) {
-            $data['exception_message'] = $exceptionMessage;
-        }
 
-        if ($isValidation) {
+        if ($exception instanceof ValidationException || $exception instanceof CustomValidationException) {
             $data['status_code'] = $statusCode = Response::HTTP_UNPROCESSABLE_ENTITY;
-            if ($exception instanceof ValidationException) {
-                $data['errors'] = $exception->validator->errors()->getMessages();
-            } elseif ($exception instanceof CustomValidationException) {
-                $data['errors'] = $exception->getMessages();
-            }
+            $data['errors'] = $exception instanceof ValidationException ?
+            $exception->validator->errors()->getMessages() : $exception->getMessages();
         }
 
         if ($code = $exception->getCode()) {
             $data['code'] = $code;
         }
 
-        // When debug is on, return the real error so you can see what went wrong
         if ($this->runningInDebugMode()) {
-            $data['exception_message'] = $exception->getMessage();
-            if ($statusCode === Response::HTTP_UNAUTHORIZED) {
-                $data['hint'] = 'Token may be expired, deleted (e.g. after re-login), or created on another server (different APP_KEY). Re-login and use the new token on this server.';
-            }
             $data['debug'] = [
-                'message' => $exception->getMessage(),
                 'line' => $exception->getLine(),
                 'file' => $exception->getFile(),
                 'class' => get_class($exception),
-                'trace' => explode("\n", $exception->getTraceAsString()),
+                'trace' => explode('\n', $exception->getTraceAsString()),
             ];
-            if ($exception instanceof QueryException) {
-                $data['debug']['sql'] = $exception->getSql();
-                $data['debug']['bindings'] = $exception->getBindings();
-            }
         }
 
         return response()->json($data, $statusCode);
@@ -206,7 +166,6 @@ class Handler extends ExceptionHandler
     protected function getStatusCode(Throwable $exception, $defaultStatusCode = Response::HTTP_INTERNAL_SERVER_ERROR)
     {
         if ($this->isHttpException($exception)) {
-            /** @var \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $exception */
             return $exception->getStatusCode();
         }
 
@@ -236,8 +195,9 @@ class Handler extends ExceptionHandler
         if ($request->expectsJson()) {
             return true;
         }
-        // Treat these web routes as JSON when they send JSON (e.g. XHR from admin panel)
-        $jsonSegments = ['api', 'roles', 'zones'];
-        return !empty($request->segments()) && in_array($request->segments()[0], $jsonSegments, true);
+
+        return (!empty($request->segments()) && $request->segments()[0] === 'api');
     }
+
+
 }

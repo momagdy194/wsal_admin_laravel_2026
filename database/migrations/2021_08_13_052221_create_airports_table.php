@@ -17,7 +17,7 @@ class CreateAirportsTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid('service_location_id');
             $table->string('name');
-            $table->multiPolygon('coordinates')->nullable();
+            $table->geometry('coordinates',subtype:'multiPolygon')->nullable();
             $table->double('lat', 15, 8)->nullable();
             $table->double('lng', 15, 8)->nullable();
             $table->double('airport_surge_fee',10, 2)->default(0);

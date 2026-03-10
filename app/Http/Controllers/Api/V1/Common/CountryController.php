@@ -152,6 +152,4 @@ class CountryController extends ApiController
 
         return $this->respondOk($response);
     }
-
-
 }

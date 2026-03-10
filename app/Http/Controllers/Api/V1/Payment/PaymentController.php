@@ -30,6 +30,7 @@ use App\Jobs\Notifications\SendPushNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WalletAmountTransferMail;
 use App\Jobs\Mails\SendAmountTransferMailNotification;
+
 /**
  * @group Payment
  * @authenticated
@@ -76,7 +77,7 @@ class PaymentController extends BaseController
     public function listCards()
     {
         $result = CardInfo::where('user_id', auth()->user()->id)->get();
-        
+
         return $this->respondSuccess($result, 'card_listed_succesfully');
     }
 
@@ -90,7 +91,7 @@ class PaymentController extends BaseController
      */
     public function makeDefaultCard(Request $request)
     {
-          $card_info = CardInfo::where('user_id', auth()->user()->id)->where('is_default', true)->first();
+        $card_info = CardInfo::where('user_id', auth()->user()->id)->where('is_default', true)->first();
 
         if ($card_info) {
             $card_info->is_default = false;
@@ -98,10 +99,10 @@ class PaymentController extends BaseController
             $card_info->save();
         }
 
-        CardInfo::where('id', $request->card_id)->where('user_id', auth()->user()->id)->update(['is_default'=>true]);
+        CardInfo::where('id', $request->card_id)->where('user_id', auth()->user()->id)->update(['is_default' => true]);
 
         return $this->respondSuccess($data = null, 'card_made_default_succesfully');
-}
+    }
 
 
     /**
@@ -119,7 +120,7 @@ class PaymentController extends BaseController
 
         $card->delete();
 
-        return $this->respondSuccess($data = null, 'card_deleted_succesfully');    
+        return $this->respondSuccess($data = null, 'card_deleted_succesfully');
     }
 
     /**
@@ -135,8 +136,8 @@ class PaymentController extends BaseController
 
             $user_wallet = auth()->user()->userWallet;
 
-            $wallet_balance = number_format($user_wallet->amount_balance,2);
-            
+            $wallet_balance = number_format($user_wallet->amount_balance, 2);
+
             $currency_code = auth()->user()->countryDetail->currency_code;
             $currency_symbol = auth()->user()->countryDetail->currency_symbol;
 
@@ -148,7 +149,8 @@ class PaymentController extends BaseController
                 $default_card_id = $default_card->id;
             }
 
-        } elseif (access()->hasRole(Role::DRIVER)) {
+        }
+        elseif (access()->hasRole(Role::DRIVER)) {
             $query = DriverWalletHistory::where('user_id', auth()->user()->driver->id)->orderBy('created_at', 'desc');
             $result = filter($query, new DriverWalletHistoryTransformer)->defaultSort('-created_at')->paginate();
 
@@ -167,7 +169,8 @@ class PaymentController extends BaseController
             if ($default_card) {
                 $default_card_id = $default_card->id;
             }
-        } else {
+        }
+        else {
 
             $query = OwnerWalletHistory::where('user_id', auth()->user()->owner->id)->orderBy('created_at', 'desc');
             $result = filter($query, new OwnerWalletHistoryTransformer)->defaultSort('-created_at')->paginate();
@@ -178,7 +181,8 @@ class PaymentController extends BaseController
 
                 $wallet_balance = 0;
 
-            } else {
+            }
+            else {
                 $wallet_balance = $owner_wallet->amount_balance;
 
             }
@@ -205,84 +209,85 @@ class PaymentController extends BaseController
 
 
         // $cashfree_image = asset('assets/payment_gateway/cashfree.jpeg');
-     
+
         $settings = [
-                'enable_paystack' => get_payment_settings('enable_paystack'),
-                'enable_cashfree' => get_payment_settings('enable_cashfree'),
-                'enable_mercadopago' => get_payment_settings('enable_mercadopago'),
-                'enable_stripe' => get_payment_settings('enable_stripe'),
-                'enable_flutterwave' => get_payment_settings('enable_flutterwave'),
-                'enable_razorpay' => get_payment_settings('enable_razorpay'),
-                'enable_khalti' => get_payment_settings('enable_khalti'),
-                'enable_xendit' => get_payment_settings('enable_xendit'),
-                'enable_flexpaie' => get_payment_settings('enable_flexpaie'),
-                'enable_openpix'=> get_payment_settings('enable_openpix'),
-                'enable_myfatoora'=> get_payment_settings('enable_myfatoora'),
-                'enable_paymongo'=> get_payment_settings('enable_paymongo'),
-                'enable_paypal'=> get_payment_settings('enable_paypal'),
-                'enable_fedapay'=> get_payment_settings('enable_fedapay'),
-            ];
+            'enable_paystack' => get_payment_settings('enable_paystack'),
+            'enable_cashfree' => get_payment_settings('enable_cashfree'),
+            'enable_mercadopago' => get_payment_settings('enable_mercadopago'),
+            'enable_stripe' => get_payment_settings('enable_stripe'),
+            'enable_flutterwave' => get_payment_settings('enable_flutterwave'),
+            'enable_razorpay' => get_payment_settings('enable_razorpay'),
+            'enable_khalti' => get_payment_settings('enable_khalti'),
+            'enable_xendit' => get_payment_settings('enable_xendit'),
+            'enable_flexpaie' => get_payment_settings('enable_flexpaie'),
+            'enable_openpix' => get_payment_settings('enable_openpix'),
+            'enable_myfatoora' => get_payment_settings('enable_myfatoora'),
+            'enable_paymongo' => get_payment_settings('enable_paymongo'),
+            'enable_paypal' => get_payment_settings('enable_paypal'),
+            'enable_fedapay' => get_payment_settings('enable_fedapay'),
+            'enable_sslcommerz' => get_payment_settings('enable_sslcommerz'),
+        ];
 
-            $flags = [];
+        $flags = [];
 
-            foreach ($settings as $flag => $settingKey) {
+        foreach ($settings as $flag => $settingKey) {
             // dd($flag);
 
-                $flags[$flag] = get_payment_settings($flag) == '1';
-            }
+            $flags[$flag] = get_payment_settings($flag) == '1';
+        }
 
 
-            $images = [
-                'flutterwave' => asset('assets/img/flutterwave.png'),
-                'mercadopago' => asset('assets/img/mercadepago.png'),
-                'cashfree' => asset('assets/img/cashfree.png'),
-                'paystack' => asset('assets/img/paystack.png'),
-                'razorpay' => asset('assets/img/razor.png'),
-                'stripe' => asset('assets/img/stripe.png'),
-                'khalti' => asset('assets/img/khalti.png'),
-                'xendit' => asset('assets/img/xendit-logo.jpg'),
-                'flexpaie' => asset('assets/img/flexpaie.png'),
-                'openpix' => asset('assets/img/openpix.png'),
-                'myfatoora' => asset('assets/img/myfatoora.png'),
-                'paymongo' => asset('assets/img/paymongo.png'),
-                'paypal' => asset('assets/img/paypal.png'),
-                'fedapay' => asset('assets/img/fedapay.svg'),
-            ];
+        $images = [
+            'flutterwave' => asset('assets/img/flutterwave.png'),
+            'mercadopago' => asset('assets/img/mercadepago.png'),
+            'cashfree' => asset('assets/img/cashfree.png'),
+            'paystack' => asset('assets/img/paystack.png'),
+            'razorpay' => asset('assets/img/razor.png'),
+            'stripe' => asset('assets/img/stripe.png'),
+            'khalti' => asset('assets/img/khalti.png'),
+            'xendit' => asset('assets/img/xendit-logo.jpg'),
+            'flexpaie' => asset('assets/img/flexpaie.png'),
+            'openpix' => asset('assets/img/openpix.png'),
+            'myfatoora' => asset('assets/img/myfatoora.png'),
+            'paymongo' => asset('assets/img/paymongo.png'),
+            'paypal' => asset('assets/img/paypal.png'),
+            'fedapay' => asset('assets/img/fedapay.svg'),
+            'sslcommerz' => asset('assets/img/sslcommerz.png'),
+        ];
 
-            $url = env('APP_URL');
+        $url = env('APP_URL');
 
-            $payment_gateways = [];
-
-
-            $car_details = auth()->user()->userCards;
-
-            if($car_details){
-
-                foreach ($car_details as $key => $car_detail) {
-                    
-               $payment_gateways[] = [
-                'is_card'=>true,
-                'gateway'=>$car_detail->last_number,
-                'enabled'=>true,
-                'image'=>$car_detail->card_type,
-                'url'=>$car_detail->card_token
-               ]; 
+        $payment_gateways = [];
 
 
-                }
-                
-            }
+        $car_details = auth()->user()->userCards;
 
-            foreach ($images as $gateway => $image) 
-            {
+        if ($car_details) {
+
+            foreach ($car_details as $key => $car_detail) {
+
                 $payment_gateways[] = [
-                    'is_card'=>false,
-                    'gateway' => $this->toCamelCase($gateway),
-                    'enabled' => $flags["enable_{$gateway}"] ?? false,
-                    'image' => $image,
-                    'url' => route($gateway),
+                    'is_card' => true,
+                    'gateway' => $car_detail->last_number,
+                    'enabled' => true,
+                    'image' => $car_detail->card_type,
+                    'url' => $car_detail->card_token
                 ];
+
+
             }
+
+        }
+
+        foreach ($images as $gateway => $image) {
+            $payment_gateways[] = [
+                'is_card' => false,
+                'gateway' => $this->toCamelCase($gateway),
+                'enabled' => $flags["enable_{$gateway}"] ?? false,
+                'image' => $image,
+                'url' => route($gateway),
+            ];
+        }
 
         return response()->json(['success' => true,
             'message' => 'wallet_history_listed',
@@ -292,15 +297,15 @@ class PaymentController extends BaseController
             'currency_symbol' => $currency_symbol,
             'wallet_history' => $result,
             'bank_info_exists' => $bank_info_exists,
-            'enable_save_card'=> $flags["enable_stripe"],
+            'enable_save_card' => $flags["enable_stripe"],
             'payment_gateways' => $payment_gateways,
             'minimum_amount_added_to_wallet' => get_settings('minimum_amount_added_to_wallet'),
         ]);
 
-        // return $this->respondSuccess($result, 'wallet_history_listed');
+    // return $this->respondSuccess($result, 'wallet_history_listed');
     }
 
-     public function toCamelCase($string)
+    public function toCamelCase($string)
     {
         // Remove non-alphanumeric characters (optional)
         $string = preg_replace('/[^a-zA-Z0-9\s]/', '', $string);
@@ -312,7 +317,7 @@ class PaymentController extends BaseController
         $camelCaseString = array_shift($words); // Remove and get the first word
         foreach ($words as $word) {
             $camelCaseString .= ucfirst($word);
-    }
+        }
 
         return $camelCaseString;
     }
@@ -370,7 +375,8 @@ class PaymentController extends BaseController
             $wallet_balance = $user_wallet->amount_balance;
 
 
-        } elseif (access()->hasRole(Role::DRIVER)) {
+        }
+        elseif (access()->hasRole(Role::DRIVER)) {
 
             $user = auth()->user()->driver;
 
@@ -385,7 +391,8 @@ class PaymentController extends BaseController
 
             $wallet_balance = $driver_wallet->amount_balance;
 
-        } else {
+        }
+        else {
 
             $user = auth()->user()->owner;
 
@@ -455,7 +462,8 @@ class PaymentController extends BaseController
                 $this->throwCustomException('You cannot make multiple request. please wait for your existing request approval');
             }
 
-        } elseif (access()->hasRole(Role::DRIVER)) {
+        }
+        elseif (access()->hasRole(Role::DRIVER)) {
 
             $user_info = auth()->user()->driver;
 
@@ -490,7 +498,8 @@ class PaymentController extends BaseController
                 $this->throwCustomException('You cannot make multiple request. please wait for your existing request approval');
             }
 
-        } else {
+        }
+        else {
 
             $user_info = auth()->user()->owner;
 
@@ -534,7 +543,7 @@ class PaymentController extends BaseController
 
 
     }
-   /**
+    /**
      * Transfer money from wallet
      * @bodyParam mobile mobile required mobile of the user
      * @bodyParam role role required role of the user
@@ -547,32 +556,32 @@ class PaymentController extends BaseController
      *     "receiver_remarks": false
      * }
      * */
-   public function transferMoneyFromWallet(Request $request)
+    public function transferMoneyFromWallet(Request $request)
     {
         $request->validate([
             'mobile' => 'required',
             'role' => 'required',
             'amount' => 'required'
         ]);
-        if($request->amount < 0) {
+        if ($request->amount < 0) {
             $this->throwCustomException('Invalid Amount');
         }
         $user = auth()->user();
-        
+
         $invalid_mobile = false;
 
-        if($user->hasRole('user') && $request->role=='user'){
-            
+        if ($user->hasRole('user') && $request->role == 'user') {
+
             $invalid_mobile = true;
 
         }
-        if($user->hasRole('driver') && $request->role=='driver'){
-            
+        if ($user->hasRole('driver') && $request->role == 'driver') {
+
             $invalid_mobile = true;
 
         }
-         if($user->hasRole('owner') && $request->role=='owner'){
-            
+        if ($user->hasRole('owner') && $request->role == 'owner') {
+
             $invalid_mobile = true;
 
         }
@@ -586,11 +595,13 @@ class PaymentController extends BaseController
             $wallet_model = new UserWallet();
             $wallet_history_model = new UserWalletHistory();
             $user_id = auth()->user()->id;
-        } elseif ($user->hasRole('driver')) {
+        }
+        elseif ($user->hasRole('driver')) {
             $wallet_model = new DriverWallet();
             $wallet_history_model = new DriverWalletHistory();
             $user_id = $user->driver->id;
-        } else {
+        }
+        else {
             $wallet_model = new OwnerWallet();
             $wallet_history_model = new OwnerWalletHistory();
             $user_id = $user->owner->id;
@@ -631,7 +642,7 @@ class PaymentController extends BaseController
         if ($role == 'user') {
 
             $receiver_wallet = $receiver_user->userWallet;
-            if($receiver_wallet==null){
+            if ($receiver_wallet == null) {
                 $this->throwCustomException('This user Does Not have an E-Wallet');
             }
             $receiver_wallet_history_model = new UserWalletHistory();
@@ -646,10 +657,11 @@ class PaymentController extends BaseController
                 'remarks' => 'transferred-from-' . $user->name
             ]);
 
-        } elseif ($role == 'driver') {
+        }
+        elseif ($role == 'driver') {
 
             $receiver_wallet = $receiver_user->driver->driverWallet;
-            if($receiver_wallet==null){
+            if ($receiver_wallet == null) {
                 $this->throwCustomException('This user Does Not have an E-Wallet');
             }
             $receiver_wallet_history_model = new DriverWalletHistory();
@@ -664,10 +676,11 @@ class PaymentController extends BaseController
                 'remarks' => 'transferred-from-' . $user->name
             ]);
 
-        } elseif ($role == 'owner') {
+        }
+        elseif ($role == 'owner') {
 
             $receiver_wallet = $receiver_user->owner->ownerWalletDetail;
-            if($receiver_wallet==null){
+            if ($receiver_wallet == null) {
                 $this->throwCustomException('This user Does Not have an E-Wallet');
             }
             $receiver_wallet_history_model = new OwnerWalletHistory();
@@ -702,39 +715,39 @@ class PaymentController extends BaseController
             'is_credit' => false]);
         $transfer_remarks = $wallet_history_model->update(['remarks']);
         $receiver_remarks = $receiver_wallet_history_model->update(['remarks']);
-//        return $this->respondSuccess($remarks, 'transferred');
+        //        return $this->respondSuccess($remarks, 'transferred');
 
         $currency = $user->countryDetail()->pluck('currency_symbol')->first();
 
-            $notification = \DB::table('notification_channels')
-                    ->where('topics', 'User Amount Transfer') // Match the correct topic
+        $notification = \DB::table('notification_channels')
+            ->where('topics', 'User Amount Transfer') // Match the correct topic
+            ->first();
+        //    send push notification 
+        if ($notification && $notification->push_notification == 1) {
+            // Determine the user's language or default to 'en'
+            $userLang = $receiver_user->lang ?? 'en';
+            // dd($userLang);
+
+            // Fetch the translation based on user language or fall back to 'en'
+            $translation = \DB::table('notification_channels_translations')
+                ->where('notification_channel_id', $notification->id)
+                ->where('locale', $userLang)
+                ->first();
+
+            // If no translation exists, fetch the default language (English)
+            if (!$translation) {
+                $translation = \DB::table('notification_channels_translations')
+                    ->where('notification_channel_id', $notification->id)
+                    ->where('locale', 'en')
                     ->first();
-            //    send push notification 
-                if ($notification && $notification->push_notification == 1) {
-                     // Determine the user's language or default to 'en'
-                    $userLang = $receiver_user->lang ?? 'en';
-                    // dd($userLang);
-    
-                    // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
-                        ->where('notification_channel_id', $notification->id)
-                        ->where('locale', $userLang)
-                        ->first();
-    
-                    // If no translation exists, fetch the default language (English)
-                    if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
-                            ->where('notification_channel_id', $notification->id)
-                            ->where('locale', 'en')
-                            ->first();
-                    }
-            
-                    
-                    $title =  $translation->push_title ?? $notification->push_title;
-                    $body = strip_tags($translation->push_body ?? $notification->push_body);
-                    dispatch(new SendPushNotification($receiver_user, $title, $body));
-                }
-                SendAmountTransferMailNotification::dispatch($user, $transaction_id, $currency, $request->amount, $user_wallet,$receiver_user);
+            }
+
+
+            $title = $translation->push_title ?? $notification->push_title;
+            $body = strip_tags($translation->push_body ?? $notification->push_body);
+            dispatch(new SendPushNotification($receiver_user, $title, $body));
+        }
+        SendAmountTransferMailNotification::dispatch($user, $transaction_id, $currency, $request->amount, $user_wallet, $receiver_user);
         return response()->json(['success' => true, 'transfer_remarks' => $transfer_remarks, 'receiver_remarks' => $receiver_remarks]);
     }
     /**
@@ -772,11 +785,11 @@ class PaymentController extends BaseController
     {
         $user = auth()->user();
         $rewards_to_transfer = $request->amount;
-        if($rewards_to_transfer > $user->rewardPoint->balance_reward_points){
+        if ($rewards_to_transfer > $user->rewardPoint->balance_reward_points) {
             $this->throwCustomException('Insufficient Balance');
         }
 
-        
+
         $user->rewardPoint->balance_reward_points -= $rewards_to_transfer;
         $user->rewardPoint->points_spend += $rewards_to_transfer;
         $user->rewardPoint->save();
@@ -787,14 +800,15 @@ class PaymentController extends BaseController
             'is_credit' => false,
             'remarks' => "conversion-from-point",
         ]);
-        $amount_to_transfer = number_format($rewards_to_transfer / get_settings('reward_point_value'),2);
+        $amount_to_transfer = number_format($rewards_to_transfer / get_settings('reward_point_value'), 2);
 
         if ($user->hasRole('user')) {
             $wallet_model = new UserWallet();
             $wallet_history_model = new UserWalletHistory();
             $user_id = $user->id;
 
-        } elseif ($user->hasRole('driver')) {
+        }
+        elseif ($user->hasRole('driver')) {
             $wallet_model = new DriverWallet();
             $wallet_history_model = new DriverWalletHistory();
             $user_id = $user->driver->id;
@@ -820,43 +834,44 @@ class PaymentController extends BaseController
 
         // dispatch(new SendPushNotification($user,$title,$body));
 
-         $notification = \DB::table('notification_channels')
-                ->where('topics', 'User Transfer Credit Points') // Match the correct topic
+        $notification = \DB::table('notification_channels')
+            ->where('topics', 'User Transfer Credit Points') // Match the correct topic
+            ->first();
+
+        //    send push notification 
+        if ($notification && $notification->push_notification == 1) {
+            // Determine the user's language or default to 'en'
+            $userLang = $user->lang ?? 'en';
+            // dd($userLang);
+
+            // Fetch the translation based on user language or fall back to 'en'
+            $translation = \DB::table('notification_channels_translations')
+                ->where('notification_channel_id', $notification->id)
+                ->where('locale', $userLang)
                 ->first();
 
-            //    send push notification 
-                if ($notification && $notification->push_notification == 1) {
-                     // Determine the user's language or default to 'en'
-                    $userLang = $user->lang ?? 'en';
-                    // dd($userLang);
-    
-                    // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
-                        ->where('notification_channel_id', $notification->id)
-                        ->where('locale', $userLang)
-                        ->first();
-    
-                    // If no translation exists, fetch the default language (English)
-                    if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
-                            ->where('notification_channel_id', $notification->id)
-                            ->where('locale', 'en')
-                            ->first();
-                    }            
-                    
-                    $title =  $translation->push_title ?? $notification->push_title;
-                    $body = strip_tags($translation->push_body ?? $notification->push_body);
-                    dispatch(new SendPushNotification($user, $title, $body));
-                }
+            // If no translation exists, fetch the default language (English)
+            if (!$translation) {
+                $translation = \DB::table('notification_channels_translations')
+                    ->where('notification_channel_id', $notification->id)
+                    ->where('locale', 'en')
+                    ->first();
+            }
+
+            $title = $translation->push_title ?? $notification->push_title;
+            $body = strip_tags($translation->push_body ?? $notification->push_body);
+            dispatch(new SendPushNotification($user, $title, $body));
+        }
 
         return response()->json(['success' => true, 'wallet_remarks' => $user_wallet, 'loyalty_remarks' => $loyalty_remarks]);
 
     }
 
 
-    public function paymentGatewaysForRide(){
-        
-     
+    public function paymentGatewaysForRide()
+    {
+
+
         $settings = [
             'enable_paystack' => get_payment_settings('enable_paystack'),
             'enable_cashfree' => get_payment_settings('enable_cashfree'),
@@ -866,17 +881,17 @@ class PaymentController extends BaseController
             'enable_razorpay' => get_payment_settings('enable_razorpay'),
             'enable_khalti' => get_payment_settings('enable_khalti'),
             'enable_xendit' => get_payment_settings('enable_xendit'),
-            'enable_openpix'=> get_payment_settings('enable_openpix'),
-            'enable_myfatoora'=> get_payment_settings('enable_myfatoora'),
-            'enable_paymongo'=> get_payment_settings('enable_paymongo'),
-            'enable_paypal'=> get_payment_settings('enable_paypal'),
-            'enable_fedapay'=> get_payment_settings('enable_fedapay'),
+            'enable_openpix' => get_payment_settings('enable_openpix'),
+            'enable_myfatoora' => get_payment_settings('enable_myfatoora'),
+            'enable_paymongo' => get_payment_settings('enable_paymongo'),
+            'enable_paypal' => get_payment_settings('enable_paypal'),
+            'enable_fedapay' => get_payment_settings('enable_fedapay'),
         ];
 
         $flags = [];
 
         foreach ($settings as $flag => $settingKey) {
-        // dd($flag);
+            // dd($flag);
 
             $flags[$flag] = get_payment_settings($flag) == '1';
         }
@@ -900,14 +915,13 @@ class PaymentController extends BaseController
         ];
 
 
-        
+
 
         $url = env('APP_URL');
 
         $payment_gateways = [];
 
-        foreach ($images as $gateway => $image) 
-        {
+        foreach ($images as $gateway => $image) {
             $payment_gateways[] = [
                 'gateway' => $this->toCamelCase($gateway),
                 'enabled' => $flags["enable_{$gateway}"] ?? false,
@@ -916,12 +930,13 @@ class PaymentController extends BaseController
             ];
         }
 
-        return $this->respondSuccess($payment_gateways,'Payment_gateways_listed');
+        return $this->respondSuccess($payment_gateways, 'Payment_gateways_listed');
     }
 
-    public function paymentGateways(){
-        
-     
+    public function paymentGateways()
+    {
+
+
         $settings = [
             'enable_paystack' => get_payment_settings('enable_paystack'),
             'enable_cashfree' => get_payment_settings('enable_cashfree'),
@@ -932,17 +947,17 @@ class PaymentController extends BaseController
             'enable_khalti' => get_payment_settings('enable_khalti'),
             'enable_xendit' => get_payment_settings('enable_xendit'),
             'enable_flexpaie' => get_payment_settings('enable_flexpaie'),
-            'enable_openpix'=> get_payment_settings('enable_openpix'),
-            'enable_myfatoora'=> get_payment_settings('enable_myfatoora'),
-            'enable_paymongo'=> get_payment_settings('enable_paymongo'),
-            'enable_paypal'=> get_payment_settings('enable_paypal'),
-            'enable_fedapay'=> get_payment_settings('enable_fedapay'),
+            'enable_openpix' => get_payment_settings('enable_openpix'),
+            'enable_myfatoora' => get_payment_settings('enable_myfatoora'),
+            'enable_paymongo' => get_payment_settings('enable_paymongo'),
+            'enable_paypal' => get_payment_settings('enable_paypal'),
+            'enable_fedapay' => get_payment_settings('enable_fedapay'),
         ];
 
         $flags = [];
 
         foreach ($settings as $flag => $settingKey) {
-        // dd($flag);
+            // dd($flag);
 
             $flags[$flag] = get_payment_settings($flag) == '1';
         }
@@ -970,32 +985,31 @@ class PaymentController extends BaseController
 
         // $url = env('APP_URL');
 
-         $payment_gateways = [];
+        $payment_gateways = [];
 
 
-            $car_details = auth()->user()->userCards;
+        $car_details = auth()->user()->userCards;
 
-            if($car_details){
+        if ($car_details) {
 
-                foreach ($car_details as $key => $car_detail) {
-                    
-               $payment_gateways[] = [
-                'is_card'=>true,
-                'gateway'=>$car_detail->last_number,
-                'enabled'=>true,
-                'image'=>$car_detail->card_type,
-                'url'=>$car_detail->card_token
-               ]; 
+            foreach ($car_details as $key => $car_detail) {
+
+                $payment_gateways[] = [
+                    'is_card' => true,
+                    'gateway' => $car_detail->last_number,
+                    'enabled' => true,
+                    'image' => $car_detail->card_type,
+                    'url' => $car_detail->card_token
+                ];
 
 
-                }
-                
             }
 
-        foreach ($images as $gateway => $image) 
-        {
+        }
+
+        foreach ($images as $gateway => $image) {
             $payment_gateways[] = [
-                'is_card'=>false,
+                'is_card' => false,
                 'gateway' => $this->toCamelCase($gateway),
                 'enabled' => $flags["enable_{$gateway}"] ?? false,
                 'image' => $image,
@@ -1003,6 +1017,6 @@ class PaymentController extends BaseController
             ];
         }
 
-        return $this->respondSuccess($payment_gateways,'Payment_gateways_listed');
+        return $this->respondSuccess($payment_gateways, 'Payment_gateways_listed');
     }
 }

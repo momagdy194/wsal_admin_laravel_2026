@@ -103,5 +103,10 @@ interface ImageUploaderContract
     public function saveMobileMenuImage();
 
     public function savePreferenceIcon();
+    public function saveFranchiseOwnerDocument($franchiseownerId);
 
+    public function savePromotionPreview();
+
+    public function saveSingleLandingPage();
+    public function saveSingleLandingHeaderImage();
 }

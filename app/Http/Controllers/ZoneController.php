@@ -5,36 +5,39 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Admin\Zone;
-use Fleetbase\LaravelMysqlSpatial\Types\Point;
-use Fleetbase\LaravelMysqlSpatial\Types\LineString;
-use Fleetbase\LaravelMysqlSpatial\Types\Polygon;
+use MatanYadaev\EloquentSpatial\Objects\MultiPolygon;
+use MatanYadaev\EloquentSpatial\Objects\Polygon;
+use MatanYadaev\EloquentSpatial\Objects\LineString;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 use Illuminate\Validation\ValidationException;
-use Fleetbase\LaravelMysqlSpatial\Types\MultiPolygon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Base\Libraries\QueryFilter\QueryFilterContract;
 use App\Base\Filters\Admin\ZoneFilter;
 use App\Models\Admin\Setting;
+// use MatanYadaev\EloquentSpatial\Objects\MultiPolygon;
+
+
 
 class ZoneController extends Controller
 {
     //
 
-    public function index() {
+    public function index()
+    {
         $settings = Setting::where('category', 'peak_zone_settings')->get()->pluck('value', 'name')->toArray();
-        return inertia('pages/zone/index', ['app_for'=>env('APP_FOR'),'settings' => $settings]);
+        return inertia('pages/zone/index', ['app_for' => env('APP_FOR'), 'settings' => $settings]);
     }
     public function updateZoneFeature(Request $request)
     {
         $validated = $request->validate([
             'enable_peak_zone_feature' => 'required|boolean',
         ]);
-    
+
         Setting::updateOrCreate(
             ['name' => 'enable_peak_zone_feature', 'category' => 'peak_zone_settings'],
             ['value' => $validated['enable_peak_zone_feature']]
         );
-    
+
         return response()->json(['success' => true]);
     }
     public function fetch(QueryFilterContract $queryFilter)
@@ -42,13 +45,13 @@ class ZoneController extends Controller
         $query = Zone::query();
 
         $results = $queryFilter->builder($query)->customFilter(new ZoneFilter)->paginate();
-    //   dd($results);
+        //   dd($results);
         return response()->json([
             'results' => $results->items(),
             'paginator' => $results,
         ]);
     }
-    public function create() 
+    public function create()
     {
         $googleMapKey =  get_map_settings('google_map_key'); // Retrieve the Google Map API key
         $settings = Setting::where('category', 'peak_zone_settings')->get()->pluck('value', 'name')->toArray();
@@ -60,87 +63,91 @@ class ZoneController extends Controller
         $existing_coordinates = [];
 
         foreach ($existingZones as $zone) {
+
             $multiPolygon = $zone->coordinates;
 
-            if ($multiPolygon instanceof \FleetBase\LaravelMysqlSpatial\Types\MultiPolygon) {
-                foreach ($multiPolygon as $polygon) {
-                    foreach ($polygon as $lineString) {
-                        $polygonPoints = [];
+            if (! $multiPolygon instanceof MultiPolygon) {
+                continue;
+            }
 
-                        foreach ($lineString->getPoints() as $point) {
-                            $polygonPoints[] = [
-                                'lat' => $point->getLat(),
-                                'lng' => $point->getLng(),
-                            ];
-                        }
+            foreach ($multiPolygon->getCoordinates() as $polygon) {
 
-                        $existing_coordinates[] = $polygonPoints;
+                foreach ($polygon as $ring) {
+
+                    $polygonPoints = [];
+
+                    foreach ($ring as $point) {
+                        $polygonPoints[] = [
+                            'lat' => $point[1], // latitude
+                            'lng' => $point[0], // longitude
+                        ];
                     }
+
+                    $existing_coordinates[] = $polygonPoints;
                 }
             }
         }
 
         // dd($existingZones,$existing_coordinates);
-        if($map_type=="open_street_map")
-        {
-            return inertia('pages/zone/open-create',[
-                'enable_maximum_distance_feature'=>get_settings('enable_maximum_distance_feature') == 1,
-                'default_lat'=>get_settings('default_latitude'),
-                'default_lng'=>get_settings('default_longitude'),
-                'existingZones'=>$existing_coordinates,
+        if ($map_type == "open_street_map") {
+            return inertia('pages/zone/open-create', [
+                'enable_maximum_distance_feature' => get_settings('enable_maximum_distance_feature') == 1,
+                'default_lat' => get_settings('default_latitude'),
+                'default_lng' => get_settings('default_longitude'),
+                'existingZones' => $existing_coordinates,
                 'settings' => $settings
             ]);
-        }else{
-            return inertia('pages/zone/create',[
-                'enable_maximum_distance_feature'=>get_settings('enable_maximum_distance_feature') == 1,
-                'default_lat'=>get_settings('default_latitude'),
-                'default_lng'=>get_settings('default_longitude'),
+        } else {
+            return inertia('pages/zone/create', [
+                'enable_maximum_distance_feature' => get_settings('enable_maximum_distance_feature') == 1,
+                'default_lat' => get_settings('default_latitude'),
+                'default_lng' => get_settings('default_longitude'),
                 'googleMapKey' => $googleMapKey, // Pass the Google Map API key to the Vue component
-                'existingZones'=>$existing_coordinates,
+                'existingZones' => $existing_coordinates,
                 'settings' => $settings
             ]);
         }
-
     }
     public function store(Request $request)
     {
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
         }
         // dd($request->all());
         $validated = $request->validate(['languageFields' => 'required|array']);
-        $created_params = $request->only(['service_location_id','unit','maximum_outstation_distance','maximum_distance',
-        'peak_zone_radius',
-        'peak_zone_duration',
-        'peak_zone_history_duration',
-        'peak_zone_ride_count',
-        'distance_price_percentage',]);
+        $created_params = $request->only([
+            'service_location_id',
+            'unit',
+            'maximum_outstation_distance',
+            'maximum_distance',
+            'peak_zone_radius',
+            'peak_zone_duration',
+            'peak_zone_history_duration',
+            'peak_zone_ride_count',
+            'distance_price_percentage',
+        ]);
         $created_params['unit'] = (int) $request->unit;
         $set = [];
-        $polygonsWkt = [];
         if ($request->coordinates == null) {
             throw ValidationException::withMessages(['name' => __('Please Complete the shape before submit')]);
         }
 
-        // Decode the coordinates (may be JSON string or already array when sent as application/json)
-        $decodedCoordinates = is_string($request->coordinates)
-            ? json_decode($request->coordinates, true)
-            : $request->coordinates;
+        // Decode the coordinates JSON string
+        $decodedCoordinates = json_decode($request->coordinates, true);
 
-        if ($decodedCoordinates === null || !is_array($decodedCoordinates)) {
+        // Check if the decoding was successful
+        if ($decodedCoordinates === null) {
             throw ValidationException::withMessages(['coordinates' => __('Invalid coordinates format')]);
         }
 
         foreach ($decodedCoordinates as $coordinates) {
             $points = [];
-            $ring = [];
             foreach ($coordinates as $key => $coordinate) {
 
                 // Check if the coordinate is an array with exactly two elements (lng, lat)
-                if (is_array($coordinate) && count($coordinate) === 2)
-                 {
+                if (is_array($coordinate) && count($coordinate) === 2) {
 
                     if ($key == 0) {
                         $created_params['lat'] = $coordinate[1];
@@ -149,13 +156,24 @@ class ZoneController extends Controller
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
 
-                    $check_if_exists = Zone::companyKey()->containsPoint('coordinates', $point)->exists();
+                    // $check_if_exists = Zone::companyKey()->contains('coordinates', $point)->exists();
+                    // if ($check_if_exists) {
+                    //     throw ValidationException::withMessages(['zone_name' => __('Coordinates already exists with our exists zone')]);
+                    // }
+                    $check_if_exists = Zone::companyKey()
+                        ->whereRaw(
+                            'ST_Contains(coordinates, ST_GeomFromText(?))',
+                            [$point->toWkt()]
+                        )
+                        ->exists();
+
                     if ($check_if_exists) {
-                        throw ValidationException::withMessages(['zone_name' => __('Coordinates already exists with our exists zone')]);
+                        throw ValidationException::withMessages([
+                            'zone_name' => __('Coordinates already exist in another zone')
+                        ]);
                     }
 
                     $points[] = $point;
-                    $ring[] = $coordinate[0] . ' ' . $coordinate[1];
                 } else {
                     throw ValidationException::withMessages(['coordinates' => __('Invalid coordinate data')]);
                 }
@@ -163,42 +181,35 @@ class ZoneController extends Controller
             // Close the polygon by repeating the first point
             if (count($points) > 0) {
                 array_push($points, $points[0]);
-                $ring[] = $ring[0];
             }
-            $polygonsWkt[] = '((' . implode(',', $ring) . '))';
 
             $lineStrings = [new LineString($points)];
             $set[] = new Polygon($lineStrings);
         }
 
-        $wkt = 'MULTIPOLYGON(' . implode(',', $polygonsWkt) . ')';
+        $multi_polygon = new MultiPolygon($set);
+
+        $created_params['coordinates'] = $multi_polygon;
+
+
         $created_params['name'] = $validated['languageFields']['en'];
-        unset($created_params['coordinates']);
 
         $zone = Zone::create($created_params);
-        DB::table('zones')->where('id', $zone->id)->update([
-            'coordinates' => DB::raw("ST_GeomFromText('" . str_replace("'", "''", $wkt) . "', 0)"),
-        ]);
-        $zone->refresh();
-        $translations_data = [];
         foreach ($validated['languageFields'] as $code => $language) {
-            $zone->zoneTranslationWords()->create([
-                'name' => $language,
-                'locale' => $code,
-                'zone_id' => $zone->id,
-            ]);
+            $translationData[] = ['name' => $language, 'locale' => $code, 'zone_id' => $zone->id];
             $translations_data[$code] = new \stdClass();
             $translations_data[$code]->locale = $code;
             $translations_data[$code]->name = $language;
         }
+        $zone->zoneTranslationWords()->insert($translationData);
         $zone->translation_dataset = json_encode($translations_data);
         $zone->save();
 
         return response()->json(['zone' => $zone], 201);
     }
-    
 
-    public function list() 
+
+    public function list()
     {
         $results = get_user_locations(auth()->user());
         return response()->json(['results' => $results]);
@@ -209,62 +220,67 @@ class ZoneController extends Controller
         $googleMapKey = get_map_settings('google_map_key'); // Retrieve the Google Map API key
         $settings = Setting::where('category', 'peak_zone_settings')->get()->pluck('value', 'name')->toArray();
 
-        $existingZones = Zone::companyKey()->where('id','!=',$id)->get();
+        $existingZones = Zone::companyKey()->where('id', '!=', $id)->get();
         $existing_coordinates = [];
 
         foreach ($existingZones as $existingZone) {
+
             $multiPolygon = $existingZone->coordinates;
 
-            if ($multiPolygon instanceof \FleetBase\LaravelMysqlSpatial\Types\MultiPolygon) {
-                foreach ($multiPolygon as $polygon) {
-                    foreach ($polygon as $lineString) {
-                        $polygonPoints = [];
-                        foreach ($lineString->getPoints() as $point) {
-                            $polygonPoints[] = [
-                                'lat' => $point->getLat(),
-                                'lng' => $point->getLng(),
-                            ];
-                        }
-                        $existing_coordinates[] = $polygonPoints;
+            if (! $multiPolygon instanceof MultiPolygon) {
+                continue;
+            }
+
+            foreach ($multiPolygon->getCoordinates() as $polygon) {
+
+                foreach ($polygon as $ring) {
+
+                    $polygonPoints = [];
+
+                    foreach ($ring as $point) {
+                        $polygonPoints[] = [
+                            'lat' => $point[1], // latitude
+                            'lng' => $point[0], // longitude
+                        ];
                     }
+
+                    $existing_coordinates[] = $polygonPoints;
                 }
             }
         }
-
         foreach ($zone->zoneTranslationWords as $language) {
             $languageFields[$language->locale]  = $language->name;
         }
         $zone->languageFields = $languageFields ?? null;
 
-                // dd($zone->coordinates);
-                $map_type = get_map_settings('map_type');
+        // dd($zone->coordinates);
+        $map_type = get_map_settings('map_type');
 
-                if($map_type=="open_street_map")
-                {
-                    return inertia('pages/zone/open-edit',['zone' => $zone,
-                    'enable_maximum_distance_feature'=>get_settings('enable_maximum_distance_feature') == 1,
-                    'default_lat'=>get_settings('default_latitude'),
-                    'default_lng'=>get_settings('default_longitude'),
-                    'existingZones'=>$existing_coordinates,
-                    'settings' => $settings
-                    ]);
-
-                }else{
-               return inertia('pages/zone/edit',['zone' => $zone,
-               'enable_maximum_distance_feature'=>get_settings('enable_maximum_distance_feature') == 1,
-               'default_lat'=>get_settings('default_latitude'),
-               'default_lng'=>get_settings('default_longitude'),
-                'existingZones'=>$existing_coordinates,
-               'googleMapKey' => $googleMapKey,'app_for'=>env('APP_FOR'),
-                'settings' => $settings]);
-
-                }
-
-
-    } 
+        if ($map_type == "open_street_map") {
+            return inertia('pages/zone/open-edit', [
+                'zone' => $zone,
+                'enable_maximum_distance_feature' => get_settings('enable_maximum_distance_feature') == 1,
+                'default_lat' => get_settings('default_latitude'),
+                'default_lng' => get_settings('default_longitude'),
+                'existingZones' => $existing_coordinates,
+                'settings' => $settings
+            ]);
+        } else {
+            return inertia('pages/zone/edit', [
+                'zone' => $zone,
+                'enable_maximum_distance_feature' => get_settings('enable_maximum_distance_feature') == 1,
+                'default_lat' => get_settings('default_latitude'),
+                'default_lng' => get_settings('default_longitude'),
+                'existingZones' => $existing_coordinates,
+                'googleMapKey' => $googleMapKey,
+                'app_for' => env('APP_FOR'),
+                'settings' => $settings
+            ]);
+        }
+    }
     public function update(Request $request, Zone $zone)
     {
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
@@ -277,41 +293,37 @@ class ZoneController extends Controller
             'languageFields' => 'required|array',
         ]);
         $updated_params['unit'] = (int) $request->unit;
-        $updated_params['maximum_distance'] = (double) $request->maximum_distance ?? 0;
-        $updated_params['maximum_outstation_distance'] = (double) $request->maximum_outstation_distance ?? 0;
-        $updated_params['peak_zone_radius'] = (double) $request->peak_zone_radius ?? 0;
-        $updated_params['peak_zone_ride_count'] = (double) $request->peak_zone_ride_count ?? 0;
-        $updated_params['distance_price_percentage'] = (double) $request->distance_price_percentage ?? 0;
-        $updated_params['peak_zone_duration'] = (double) $request->peak_zone_duration ?? 0;
-        $updated_params['peak_zone_history_duration'] = (double) $request->peak_zone_history_duration ?? 0;
+        $updated_params['maximum_distance'] = (float) $request->maximum_distance ?? 0;
+        $updated_params['maximum_outstation_distance'] = (float) $request->maximum_outstation_distance ?? 0;
+        $updated_params['peak_zone_radius'] = (float) $request->peak_zone_radius ?? 0;
+        $updated_params['peak_zone_ride_count'] = (float) $request->peak_zone_ride_count ?? 0;
+        $updated_params['distance_price_percentage'] = (float) $request->distance_price_percentage ?? 0;
+        $updated_params['peak_zone_duration'] = (float) $request->peak_zone_duration ?? 0;
+        $updated_params['peak_zone_history_duration'] = (float) $request->peak_zone_history_duration ?? 0;
 
         // Prepare updated parameters
         $updated_params['service_location_id'] = $request->service_location_id;
-        
+
         $set = [];
-        $polygonsWkt = [];
 
         if ($request->coordinates == null) {
             throw ValidationException::withMessages(['name' => __('Please Complete the shape before submit')]);
         }
 
-        // Decode the coordinates (may be JSON string or already array when sent as application/json)
-        $decodedCoordinates = is_string($request->coordinates)
-            ? json_decode($request->coordinates, true)
-            : $request->coordinates;
+        // Decode the coordinates JSON string
+        $decodedCoordinates = json_decode($request->coordinates, true);
 
-        if ($decodedCoordinates === null || !is_array($decodedCoordinates)) {
+        // Check if the decoding was successful
+        if ($decodedCoordinates === null) {
             throw ValidationException::withMessages(['coordinates' => __('Invalid coordinates format')]);
         }
 
         foreach ($decodedCoordinates as $coordinates) {
             $points = [];
-            $ring = [];
             foreach ($coordinates as $key => $coordinate) {
 
                 // Check if the coordinate is an array with exactly two elements (lng, lat)
-                if (is_array($coordinate) && count($coordinate) === 2)
-                 {
+                if (is_array($coordinate) && count($coordinate) === 2) {
 
                     if ($key == 0) {
                         $updated_params['lat'] = $coordinate[1];
@@ -320,13 +332,28 @@ class ZoneController extends Controller
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
 
-                    $check_if_exists = Zone::companyKey()->containsPoint('coordinates', $point)->where('id','!=',$zone->id)->exists();
+                    // $check_if_exists = Zone::companyKey()->contains('coordinates', $point)->where('id','!=',$zone->id)->exists();
+                    // if ($check_if_exists) {
+                    //     throw ValidationException::withMessages(['zone_name' => __('Coordinates already exists with our exists zone')]);
+                    // }
+                    $check_if_exists = Zone::companyKey()
+                        ->where('id', '!=', $zone->id)
+                        ->whereRaw(
+                            'ST_Contains(
+            ST_SRID(coordinates, 4326),
+            ST_GeomFromText(?, 4326)
+        )',
+                            [$point->toWkt()]
+                        )
+                        ->exists();
+
                     if ($check_if_exists) {
-                        throw ValidationException::withMessages(['zone_name' => __('Coordinates already exists with our exists zone')]);
+                        throw ValidationException::withMessages([
+                            'zone_name' => __('Coordinates already exist with another zone')
+                        ]);
                     }
 
                     $points[] = $point;
-                    $ring[] = $coordinate[0] . ' ' . $coordinate[1];
                 } else {
                     throw ValidationException::withMessages(['coordinates' => __('Invalid coordinate data')]);
                 }
@@ -334,44 +361,38 @@ class ZoneController extends Controller
             // Close the polygon by repeating the first point
             if (count($points) > 0) {
                 array_push($points, $points[0]);
-                $ring[] = $ring[0];
             }
-            $polygonsWkt[] = '((' . implode(',', $ring) . '))';
 
             $lineStrings = [new LineString($points)];
             $set[] = new Polygon($lineStrings);
         }
 
-        $wkt = 'MULTIPOLYGON(' . implode(',', $polygonsWkt) . ')';
-        $updated_params['name'] = $validated['languageFields']['en'];
-        unset($updated_params['coordinates']);
 
+        // Create a MultiPolygon from the set of polygons
+        $multi_polygon = new MultiPolygon($set);
+
+        // Update additional parameters
+        $updated_params['name'] = $validated['languageFields']['en'];
+        $updated_params['coordinates'] = $multi_polygon;
         // Update New translated names
         $zone->zoneTranslationWords()->delete();
-        $translations_data = [];
         foreach ($validated['languageFields'] as $code => $language) {
-            $zone->zoneTranslationWords()->create([
-                'name' => $language,
-                'locale' => $code,
-                'zone_id' => $zone->id,
-            ]);
+            $translationData[] = ['name' => $language, 'locale' => $code, 'zone_id' => $zone->id];
             $translations_data[$code] = new \stdClass();
             $translations_data[$code]->locale = $code;
             $translations_data[$code]->name = $language;
         }
+        $zone->zoneTranslationWords()->insert($translationData);
         $updated_params['translation_dataset'] = json_encode($translations_data);
+        // Update the zone with the updated parameters
         $zone->update($updated_params);
-        DB::table('zones')->where('id', $zone->id)->update([
-            'coordinates' => DB::raw("ST_GeomFromText('" . str_replace("'", "''", $wkt) . "', 0)"),
-        ]);
-        $zone->refresh();
 
         // Return a response indicating success
         return response()->json(['zone' => $zone], 200);
     }
     public function destroy(Zone $zone)
     {
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
@@ -381,47 +402,41 @@ class ZoneController extends Controller
         return response()->json([
             'successMessage' => 'Zone deleted successfully',
         ]);
-    }   
+    }
     public function updateStatus(Request $request)
     {
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
         }
         // dd($request->all());
-        Zone::where('id', $request->id)->update(['active'=> $request->status]);
+        Zone::where('id', $request->id)->update(['active' => $request->status]);
 
         return response()->json([
             'successMessage' => 'Zone status updated successfully',
         ]);
-
-
     }
     public function map($id)
     {
         $zone = Zone::findOrFail($id);
         $googleMapKey = get_map_settings('google_map_key'); // Retrieve the Google Map API key
-    // dd($googleMapKey);
+        // dd($googleMapKey);
         // Pass the zone data and Google Map API key to the Inertia view
-                // dd($requestData);
-                $map_type = get_map_settings('map_type');
+        // dd($requestData);
+        $map_type = get_map_settings('map_type');
 
-                if($map_type=="open_street_map")
-                {
+        if ($map_type == "open_street_map") {
 
-                    return inertia('pages/zone/open-map', [
-                        'zone' => $zone,
-                    ]);
-                 }else{
-           
-                    return inertia('pages/zone/map', [
-                        'zone' => $zone,
-                        'googleMapKey' => $googleMapKey, // Pass the Google Map API key to the Vue component
-                    ]);         
-                 }
+            return inertia('pages/zone/open-map', [
+                'zone' => $zone,
+            ]);
+        } else {
+
+            return inertia('pages/zone/map', [
+                'zone' => $zone,
+                'googleMapKey' => $googleMapKey, // Pass the Google Map API key to the Vue component
+            ]);
+        }
     }
-    
 }
-
-

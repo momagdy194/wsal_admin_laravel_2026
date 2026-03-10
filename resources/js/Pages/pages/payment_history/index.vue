@@ -36,10 +36,6 @@
     
         const filter = useForm({ limit: 10 })
     
-       const isFetchingUsers = ref(false)
-       const hasSearched = ref(false)
-
-
         const walletApiMap = {
           user: {
             add: id => `/users/wallet-add-amount/${id}`,
@@ -55,34 +51,24 @@
           },
         }
     
-       
+        /* 🔍 Fetch users on search */
         const fetchUsers = async (query) => {
-          if (!selectedType.value || !query || query.length < 2) {
+          if (!selectedType.value || !query) {
             options.value = []
-            hasSearched.value = false
             return
           }
-          
-          hasSearched.value = true
-          isFetchingUsers.value = true   
-
-          try {
-            const res = await axios.get('/manage-payment/list', {
-              params: {
-                type: selectedType.value,
-                search: query,
-              },
-            })
-
-            options.value = (res.data.results || []).map(u => ({
-              value: u.id,
-              label: `${u.name ?? ''} ${u.email ? `(${u.email})` : ''} ${u.mobile ? `- ${u.mobile}` : ''}`,
-            }))
-          } catch (e) {
-            options.value = []
-          } finally {
-            isFetchingUsers.value = false
-          }
+    
+          const res = await axios.get('/manage-payment/list', {
+            params: {
+              type: selectedType.value,
+              search: query,
+            },
+          })
+    
+          options.value = (res.data.results || []).map(u => ({
+            value: u.id,
+            label: `${u.name} (${u.email ?? ''})`,
+          }))
         }
     
         const onSearch = debounce(fetchUsers, 300)
@@ -163,8 +149,6 @@
           paginator,
           handleSubmit,
           fetchWalletHistory,
-          isFetchingUsers,
-          hasSearched,
         }
       },
     }
@@ -199,15 +183,12 @@
       
                     <Multiselect
                       v-model="selectedUserId"
+                      :close-on-select="true"
                       :options="options"
                       :searchable="true"
                       :internal-search="false"
                       :clear-on-select="false"
-                      :loading="isFetchingUsers"
                       placeholder="Search name/email/mobile..."
-                      loading-text="Fetching details..."
-                      :no-options-text="hasSearched ? 'No users found' : 'Start typing to search Name/Email/Mobile...'"
-                      no-results-text="No users found"
                       @search-change="onSearch"
                     />
                     <button

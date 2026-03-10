@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Admin\Complaint;
 use App\Base\Constants\Auth\Role;
 use App\Models\Admin\ComplaintTitle;
-use Fleetbase\LaravelMysqlSpatial\Types\Point;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 use App\Http\Controllers\Api\V1\BaseController;
 use App\Base\Constants\Masters\ComplaintType;
 use App\Base\Filters\Admin\ComplaintTitleFilter;
@@ -164,6 +164,7 @@ class SupportTicketController extends BaseController
                 $validated = $request->validate([
                     'message' => 'required',
                 ]);
+                // dd($validated);
                 $senderId = $supportTicket->users_id;
                 if(access()->hasRole(Role::DRIVER)){
                     $senderId = $supportTicket->driver_id;
@@ -194,6 +195,11 @@ class SupportTicketController extends BaseController
                 $reply_message = SupportTicketMessage::where('ticket_id', $supportTicket->id)
                     ->orderBy('created_at', 'asc') // Ensure messages are sorted in ascending order
                     ->get();
+
+                $reply_message->transform(function ($message) {
+                    $message->message = str_replace('&nbsp;', ' ', $message->message);
+                    return $message;
+                });
                 $attachment = SupportTicketMultiFile::where('ticket_id', $supportTicket->id)->get();
                 // dd($attachment); 
                 return response()->json(['supportTicket'=>$supportTicket,

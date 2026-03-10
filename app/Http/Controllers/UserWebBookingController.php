@@ -258,6 +258,7 @@ class UserWebBookingController extends Controller
             $dispatch_url = 'login/' . Setting::where('name', 'dispatcher_login')->value('value');
             $agent_url = 'login/' . Setting::where('name', 'agent_login')->value('value');
             $dispatch_pro_url= 'login/' .Setting::where('name','dispatcher_login_pro')->value('value');
+            $franchise_url = 'login/' . Setting::where('name', 'franchise_login')->value('value');
 
 
             // Determine redirect URL based on user role
@@ -273,6 +274,8 @@ class UserWebBookingController extends Controller
                 } else {
                     $redirect = $dispatch_url;
                 }
+            }else if (auth()->user()->hasRole('franchise_owner')) {
+                $redirect = $franchise_url;
             }
             else {
                 $redirect = $admin_url;
@@ -493,11 +496,11 @@ class UserWebBookingController extends Controller
                         // dd($user);
           if($user!=null)
           {
-            if($user->ride_otp==null)
-            {
+            // if($user->ride_otp==null)
+            // {
                 $user->ride_otp=rand(1111, 9999);
                 $user->save();
-            }   
+            // }   
          }
                      
 

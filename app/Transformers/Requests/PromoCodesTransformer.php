@@ -24,6 +24,15 @@ class PromoCodesTransformer extends Transformer
      */
     public function transform(Promo $promo)
     {
+
+        $user = auth()->user();
+
+        $appliedPromoCode = null;
+    
+        if ($user) {
+            $appliedPromoCode = cache()->get('active_promo_user_' . $user->id);
+        }
+
         $params = [
             'id' => $promo->id,
             'code' => $promo->code,
@@ -36,13 +45,17 @@ class PromoCodesTransformer extends Transformer
             'from' => $promo->from,
             'to' => $promo->to,
             'active' => $promo->active,
+
+            'is_applied' =>
+            (request()->has('coupon_code') && request()->coupon_code === $promo->code)
+            || ($appliedPromoCode === $promo->code),
         ];
 
-        if (request()->has('coupon_code') && request()->coupon_code==$promo->code) {
-            $params['is_applied'] = true;
-        } else {
-            $params['is_applied'] = false;
-        }
+        // if (request()->has('coupon_code') && request()->coupon_code==$promo->code) {
+        //     $params['is_applied'] = true;
+        // } else {
+        //     $params['is_applied'] = false;
+        // }
         return $params;
     }
 }

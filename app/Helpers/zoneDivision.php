@@ -262,7 +262,7 @@ function isCheckAllZonesTypesFindZoneId($longitude, $latitude) {
 			$latitudeZoneArray = zoneLatitudeArrays($zoneList->zone_json);
 
 			$zoneCoordinates = array_map("zoneCoordinates", $longitudeZoneArray, $latitudeZoneArray);
-			$pointLocation = new \App\Helpers\PointLocation();
+			$pointLocation = new pointLocation();
 
 			// The last point's coordinates must be the same as the first one's, to "close the loop"
 			if ($pointLocation->pointInPolygon($points, $zoneCoordinates)) {

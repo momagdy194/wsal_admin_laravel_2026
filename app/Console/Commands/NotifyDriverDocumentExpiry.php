@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Contract\Database;
 use App\Jobs\Notifications\SendPushNotification;
+use Illuminate\Support\Facades\DB;
 class NotifyDriverDocumentExpiry extends Command
 {
     /**
@@ -73,7 +74,7 @@ class NotifyDriverDocumentExpiry extends Command
 
                     // dispatch(new SendPushNotification($notifable_driver,$title,$body));
 
-                    $notification = \DB::table('notification_channels')
+                    $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Document Expired') // Match the correct topic
                 ->first();
 
@@ -84,14 +85,14 @@ class NotifyDriverDocumentExpiry extends Command
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();

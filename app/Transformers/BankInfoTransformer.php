@@ -11,6 +11,7 @@ use App\Transformers\FieldTransformer;
 use App\Base\Constants\Auth\Role;
 use App\Transformers\Owner\OwnerBankInfoTransformer;
 use App\Transformers\Agent\AgentBankInfoTransformer;
+use App\Transformers\Franchise\FranchiseBankInfoTransformer;
 
 class BankInfoTransformer extends Transformer
 {
@@ -87,6 +88,14 @@ class BankInfoTransformer extends Transformer
             // dd($result);
             return $result
                 ? $this->collection($result, new AgentBankInfoTransformer)
+                : $this->null();
+
+        }
+        elseif(auth()->user()->hasRole(Role::FRANCHISE_OWNER)){
+            $result = $method->franchiseBankInfo()->where('franchise_id', auth()->user()->franchise->id)->get();
+            // dd($result);
+            return $result
+                ? $this->collection($result, new FranchiseBankInfoTransformer)
                 : $this->null();
 
         }

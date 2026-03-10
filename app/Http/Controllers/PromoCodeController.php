@@ -57,7 +57,9 @@ class PromoCodeController extends Controller
 
         $dateRange = explode(' to ', $validatedData['date']);
         $fromDate = Carbon::parse(trim($dateRange[0]))->startOfDay()->toDateTimeString();
-        $toDate = Carbon::parse(trim($dateRange[1]))->endOfDay()->toDateTimeString();
+        $toDate = isset($dateRange[1])
+            ? Carbon::parse(trim($dateRange[1]))->endOfDay()
+            :  Carbon::parse(trim($dateRange[0]))->endOfDay();
         $promo_params = [
             'transport_type' => $validatedData['transport_type'],
             'code' => $validatedData['code'],
@@ -152,7 +154,9 @@ class PromoCodeController extends Controller
         // Parse date range
         $dateRange = explode(' to ', $validatedData['date']);
         $fromDate = Carbon::parse(trim($dateRange[0]))->startOfDay()->toDateTimeString();
-        $toDate = Carbon::parse(trim($dateRange[1]))->endOfDay()->toDateTimeString();
+        $toDate = isset($dateRange[1])
+            ? Carbon::parse(trim($dateRange[1]))->endOfDay()
+            :  Carbon::parse(trim($dateRange[0]))->endOfDay();
 
         // Update promo code fields
         $promo_params = [

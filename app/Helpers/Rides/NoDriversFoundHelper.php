@@ -11,6 +11,7 @@ use App\Transformers\Requests\CronTripRequestTransformer;
 use App\Jobs\Notifications\SendPushNotification;
 use Kreait\Firebase\Contract\Database;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 trait NoDriversFoundHelper
 {
@@ -49,7 +50,7 @@ trait NoDriversFoundHelper
                 $user = $request_detail->userDetail;
                 Log::info($user);
 
-                $notification = \DB::table('notification_channels')
+                $notification = DB::table('notification_channels')
                             ->where('topics', 'Driver not Found') // Match the correct topic
                             ->first();
 
@@ -60,14 +61,14 @@ trait NoDriversFoundHelper
                                 // dd($userLang);
                 
                                 // Fetch the translation based on user language or fall back to 'en'
-                                $translation = \DB::table('notification_channels_translations')
+                                $translation = DB::table('notification_channels_translations')
                                     ->where('notification_channel_id', $notification->id)
                                     ->where('locale', $userLang)
                                     ->first();
                 
                                 // If no translation exists, fetch the default language (English)
                                 if (!$translation) {
-                                    $translation = \DB::table('notification_channels_translations')
+                                    $translation = DB::table('notification_channels_translations')
                                         ->where('notification_channel_id', $notification->id)
                                         ->where('locale', 'en')
                                         ->first();

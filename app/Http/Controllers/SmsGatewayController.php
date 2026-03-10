@@ -19,6 +19,7 @@ class SmsGatewayController  extends Controller
         $settings['enable_sparrow'] = filter_var($settings['enable_sparrow'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $settings['enable_sms_india_hub'] = filter_var($settings['enable_sms_india_hub'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $settings['enable_kudi_sms_api_key'] = filter_var($settings['enable_kudi_sms_api_key'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $settings['enable_infobip'] = filter_var($settings['enable_infobip'] ?? false, FILTER_VALIDATE_BOOLEAN);
     
         return Inertia::render('pages/sms_gateway/index', [
             'app_for'=>env('APP_FOR'),
@@ -34,7 +35,8 @@ class SmsGatewayController  extends Controller
             'sms_ala_api_key','sms_ala_api_secret_key','sms_ala_token','sms_ala_mobile_number','enable_msg91',
             'msg91_template_id','msg91_auth_key','enable_sparrow','sparrow_sender_id','sparrow_token','enable_sms_india_hub',
             'sms_india_hub_api_key', 'sms_india_hub_sid',
-            'enable_kudi_sms_api_key','kudi_sms_sender_id','kudi_sms_api_key'
+            'enable_kudi_sms_api_key','kudi_sms_sender_id','kudi_sms_api_key',
+            'enable_infobip','infobip_base_url','infobip_api_key','infobip_sender_id',
         ]);
 
 

@@ -1,101 +1,90 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Auth API Routes
-|--------------------------------------------------------------------------
-|
-| These routes are prefixed with 'api/v1'.
-| These routes use the root namespace 'App\Http\Controllers\Api\V1'.
-|
- */
+use App\Http\Controllers\Api\V1\Auth\LoginController;
+use App\Http\Controllers\Api\V1\Auth\Password\PasswordResetController;
+use App\Http\Controllers\Api\V1\Auth\Registration\UserRegistrationController;
+use App\Http\Controllers\Api\V1\Auth\Registration\DriverSignupController;
+use App\Http\Controllers\Api\V1\Auth\Registration\ReferralController;
+use App\Http\Controllers\Api\V1\Auth\Registration\AdminRegistrationController;
 
-/*
- * These routes use the root namespace 'App\Http\Controllers\Api\V1\Auth'.
- */
-Route::namespace('Auth')->middleware('throttle:120,1')->group(function () {
+Route::middleware('throttle:120,1')->group(function () {
 
-    // Send the OTP for User login.
-    // Route::post('social-auth/{provider}', 'LoginController@socialAuth');
-
-    Route::post('mobile-otp', 'LoginController@mobileOtp');
-    Route::post('validate-otp', 'LoginController@validateSmsOtp');
+    // OTP for login
+    Route::post('mobile-otp', [LoginController::class, 'mobileOtp']);
+    Route::post('validate-otp', [LoginController::class, 'validateSmsOtp']);
 
     /**
      * Login Routes
      */
-    // Login normal user from first-party clients (Mobile App etc.) using Password Grant.
-    Route::post('user/login', 'LoginController@loginUser');
-    // Login driver using mobile or email
-    Route::post('driver/login', 'LoginController@loginDriver');
+    Route::post('user/login', [LoginController::class, 'loginUser']);
+    Route::post('driver/login', [LoginController::class, 'loginDriver']);
 
-    // Logout the user by revoking the access token.
-    Route::post('logout', 'LoginController@logout')->middleware(['auth:sanctum','throttle:10,1']);
-    // Reset password
-    Route::post('reset-password', 'Password\PasswordResetController@validateUserMobileIsExistForForgetPassword');
+    // Logout
+    Route::post('logout', [LoginController::class, 'logout'])
+        ->middleware(['auth:sanctum', 'throttle:10,1']);
 
-    /**
-     * Root namespace 'App\Http\Controllers\Api\V1\Auth\Registration'.
-     */
-    Route::namespace('Registration')->group(function () {
-
-        // Register a normal user.
-        Route::post('user/register', 'UserRegistrationController@register');
-        Route::post('user/validate-mobile', 'UserRegistrationController@validateUserMobile');
-        Route::post('user/validate-mobile-for-login', 'UserRegistrationController@validateUserMobileForLogin');
-//Reset Password
-        Route::post('user/update-password', 'UserRegistrationController@updatePassword');     
-        Route::post('driver/update-password', 'DriverSignupController@updatePassword');   
-        // Register Driver
-        Route::post('driver/register', 'DriverSignupController@register');
-        Route::post('driver/validate-mobile', 'DriverSignupController@validateDriverMobile');
-        Route::post('driver/validate-mobile-for-login', 'DriverSignupController@validateDriverMobileForLogin');
-        // Send the OTP for mobile verification during User registration.
-        Route::post('user/register/send-otp', 'UserRegistrationController@sendOTP');
-
-        // Owner Register
-        Route::post('owner/register','DriverSignupController@ownerRegister');
-        // Update Referral code after signup
-        Route::post('update/user/referral', 'ReferralController@updateUserReferral')->middleware(['auth:sanctum','throttle:10,1']);
-        Route::post('update/driver/referral', 'ReferralController@updateDriverReferral')->middleware(['auth:sanctum','throttle:10,1']);
-        // Get Referral code
-        Route::get('get/referral', 'ReferralController@index')->middleware(['auth:sanctum','throttle:10,1']);
-        // Send the OTP for email verification during User registration.
-        Route::post('send-mail-otp', 'UserRegistrationController@sendMailOTP');
-        // Route::post('sendmail', 'EmailSendController@ridedetails');
-        // Validate the email registration OTP.
-        Route::post('validate-email-otp', 'UserRegistrationController@validateEmailOTP');
-
-        // Validate the registration OTP.
-        Route::post('user/register/validate-otp', 'UserRegistrationController@validateOTP');
-        // Register Admin user
-        Route::post('admin/register', 'AdminRegistrationController@register');
-    });
-
-    // Confirm user's email.
-    // Route::post('email/confirm', 'Email\EmailConfirmationController@confirm');
-
-    // Resend user's email address confirmation email.
-    // Route::post('email/resend-confirmation', 'Email\EmailConfirmationController@resend');
+    // Reset password (mobile check)
+    Route::post('reset-password', [PasswordResetController::class, 'validateUserMobileIsExistForForgetPassword']);
 
     /**
-     * These routes are prefixed with 'api/v1/password'.
-     * Root namespace 'App\Http\Controllers\Api\V1\Auth\Password'.
+     * Registration Routes
      */
-    Route::prefix('password')->namespace('Password')->group(function () {
+    Route::group([], function () {
 
-        // Send the password reset email.
-        Route::post('forgot', 'PasswordResetController@forgotPassword');
+        // User Registration
+        Route::post('user/register', [UserRegistrationController::class, 'register']);
+        Route::post('user/validate-mobile', [UserRegistrationController::class, 'validateUserMobile']);
+        Route::post('user/validate-mobile-for-login', [UserRegistrationController::class, 'validateUserMobileForLogin']);
 
-        // Validate the password reset token.
-        Route::post('validate-token', 'PasswordResetController@validateToken');
+        // Reset Password
+        Route::post('user/update-password', [UserRegistrationController::class, 'updatePassword']);
+        Route::post('driver/update-password', [DriverSignupController::class, 'updatePassword']);
 
-        // Reset (update) the user's password.
-        Route::post('reset', 'PasswordResetController@reset');
+        // Driver Registration
+        Route::post('driver/register', [DriverSignupController::class, 'register']);
+        Route::post('driver/validate-mobile', [DriverSignupController::class, 'validateDriverMobile']);
+        Route::post('driver/validate-mobile-for-login', [DriverSignupController::class, 'validateDriverMobileForLogin']);
+
+        // OTP for registration
+        Route::post('user/register/send-otp', [UserRegistrationController::class, 'sendOTP']);
+
+        // Owner Registration
+        Route::post('owner/register', [DriverSignupController::class, 'ownerRegister']);
+
+        // Referral Updates
+        Route::post('update/user/referral', [ReferralController::class, 'updateUserReferral'])
+            ->middleware(['auth:sanctum', 'throttle:10,1']);
+
+        Route::post('update/driver/referral', [ReferralController::class, 'updateDriverReferral'])
+            ->middleware(['auth:sanctum', 'throttle:10,1']);
+
+        // Get Referral Code
+        Route::get('get/referral', [ReferralController::class, 'index'])
+            ->middleware(['auth:sanctum', 'throttle:10,1']);
+
+        // Email OTP
+        Route::post('send-mail-otp', [UserRegistrationController::class, 'sendMailOTP']);
+        Route::post('validate-email-otp', [UserRegistrationController::class, 'validateEmailOTP']);
+
+        // Validate registration OTP
+        Route::post('user/register/validate-otp', [UserRegistrationController::class, 'validateOTP']);
+
+        // Admin Registration
+        Route::post('admin/register', [AdminRegistrationController::class, 'register']);
     });
 
-     
-        
-    // Route::post('kudi/{mobile}/{otp}/{code}', 'LoginController@enable_kudi');  
+    /**
+     * Password Routes
+     */
+    Route::prefix('password')->group(function () {
+
+        Route::post('forgot', [PasswordResetController::class, 'forgotPassword']);
+        Route::post('validate-token', [PasswordResetController::class, 'validateToken']);
+        Route::post('reset', [PasswordResetController::class, 'reset']);
+    });
+
+    // Additional routes (commented)
+    // Route::post('kudi/{mobile}/{otp}/{code}', [LoginController::class, 'enable_kudi']);
 });

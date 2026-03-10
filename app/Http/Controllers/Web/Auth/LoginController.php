@@ -118,7 +118,11 @@ class LoginController extends ApiController
         // dd($request->all());
         return $this->loginUserAccountSPA($request, Role::AGENT);
     }
-
+    public function loginFranchiseUsers(AdminLoginRequest $request)
+    {
+        // dd($request->all());
+        return $this->loginUserAccountSPA($request, Role::FRANCHISE_OWNER);
+    }
 
 
     // public function loginFleetowners(AdminLoginRequest $request)
@@ -422,7 +426,7 @@ class LoginController extends ApiController
             $user = $this->{$method}($emailOrUsername, $role);
 
             // Log::info("user-info-from-email-and-role");
-            // Log::info($user);
+            Log::info($user);
 
         } 
         if (!$user || !hash_check($password, $user->password)) {
@@ -635,18 +639,8 @@ class LoginController extends ApiController
      */
     protected function authenticateAndRespond(User $user, $request, $needsToken = false)
     {
-        // Allow multiple devices: keep last N tokens (delete oldest when over limit)
-        $maxTokensPerUser = (int) config('sanctum.max_tokens_per_user', 5);
-        if ($maxTokensPerUser > 0) {
-            $count = $user->tokens()->count();
-            $toDelete = $count - $maxTokensPerUser + 1; // +1 because we are about to add a new token
-            if ($toDelete > 0) {
-                $idsToDelete = $user->tokens()->orderBy('created_at')->limit($toDelete)->pluck('id');
-                $user->tokens()->whereIn('id', $idsToDelete)->delete();
-            }
-        } else {
-            $user->tokens()->delete();
-        }
+        $user->tokens()->delete();
+        // dd($user);
         if ($needsToken) {
             
           
@@ -716,7 +710,13 @@ class LoginController extends ApiController
 
             return redirect()->route('dispatcherPro.dashboard');
 
-        }else{
+        }
+        elseif($user->hasRole('franchise_owner')){
+
+            return redirect()->route('/individual-franchiseowner-dashboard');
+
+        }
+        else{
             return redirect('/dashboard');
         }
 
@@ -782,7 +782,15 @@ class LoginController extends ApiController
         $agent_url = Setting::where('name','agent_login')->pluck('value')->first();
 
         $agent_addons = Setting::whereName('agent-addons')->pluck('value')->first();
+        
 
+        $franchise_url = Setting::where('name','franchise_login')->pluck('value')->first();
+
+        $franchise_addons = Setting::whereName('franchise-addons')->pluck('value')->first();
+
+        $franchise_url = Setting::where('name','franchise_login')->pluck('value')->first();
+
+        $franchise_addons = Setting::whereName('franchise-addons')->pluck('value')->first();
 
 
         $host_name = request()->getHost();
@@ -818,24 +826,24 @@ class LoginController extends ApiController
             return Inertia::render('Auth/OwnerLogin');
 
         }
+        else if($redirect == $franchise_url){
+
+            return Inertia::render('Auth/FranchiseLogin');
+
+        }
         else{
 
             $query = Country::active()->get();
 
         $countries = fractal($query, new CountryTransformer);
 
-        $result = json_decode($countries->toJson(), true);
-        $countriesList = $result['data'] ?? [];
+        $result = json_decode($countries->toJson(),true);
             
-        $default_country = Country::active()->where('code', get_settings('default_country_code_for_mobile_app'))->first();
+        $default_country = Country::active()->where('code',get_settings('default_country_code_for_mobile_app'))->first();
 
-        if ($default_country === null) {
-            $default_country = Country::active()->first();
-        }
-
-        $default_dial_code = $default_country ? (string) $default_country->dial_code : '';
-        $default_flag = $default_country ? (string) $default_country->flag : '';
-        $default_country_id = $default_country ? (string) $default_country->id : '';
+        $default_dial_code = $default_country->dial_code;
+        $default_flag = $default_country->flag;
+        $default_country_id = $default_country->id;
         
         $enable_firebase_otp = get_active_sms_settings() == "enable_firebase_otp" ?? false;
 
@@ -850,7 +858,7 @@ class LoginController extends ApiController
         ];
 
         return Inertia::render('pages/landing/user-web/index',[
-            'countries'=>$countriesList,
+            'countries'=>$result['data'],
             'default_dial_code'=>$default_dial_code,
             'firebaseConfig'=>$firebaseConfig,
             'default_flag'=>$default_flag,

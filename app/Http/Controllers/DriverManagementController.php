@@ -52,6 +52,8 @@ use App\Jobs\Mails\SendDriverWithdrawalDeclineMailNotification;
 use App\Models\Admin\ZoneType;
 use App\Models\Admin\Owner;
 use App\Base\Constants\Auth\Role;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DriverManagementController extends BaseController
 {
@@ -83,7 +85,7 @@ class DriverManagementController extends BaseController
     public function list(QueryFilterContract $queryFilter)
     {
         
-        $columns = \Schema::getColumnListing('drivers'); // Get all columns
+        $columns = Schema::getColumnListing('drivers'); // Get all columns
         $filteredColumns = array_diff($columns, ['route_coordinates']); // Exclude route_coordinates
 
         $query = Driver::whereNull('owner_id')
@@ -451,7 +453,7 @@ class DriverManagementController extends BaseController
         $this->database->getReference('drivers/driver_' . $driver->id)
                 ->update(['approve' => 0, 'updated_at' => Database::SERVER_TIMESTAMP]);
 
-                $notification = \DB::table('notification_channels')
+                $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Account Disapproval') // Match the correct topic
                 ->first();
                 
@@ -462,14 +464,14 @@ class DriverManagementController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -482,7 +484,7 @@ class DriverManagementController extends BaseController
                 }
 
                 // send email account disapproval
-                if (!empty($user->email)) {
+                if (!empty($driver->email)) {
                 SendAccountDisapprovedMailNotification::dispatch($driver);
                 }
 
@@ -712,7 +714,7 @@ class DriverManagementController extends BaseController
         
 
 
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
             ->where('topics', 'Driver Account Approval') // Match the correct topic
             ->first();
 
@@ -723,14 +725,14 @@ class DriverManagementController extends BaseController
                 // dd($userLang);
 
                 // Fetch the translation based on user language or fall back to 'en'
-                $translation = \DB::table('notification_channels_translations')
+                $translation = DB::table('notification_channels_translations')
                     ->where('notification_channel_id', $notification->id)
                     ->where('locale', $userLang)
                     ->first();
 
                 // If no translation exists, fetch the default language (English)
                 if (!$translation) {
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', 'en')
                         ->first();
@@ -743,7 +745,7 @@ class DriverManagementController extends BaseController
             }
 
             //   send email account approved
-            if (!empty($user->email)) {
+            if (!empty($driver->email)) {
             SendAccountApprovedMailNotification::dispatch($driver);
             }
 
@@ -815,7 +817,7 @@ class DriverManagementController extends BaseController
             
 
 
-                $notification = \DB::table('notification_channels')
+                $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Account Approval') // Match the correct topic
                 ->first();
 
@@ -826,14 +828,14 @@ class DriverManagementController extends BaseController
                     // dd($userLang);
 
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
 
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -846,7 +848,7 @@ class DriverManagementController extends BaseController
                 }
 
                 //   send email account approved
-                if (!empty($user->email)) {
+                if (!empty($driver->email)) {
                 SendAccountApprovedMailNotification::dispatch($driver);
                 }
     
@@ -878,7 +880,7 @@ class DriverManagementController extends BaseController
                 // $body = custom_trans('driver_declined_body', [], $driver->user->lang);
 
                 
-                $notification = \DB::table('notification_channels')
+                $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Account Disapproval') // Match the correct topic
                 ->first();
                 
@@ -889,14 +891,14 @@ class DriverManagementController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -909,7 +911,7 @@ class DriverManagementController extends BaseController
                 }
 
                 // send email account disapproval
-                if (!empty($user->email)) {
+                if (!empty($driver->email)) {
                 SendAccountDisapprovedMailNotification::dispatch($driver);
                 }
             
@@ -1458,7 +1460,7 @@ class DriverManagementController extends BaseController
             $currency = $user->countryDetail()->pluck('currency_symbol')->first();
 
 
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
             ->where('topics', 'Driver Withdrawal Request Approval') // Match the correct topic
             ->first();
 
@@ -1469,14 +1471,14 @@ class DriverManagementController extends BaseController
                     $userLang = $user->lang ?? 'en';
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -1507,7 +1509,7 @@ class DriverManagementController extends BaseController
             // $body = custom_trans('payment_declained_body',[],$user->lang);
             // $push_data = ['notification_enum'=>"payment_declained"];
 
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
             ->where('topics', 'Driver Withdrawal Request Decline') // Match the correct topic
             ->first();
             //   send push notification 
@@ -1517,14 +1519,14 @@ class DriverManagementController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -1677,7 +1679,7 @@ class DriverManagementController extends BaseController
         $currency = $driver->user->countryDetail()->pluck('currency_symbol')->first();
 
         // send mail wallet amount added
-        if (!empty($user->email)) {
+        if (!empty($driver->email)) {
         SendDriverWalletAmountMailNotification::dispatch($driver, $transaction_id, $currency, $amount, $driver_wallet);
         }
         return response()->json(['message' => 'Amount adjusted successfully', 'transaction_id' => $transaction_id], 200);
@@ -1687,7 +1689,7 @@ class DriverManagementController extends BaseController
         static $cachedColumns = null;
 
         if (!$cachedColumns) {
-            $cachedColumns = collect(\Schema::getColumnListing('requests'))
+            $cachedColumns = collect(Schema::getColumnListing('requests'))
                 ->reject(fn($col) => $col === 'poly_line')
                 ->toArray();
         }

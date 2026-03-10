@@ -1352,14 +1352,14 @@ nameChangeShow,
           </BRow>
         </BCardHeader>
           <BCardBody class="border border-dashed border-end-0 border-start-0">
-              <form @submit.prevent="handleSubmit">
+              <form @submit.prevent="handleSubmit" role="form" :aria-label="$t('ride_info') || 'Booking form'">
               <FormValidation :form="form" :rules="validationRules" ref="validationRef">
         <div class="row">
-          <div class="col-12 col-lg-6" style="max-height:500px;overflow-y: auto;">
+          <div class="col-12 col-lg-6" style="max-height:500px;overflow-y: auto;" role="region" :aria-label="$t('ride_info')">
             <div class="row">
             <!-- Ride info -->
               <div class="d-flex align-items-center mt-4">
-                 <h4 class="card-title mb-3 flex-grow-1">{{$t("ride_info")}}</h4>
+                 <h4 class="card-title mb-3 flex-grow-1" id="booking-ride-info">{{ $t("ride_info") }}</h4>
               </div>
           <div class="col-6">
             <div class="mb-3">
@@ -1412,10 +1412,13 @@ nameChangeShow,
                   :placeholder="$t('enter_pickup')"
                   id="pickup"
                   autocomplete="off"
+                  :aria-invalid="!!(errors.pick_address && errors.pick_address.length)"
+                  :aria-describedby="(errors.pick_address && errors.pick_address.length) ? 'pickup-error' : undefined"
+                  :aria-label="$t('pickup_location')"
                   @input="handleInput('pickup')"
                 />
               </div>
-              <div v-if="pickSuggestions.length > 0" class="autocomplete-results">
+              <div v-if="pickSuggestions.length > 0" class="autocomplete-results" role="listbox" aria-label="Pickup suggestions">
                 <div
                   v-for="suggestion in pickSuggestions"
                   :key="suggestion.placeId"
@@ -1426,7 +1429,7 @@ nameChangeShow,
                 </div>
               </div>
             </div>
-             <span v-for="(error, index) in errors.pick_address" :key="index" class="text-danger">{{ error }}</span> 
+             <span id="pickup-error" v-for="(error, index) in errors.pick_address" :key="index" class="text-danger" role="alert">{{ error }}</span>
           </div>
         </div>
         <div class="col-12" v-if="form.ride_type=='regular'" v-for="(stop, index) in stopovers" :key="index">
@@ -1453,7 +1456,7 @@ nameChangeShow,
     </div>
   <div class="col-12" v-if="form.ride_type=='regular'">
     <div class="mb-3">
-      <label for="drop" class="form-label">{{$t("drop_location")}}</label>
+      <label for="drop" class="form-label">{{ $t("drop_location") }}</label>
       <div class="autocomplete-container">
         <div class="input-group">
           <input
@@ -1462,6 +1465,9 @@ nameChangeShow,
             v-model="form.drop_address"
             :placeholder="$t('enter_drop')"
             id="drop"
+            :aria-label="$t('drop_location')"
+            :aria-invalid="!!(errors.drop_address && errors.drop_address.length)"
+            :aria-describedby="(errors.drop_address && errors.drop_address.length) ? 'drop-error' : undefined"
             autocomplete="off"
             @input="handleInput('drop')"
           />
@@ -1477,7 +1483,7 @@ nameChangeShow,
           </div>
         </div>
       </div>
-       <span v-for="(error, index) in errors.drop_address" :key="index" class="text-danger">{{ error }}</span> 
+       <span id="drop-error" v-for="(error, index) in errors.drop_address" :key="index" class="text-danger" role="alert">{{ error }}</span>
     </div>
   </div>
 <!-- POC info -->

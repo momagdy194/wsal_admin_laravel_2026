@@ -29,19 +29,18 @@ class CountryController extends ApiController
      * @param \App\Models\Admin\ImageUploaderContract $imageUploader
      */
 
-     public function __construct(ImageUploaderContract $imageUploader)
-     {
-         $this->imageUploader = $imageUploader;
-     }
- 
-     /**
+    public function __construct(ImageUploaderContract $imageUploader)
+    {
+        $this->imageUploader = $imageUploader;
+    }
+
+    /**
      * Country View
      * 
      * */
     public function index()
     {
         return Inertia::render('pages/countries/index');
-
     }
 
     /**
@@ -71,7 +70,7 @@ class CountryController extends ApiController
 
     public function store(CreateCountryRequest $request)
     {
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
@@ -113,7 +112,7 @@ class CountryController extends ApiController
 
         return Inertia::render(
             'pages/countries/create',
-            ['country' => $country, 'app_for'=>env('APP_FOR'),]
+            ['country' => $country, 'app_for' => env('APP_FOR'),]
         );
     }
 
@@ -121,7 +120,7 @@ class CountryController extends ApiController
     public function update(CreateCountryRequest $request, Country $country)
     {
 
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
@@ -154,12 +153,12 @@ class CountryController extends ApiController
     public function toggleStatus(Country $country)
     {
 
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
         }
-        $status = $country->isActive() ? false: true;
+        $status = $country->isActive() ? false : true;
         $country->update(['active' => $status]);
 
         // Optionally, return a response
@@ -182,6 +181,4 @@ class CountryController extends ApiController
 
         return $this->respondOk($timezones);
     }
-
-
 }

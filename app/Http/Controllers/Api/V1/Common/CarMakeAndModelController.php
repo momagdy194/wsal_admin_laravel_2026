@@ -100,6 +100,7 @@ class CarMakeAndModelController extends BaseController
         $enable_driver_mobile_login = get_settings('enable_driver_mobile_login');
         $enable_owner_email_login = get_settings('enable_owner_email_login');
         $enable_owner_mobile_login = get_settings('enable_owner_mobile_login');
+        $enable_driver_sign_up_feature = get_settings('enable_driver_sign_up_feature');
 
         $firebase_otp = false;
 
@@ -135,7 +136,8 @@ class CarMakeAndModelController extends BaseController
                                 'enable_driver_email_login' =>$enable_driver_email_login,
                                 'enable_driver_mobile_login' =>$enable_driver_mobile_login,
                                 'enable_owner_email_login' =>$enable_owner_email_login,
-                                'enable_owner_mobile_login' =>$enable_owner_mobile_login
+                                'enable_owner_mobile_login' =>$enable_owner_mobile_login,
+                                'enable_driver_sign_up_feature' => $enable_driver_sign_up_feature
 
                             ]);
     }

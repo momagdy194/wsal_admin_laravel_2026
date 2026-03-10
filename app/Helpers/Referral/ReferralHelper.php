@@ -13,6 +13,7 @@ use App\Jobs\Notifications\SendPushNotification;
 use Illuminate\Support\Facades\Log;
 use App\Models\Request\RequestBill;
 use App\Models\Admin\Driver;
+use App\Jobs\Mails\SendReferralMailNotification;
 
 class ReferralHelper
 {
@@ -260,14 +261,14 @@ if (!$conditionsMet && $enableByEarning === 1) {
 
                 SendReferralMailNotification::dispatch($user, $referrer);
             } catch (\Throwable $e) {
-                \Log::warning('ReferralHelper notification failed: ' . $e->getMessage());
+                Log::warning('ReferralHelper notification failed: ' . $e->getMessage());
             }
 
             return true;
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            \Log::error('ReferralHelper error: ' . $e->getMessage());
+            Log::error('ReferralHelper error: ' . $e->getMessage());
             return false;
         }
     }
@@ -418,14 +419,14 @@ if (!$conditionsMet && $enableByEarning === 1) {
     
                 SendReferralMailNotification::dispatch($user, $referrer);
             } catch (\Throwable $e) {
-                \Log::warning('ReferralHelper notification failed: ' . $e->getMessage());
+                Log::warning('ReferralHelper notification failed: ' . $e->getMessage());
             }
     
             return true;
     
         } catch (\Throwable $e) {
             DB::rollBack();
-            \Log::error('ReferralHelper error: ' . $e->getMessage());
+            Log::error('ReferralHelper error: ' . $e->getMessage());
             return false;
         }
     }

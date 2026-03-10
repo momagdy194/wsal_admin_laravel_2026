@@ -18,11 +18,11 @@ use App\Models\Admin\Owner;
 use App\Models\Admin\ServiceLocation;
 use App\Exports\RequestExport;
 use App\Exports\DutyExport;
-
-
 use  App\Models\Request\Request as RequestModel;
 use App\Transformers\Driver\DriverProfileTransformer;
 use Illuminate\Support\Facades\DB;
+use App\Models\Admin\Franchise;
+use App\Exports\FranchiseOwnersExport;
 
 class ReportController extends BaseController
 {
@@ -538,6 +538,91 @@ class ReportController extends BaseController
 
     }
 
+    public function franchiseownerReport() 
+    {
+        $zone= Zone::get();
+
+        // dd($serviceLocations);
+
+        return Inertia::render('pages/franchiseowner_report/index',['zone'=>$zone]);
+    }
+
+    public function franchiseownerReportDownload(Request $request)
+    {
+        // dd($request->all());
+        // Gather the input data
+        $zone = $request->input('zone', []); // Array of vehicle types
+        $format = $request->input('file_format');
+        $status = $request->input('select_status');
+        $dateOption = $request->input('select_date_option');
+        $dateRange = $request->input('date');
+   
+        // Initialize the query
+        $query = Franchise::query();
+    
+        // Filter by vehicle types
+        if (!empty($zone)) {
+            $query->whereHas('zoneDetail', function ($q) use ($zone) {
+                $q->whereIn('zone_id', $zone);
+            });
+        }
+    
+    
+        // Filter by status
+        if (!is_null($status)) {
+            $query->where('approve', $status);
+        }
+    
+        // Filter by date option or custom date range
+        if (!empty($dateOption) || !empty($dateRange)) {
+            $today = now();
+            $to = now()->endOfDay()->toDateTimeString();
+            $from = null;
+    
+            if ($dateOption == 'today') {
+                $from = $today->startOfDay()->toDateTimeString();
+            } elseif ($dateOption == 'this_week') {
+                $from = $today->startOfWeek()->toDateTimeString();
+            } elseif ($dateOption == 'this_month') {
+                $from = $today->startOfMonth()->toDateTimeString();
+            } elseif ($dateOption == 'this_year') {
+                $from = $today->startOfYear()->toDateTimeString();
+            } elseif (!empty($dateRange)) {
+                $date = explode(' to ', $dateRange);
+                if (count($date) == 2) {
+                    $from = Carbon::createFromFormat('d M, Y', $date[0])->startOfDay()->toDateTimeString();
+                    $to = Carbon::createFromFormat('d M, Y', $date[1])->endOfDay()->toDateTimeString();
+                }
+            }
+    
+            if ($from && $to) {
+                $query->whereBetween('created_at', [$from, $to]);
+            }
+        }
+    
+        // Apply sorting (you can customize this as per your requirement)
+        $query->orderBy('created_at', 'desc');
+    
+        // Get the filtered data
+        $franchiseowners = $query->get();
+    
+        // Handle file export based on the selected format
+        if ($format === 'xlsx') {
+            return Excel::download(new FranchiseOwnersExport($franchiseowners), 'franchiseowners.xlsx');
+        }
+    
+        if ($format === 'pdf') {
+            $pdf = Pdf::loadView('franchiseowners.pdf', ['results' => $franchiseowners]);
+            return $pdf->download('franchiseowners.pdf');
+        }
+    
+        if ($format === 'csv') {
+            return Excel::download(new FranchiseOwnersExport($franchiseowners), 'franchiseowners.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
+    
+        return response()->json(['error' => 'Invalid format'], 400);
+    }
+    
     // function downloadInvoice(RequestModel $request_detail, Request $request) {
     //     if($request->invoice_type == "user") {
 
@@ -561,7 +646,7 @@ class ReportController extends BaseController
     
             // Generate PDF for user invoice
             $pdf = Pdf::loadView('emails.invoice', compact('data'));
-    dd($pdf);
+    // dd($pdf);
             // Return the PDF as a download
             return $pdf->download('user_invoice.pdf');
         } elseif ($request->invoice_type == "driver") {

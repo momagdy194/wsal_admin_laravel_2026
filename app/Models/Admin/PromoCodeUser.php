@@ -24,7 +24,7 @@ class PromoCodeUser extends Model
      *
      * @var array
      */
-    protected $fillable = ['promo_code_id','user_id','service_location_id'];
+    protected $fillable = ['promo_code_id','user_id','service_location_id',];
     protected $appends = ['user_name'];
 
     /**
@@ -48,4 +48,5 @@ class PromoCodeUser extends Model
     {
         return $this->user ? $this->user->name : null;
     }
+   
 }

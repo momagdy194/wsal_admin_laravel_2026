@@ -14,6 +14,7 @@ class Role
     const FLEET_OWNER='fleet_owner';
     const EMPLOYEE='employee';
     const AGENT='agent';
+    const FRANCHISE_OWNER = 'franchise_owner';
 
 
 
@@ -29,6 +30,7 @@ class Role
             self::DISPATCHER,
             self::DELIVERY_DISPATCHER,
             self::AGENT,
+            self::FRANCHISE_OWNER,
 
         ];
     }

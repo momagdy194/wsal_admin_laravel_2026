@@ -19,6 +19,8 @@ use App\Base\Services\ImageUploader\ImageUploader;
 use Illuminate\Support\Str;
 use App\Models\Admin\Setting;
 use App\Models\Languages;
+use App\Models\Admin\SingleLandingPage;
+use App\Models\Admin\SingleLandingHeader;
 
 
 class LandingHomeController extends BaseController
@@ -27,12 +29,15 @@ class LandingHomeController extends BaseController
 
     protected $landingHome;
 
+    protected $singlelandingpage;
+
  
 
-    public function __construct(LandingHome $landingHome, ImageUploaderContract $imageUploader)
+    public function __construct(LandingHome $landingHome, ImageUploaderContract $imageUploader, SingleLandingPage $singlelandingpage)
     {
         $this->landingHome = $landingHome;
         $this->imageUploader = $imageUploader;
+        $this->singlelandingpage = $singlelandingpage;
     }
 
     public function index()
@@ -292,6 +297,47 @@ class LandingHomeController extends BaseController
     public function homepage(Request $request)
     {
 
+        $setting = get_settings('enable_single_landing_page');
+        // dd($setting);
+
+         $defaultLocale = Languages::where('default_status', true)->value('code') ?? 'en'; // Fallback to 'en' if not found
+        // Use the default locale if none is selected
+        $selectedLocale = $request->input('locale', session('selectedLocale', $defaultLocale));
+        session(['selectedLocale' => $selectedLocale]); // Store in session
+        $singlelandingpage = SingleLandingPage::whereIn('locale', [$selectedLocale, $defaultLocale, 'en'])
+            ->orderByRaw("FIELD(locale, ?, ?, ?)", [$selectedLocale, $defaultLocale, 'en'])
+            ->first();
+            
+        // session(['selectedLocale' => $selectedLocale]); // store the selected locale in the session
+        $landingHome = LandingHome::whereIn('locale', [$selectedLocale, $defaultLocale, 'en'])
+            ->orderByRaw("FIELD(locale, ?, ?, ?)", [$selectedLocale, $defaultLocale, 'en'])
+            ->first();
+        $singlelandingHeader = SingleLandingHeader::whereIn('locale', [$selectedLocale, $defaultLocale, 'en'])
+            ->orderByRaw("FIELD(locale, ?, ?, ?)", [$selectedLocale, $defaultLocale, 'en'])
+            ->first();
+         $imageColumns = ['hero_img_1', 'hero_img_2', 'hero_img_3', 'hero_img_4', 'hero_img_5','adv_box1_img','adv_box2_img','adv_box3_img','adv_box4_img','adv_box5_img','app_user_img','app_driver_img','why_choose_img','about_img','ceo_img','download_img1','download_img2','contact_img'];
+        //  dd($imageColumns);
+    //     // Construct URLs for each image column
+            foreach ($imageColumns as $column) {
+                
+                if ($singlelandingpage && $singlelandingpage->$column) {
+                    $singlelandingpage->{$column . '_url'} = asset('storage/uploads/website/images/' . $singlelandingpage->$column);
+                }
+                 
+                 else {
+                    $singlelandingpage->{$column . '_url'} = null;
+                }
+                // dd($singlelandingpage->{$column . '_url'});
+            }
+         if ($setting == 1) {
+            return Inertia::render('pages/landingpage/home',[
+            'singlelandingpage' => $singlelandingpage,
+            'singlelandingHeader' => $singlelandingHeader,
+            'locales' => $this->getLocales(),
+            'defaultLocale' => $defaultLocale, // Send default locale to Vue
+            'selectedLocale' => $selectedLocale,]);
+        }
+
         
         // Fetch the default language code where default_status is true
         $defaultLocale = Languages::where('default_status', true)->value('code') ?? 'en'; // Fallback to 'en' if not found
@@ -322,10 +368,7 @@ class LandingHomeController extends BaseController
             ->where('name', 'admin_login')
             ->value('value');
 
-        // Use default admin login when no redirect is set (avoids "Missing parameter: redirect" error)
-        if (empty($adminRedirect)) {
-            return redirect()->route('login.admin');
-        }
+        // Pass the dynamic value to the route
         return redirect()->route('login.{redirect}', ['redirect' => $adminRedirect]);
     }
 

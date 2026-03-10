@@ -2,9 +2,23 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title inertia>{{ app_name() ?? 'Restart' }} - Admin App</title>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme');
+            if (!theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            document.documentElement.setAttribute('data-sidebar', theme === 'dark' ? 'dark' : 'light');
+        })();
+    </script>
+
+    <!-- PWA manifest for Add to Home Screen -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
 
     <!-- App favicon -->
     <!-- <link rel="shortcut icon" href="{{ URL::asset('image/favicon.ico') }}"> -->
@@ -22,14 +36,17 @@
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
 
     @php
         $default_language = default_language();
     @endphp
     <script>
 
-        window.defaultLocale = "{{ $default_language?->code ?? config('app.locale', 'en') }}";
-        window.direction = "{{ $default_language?->direction ?? 'ltr' }}";
+        window.defaultLocale = "{{ $default_language->code }}";
+        window.direction = "{{ $default_language->direction }}";
 
     </script>
     <!-- Scripts -->
@@ -57,6 +74,8 @@
         window.dispatch_url = @json($dispatch_url);
         window.agent_url = @json($agent_url);
         window.dispatch_pro_url = @json($dispatch_pro_url);
+        window.franchise_url = @json($franchise_url);
+        window.franchise_addons = @json($franchise_addons);
 
     </script>
 </body>
@@ -69,22 +88,31 @@
             // Fallback if the favicon is not set
             document.getElementById('dynamic-favicon').setAttribute('href', '{{ URL::asset("image/favicon.ico") }}');
         }
+        // Register service worker for PWA (offline fallback)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{{ asset("sw.js") }}', { scope: '/' }).catch(function () {});
+        }
     });
 </script>
 <style>
 :root{
-    --top_nav: {{ $navs -> value }};
-    --side_menu: {{ $side -> value }};
-    --side_menu_txt: {{ $side_txt -> value }};
+    --top_nav: {{ $navs }};
+    --side_menu: {{ $side }};
+    --side_menu_txt: {{ $side_txt }};
     --loginbg: url('{{ $loginbg }}');
     --owner_loginbg: url('{{ $owner_loginbg }}');
-    --landing_header_bg: {{ $landing_header_bg_color -> value }};
-    --landing_header_text: {{ $landing_header_text_color -> value }};
-    --landing_header_act_text: {{ $landing_header_active_text_color -> value }};
-    --landing_footer_bg: {{ $landing_footer_bg_color -> value }};
-    --landing_footer_text: {{ $landing_footer_text_color -> value }};
-    --dispatcher_sidebar_color: {{ $dispatcher_sidebar_color -> value }};
-    --dispatcher_sidebar_txt_color: {{ $dispatcher_sidebar_txt_color -> value }};
+    --landing_header_bg: {{ $landing_header_bg_color }};
+    --landing_header_text: {{ $landing_header_text_color }};
+    --landing_header_act_text: {{ $landing_header_active_text_color }};
+    --landing_footer_bg: {{ $landing_footer_bg_color }};
+    --landing_footer_text: {{ $landing_footer_text_color }};
+    --dispatcher_sidebar_color: {{ $dispatcher_sidebar_color }};
+    --dispatcher_sidebar_txt_color: {{ $dispatcher_sidebar_txt_color }};
+    --single_landing_header_bg: {{ $single_landing_header_bg_color }};
+    --single_landing_header_text: {{ $single_landing_header_text_color }};
+    --single_landing_header_act_text: {{ $single_landing_header_active_text_color }};
+    --single_landing_footer_bg_color: {{ $single_landing_footer_bg_color }};
+    --single_landing_footer_text: {{ $single_landing_footer_text_color }};
 }
 </style>
 

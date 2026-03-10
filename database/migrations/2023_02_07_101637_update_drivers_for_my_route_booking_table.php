@@ -16,7 +16,7 @@ class UpdateDriversForMyRouteBookingTable extends Migration
         if (Schema::hasTable('drivers')) {
             if (!Schema::hasColumn('drivers', 'route_coordinates')) {
                 Schema::table('drivers', function (Blueprint $table) {
-                    $table->lineString('route_coordinates')->after('vehicle_type')->nullable();
+                    $table->geometry('route_coordinates',subtype:'lineString')->after('vehicle_type')->nullable();
                 });
             }
             if (!Schema::hasColumn('drivers', 'my_route_address')) {

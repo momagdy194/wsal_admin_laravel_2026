@@ -48,7 +48,7 @@ class AssignDriversForScheduledRides extends Command
      * @return void
      */
 
-   protected  $database;
+    protected $database;
 
     public function __construct(Database $database)
     {
@@ -64,42 +64,41 @@ class AssignDriversForScheduledRides extends Command
     public function handle()
     {
 
-       $ride_cancelation_time =Carbon::now()->subMinutes(10)->format('Y-m-d H:i:s');
+        $ride_cancelation_time = Carbon::now()->subMinutes(10)->format('Y-m-d H:i:s');
 
-       $uncompleted_requests = Request::where('trip_start_time', '<', $ride_cancelation_time)
-           ->where('is_later', 1)
-           ->where('is_completed', 0)
-           ->where('is_cancelled', 0)
-           ->where('is_driver_started', 0)
-           ->get();
+        $uncompleted_requests = Request::where('trip_start_time', '<', $ride_cancelation_time)
+            ->where('is_later', 1)
+            ->where('is_completed', 0)
+            ->where('is_cancelled', 0)
+            ->where('is_driver_started', 0)
+            ->get();
 
-      if($uncompleted_requests) {  
-       foreach ($uncompleted_requests as $uncompleted_request) 
-       {
-           $update_parms['is_cancelled'] = true;
-           $update_parms['cancelled_at'] = date('Y-m-d H:i:s');
-           $update_parms['cancel_method'] = 0;
-           
-           $uncompleted_request->update($update_parms);
+        if ($uncompleted_requests) {
+            foreach ($uncompleted_requests as $uncompleted_request) {
+                $update_parms['is_cancelled'] = true;
+                $update_parms['cancelled_at'] = date('Y-m-d H:i:s');
+                $update_parms['cancel_method'] = 0;
 
-           if($uncompleted_request->driver_id){
-            Driver::where('id',$uncompleted_request->driver_id)->update(['available'=>true]);
+                $uncompleted_request->update($update_parms);
+
+                if ($uncompleted_request->driver_id) {
+                    Driver::where('id', $uncompleted_request->driver_id)->update(['available' => true]);
+                }
+
+
+                $this->database->getReference('requests/' . $uncompleted_request->id)->update(['is_cancelled' => true, 'updated_at' => Database::SERVER_TIMESTAMP]);
+                $this->database->getReference('bid-meta/' . $uncompleted_request->id)->remove();
+                $this->database->getReference('request-meta/' . $uncompleted_request->id)->remove();
+            // dd($uncompleted_request);
+            }
         }
-        
-        
-           $this->database->getReference('requests/'.$uncompleted_request->id)->update(['is_cancelled'=>true,'updated_at'=> Database::SERVER_TIMESTAMP]);
-           $this->database->getReference('bid-meta/'.$uncompleted_request->id)->remove();
-           $this->database->getReference('request-meta/'.$uncompleted_request->id)->remove();
-               // dd($uncompleted_request);
-        }
-     }
 
         $requests = Request::where('is_later', 1)
-                    ->whereNull('driver_id')
-                    ->where('is_bid_ride',0)
-                    ->where('is_completed', 0)->where('is_cancelled', 0)->where('is_driver_started', 0)->get();
+            ->whereNull('driver_id')
+            ->where('is_bid_ride', 0)
+            ->where('is_completed', 0)->where('is_cancelled', 0)->where('is_driver_started', 0)->get();
 
-        if ($requests->count()==0) {
+        if ($requests->count() == 0) {
             return $this->info('no-schedule-rides-found');
         }
 
@@ -107,32 +106,34 @@ class AssignDriversForScheduledRides extends Command
         foreach ($requests as $key => $request) {
             $trip_start_time = $request->trip_start_time;
 
-            if($request->prefered_arriving_time){
-                $findable_duration = $request->prefered_arriving_time+2;
-            }else{
-                $findable_duration = get_settings('minimum_time_for_search_drivers_for_schedule_ride') * 60;
+            if ($request->prefered_arriving_time) {
+                $findable_duration = $request->prefered_arriving_time + 2;
             }
-            if(!$findable_duration){
+            else {
+                $findable_duration = get_settings('minimum_time_for_search_drivers_for_schedule_ride');
+            }
+            if (!$findable_duration) {
                 $findable_duration = 45;
             }
-            $condition_time = [Carbon::parse($request->trip_start_time),Carbon::parse($request->trip_start_time)->subMinutes($findable_duration+5)];
+            $condition_time = [Carbon::parse($request->trip_start_time), Carbon::parse($request->trip_start_time)->subMinutes($findable_duration + 5)];
             $current_time = Carbon::now();
-            if ($current_time->between($condition_time[0],$condition_time[1])) {
-
-            }else{
-                break;
+            if ($current_time->between($condition_time[0], $condition_time[1])) {
 
             }
-            if($current_time > $condition_time[0])
-            {
+            else {
+                continue;
+
+            }
+            if ($current_time > $condition_time[0]) {
                 $this->cancelRequest($request);
 
-            }else{
+            }
+            else {
 
-                $request->update(['on_search'=>true]);
+                $request->update(['on_search' => true]);
 
-                Log::channel('activity')->info([ 'Fetching nearest drivers: '=>'assignDriversForScheduled',]);
-                $this->fetchDriversFromFirebase($request,$this->database);              
+                Log::channel('activity')->info(['Fetching nearest drivers: ' => 'assignDriversForScheduled', ]);
+                $this->fetchDriversFromFirebase($request, $this->database);
 
             }
 
@@ -146,7 +147,7 @@ class AssignDriversForScheduledRides extends Command
         // Log::info("-------cancel schduled ride request---------");
         // Log::info($request);
 
-        $this->database->getReference('requests/'.$request->id)->update(['is_cancel' => 1]);
+        $this->database->getReference('requests/' . $request->id)->update(['is_cancel' => 1]);
 
         $no_driver_request_ids = [];
         $no_driver_request_ids[0] = $request->id;

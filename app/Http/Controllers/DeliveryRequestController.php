@@ -18,6 +18,8 @@ use Dompdf\Dompdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Admin\Setting;
 use App\Models\Admin\InvoiceConfiguration;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DeliveryRequestController extends Controller
 {
@@ -105,6 +107,14 @@ class DeliveryRequestController extends Controller
                 ->with('userDetail', 'driverDetail')
                 ->orderBy('created_at', 'DESC');
         }
+        if (auth()->user()->hasRole('franchise_owner')) {
+            // Retrieve the specific owner associated with the authenticated user
+            $owner = auth()->user()->franchise;
+            $query = RequestModel::where('requests.transport_type', 'delivery')
+                ->whereIn('requests.service_location_id',get_user_location_ids(auth()->user()))
+                ->with('userDetail', 'driverDetail')
+                ->orderBy('created_at', 'DESC');
+        }
     
         $results = $queryFilter->builder($query)
             ->customFilter(new RequestFilter)
@@ -143,7 +153,7 @@ class DeliveryRequestController extends Controller
             // $body = custom_trans('trip_cancelled_by_user_body',[],$notifiable_driver->lang);
             // dispatch(new SendPushNotification($notifiable_driver,$title,$body));
 
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
                 ->where('topics', 'Trip Cancelled') // Match the correct topic
                 ->first();
 
@@ -154,14 +164,14 @@ class DeliveryRequestController extends Controller
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();

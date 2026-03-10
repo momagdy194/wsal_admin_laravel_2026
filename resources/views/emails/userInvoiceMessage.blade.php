@@ -334,20 +334,7 @@
                                                 </td>
                                                 <td align="left"
                                                 style="font-family: Helvetica, Helvetica Neue, Arial, sans-serif; color: #000000; font-size: 14px; padding-left: 16px; padding-top: 8px">
-                                                Total
-                                          {{ number_format($data['data']['total_distance'], 2) }}
-@if ($data['data']['unit'] == 'KM')
-km
-@else
-miles
-@endif:
-                                                {{ number_format($data['data']['total_distance'], 2) }}
-                                                {{ number_format($data['data']['total_distance'], 2) }}
-@if ($data['data']['unit'] == 'KM')
-<div>km</div>
-@else
-<div>miles</div>
-@endif
+                                               Total {{ number_format($data['data']['total_distance'], 2) }} {{ $data['data']['unit'] == 'KM' ? 'km' : 'miles' }}
                                                 </td>
                                                 </tr>
                                                 </tbody>
@@ -397,8 +384,8 @@ miles
                                                 style="font-family: Helvetica, Helvetica Neue, Arial, sans-serif; color: #000000; font-size: 14px; padding-left: 16px; padding-top: 8px">
                                                 Total
                                                 Mins:
-                                                {{ $data['data']['total_time'] }}
-                                                min
+
+                                                 {{ number_format(round($data['data']['total_time'], 2), 2) }} min
                                                 </td>
                                                 </tr>
                                                 </tbody>
@@ -689,7 +676,6 @@ miles
                                                 <br>
 
                                                 {{ number_format($data['data']['requestBill']['data']['base_distance'], 2)}}  
-                                                {{ number_format($data['data']['total_distance'], 2) }}
 @if ($data['data']['unit'] == 'KM')
 <div>km</div>
 @else

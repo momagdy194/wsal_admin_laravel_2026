@@ -26,6 +26,7 @@ use App\Models\CartItems;
 use App\Models\FoodDelivery\Stores;
 use App\Models\Admin\ZoneTypePackage;
 use App\Models\Request\RequestPreference;
+use App\Models\Admin\FranchisePromo;
 
 class Request extends Model
 {
@@ -52,7 +53,7 @@ class Request extends Model
     'owner_id','fleet_id','transport_type','goods_type_id','goods_type_quantity','requested_currency_symbol','payment_intent_id',
     'is_redeem','offerred_ride_fare','accepted_ride_fare','is_bid_ride','is_multiple_vehicles','no_of_vehicles','is_trip_meter',
     'is_my_rider','order_id','store_id','poly_line','assign_method','is_manual','is_airport','is_parcel','paid_at','booked_by',
-    'parcel_type','is_surge_applied','completed_at','seats_taken','shared_ride',
+    'parcel_type','is_surge_applied','completed_at','seats_taken','shared_ride','franchise_promo_id','franchise_owner_id','book_for_other_contact_name',
     ];
 
     /**
@@ -195,6 +196,10 @@ class Request extends Model
     public function ownerDetail()
     {
         return $this->belongsTo(Owner::class, 'owner_id', 'id')->withTrashed();
+    }
+    public function franchiseDetail()
+    {
+        return $this->belongsTo(Franchise::class, 'franchise_owner_id', 'id')->withTrashed();
     }
     public function fleetDetail()
     {
@@ -674,8 +679,14 @@ class Request extends Model
     {
         return $this->requestBill ? $this->requestBill->promo_discount ?? 0 : 0;
     }
+
     public function preferenceDetail()
     {
         return $this->hasMany(RequestPreference::class, 'request_id', 'id');
-    }
+    }    
+
+    public function franchisePromo()
+    {
+        return $this->belongsTo(FranchisePromo::class, 'franchise_promo_id', 'id');
+    } 
 }

@@ -13,11 +13,21 @@ class Authenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        
-        $admin_url = Setting::where('name','admin_login')->pluck('value')->first();
+        if ($request->expectsJson()) {
+            return null;
+        }
 
-        $admin_url = "login/".$admin_url;
+        // Guests trying to access customer web booking should see customer login
+        // (never return 'login' or 'login/' to avoid redirect loop with /login -> /create-booking)
+        $path = $request->path();
+        if ($path === 'create-booking') {
+            $user_login = Setting::where('name', 'user_login')->pluck('value')->first();
+            $segment = (is_string($user_login) && trim($user_login) !== '') ? trim($user_login) : 'user';
+            return 'login/' . $segment;
+        }
 
-        return $request->expectsJson() ? null : redirect()->guest($admin_url);
+        $admin_url = Setting::where('name', 'admin_login')->pluck('value')->first();
+        $admin_segment = (is_string($admin_url) && trim($admin_url) !== '') ? trim($admin_url) : 'admin';
+        return 'login/' . $admin_segment;
     }
 }

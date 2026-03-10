@@ -34,6 +34,7 @@ use App\Mail\DriverApprovedMail;
 use App\Mail\DriverDisapproveMail;
 use App\Jobs\Mails\SendAccountApprovedMailNotification;
 use App\Jobs\Mails\SendAccountDisapprovedMailNotification;
+use Illuminate\Support\Facades\DB;
 
 class FleetDriverController extends BaseController
 {
@@ -692,7 +693,7 @@ class FleetDriverController extends BaseController
         
 
 
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
             ->where('topics', 'Driver Account Approval') // Match the correct topic
             ->first();
 
@@ -703,14 +704,14 @@ class FleetDriverController extends BaseController
                 // dd($userLang);
 
                 // Fetch the translation based on user language or fall back to 'en'
-                $translation = \DB::table('notification_channels_translations')
+                $translation = DB::table('notification_channels_translations')
                     ->where('notification_channel_id', $notification->id)
                     ->where('locale', $userLang)
                     ->first();
 
                 // If no translation exists, fetch the default language (English)
                 if (!$translation) {
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', 'en')
                         ->first();
@@ -810,7 +811,7 @@ class FleetDriverController extends BaseController
             // dispatch(new SendPushNotification($driver->user, $title, $body));
 
              
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
             ->where('topics', 'Driver Account Approval') // Match the correct topic
             ->first();    
             
@@ -821,14 +822,14 @@ class FleetDriverController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -862,7 +863,7 @@ class FleetDriverController extends BaseController
             // $body = custom_trans('driver_declined_body', [], $driver->user->lang);
         
             // dispatch(new SendPushNotification($driver->user, $title, $body));  
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
             ->where('topics', 'Driver Account Disapproval') // Match the correct topic
             ->first();    
         
@@ -873,14 +874,14 @@ class FleetDriverController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();

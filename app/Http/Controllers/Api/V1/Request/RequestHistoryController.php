@@ -56,9 +56,18 @@ class RequestHistoryController extends BaseController
 
             $query = $this->request->where('user_id', auth()->user()->id)->orderBy('created_at', 'desc');
 
-            if(request()->has('on_trip') && request()->on_trip==0){
+            // if(request()->has('on_trip') && request()->on_trip==0){
 
-                $query = $query->where('is_out_station',0);
+            //     $query = $query->where('is_out_station',0);
+            // }
+
+            if (request()->has('on_trip') && (int) request()->on_trip === 1) {
+
+                $query = $query->where('is_driver_started', 1)
+                               ->where('is_cancelled', 0)
+                               ->where('is_paid', 0);
+            
+                request()->offsetUnset('on_trip');
             }
 
 

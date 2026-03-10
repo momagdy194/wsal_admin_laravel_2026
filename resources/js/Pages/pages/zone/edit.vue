@@ -135,37 +135,92 @@ export default {
             console.error("Error fetching autocomplete results:", error);
             })
         }
+        // const initializeMap = () => {
+        //     if (zone && zone.coordinates) {
+        //         map = new google.maps.Map(document.getElementById('map'), {
+        //             center: { lat: 0, lng: 0 },
+        //             zoom: 10,
+        //         });
+
+        //         props.existingZones.forEach((polygon) => {
+
+        //             new google.maps.Polygon({
+        //                 paths: polygon,
+        //                 fillColor: "#FF0000",
+        //                 fillOpacity: 0.5,
+        //                 strokeWeight: 1,
+        //                 clickable: false,
+        //                 editable: false,
+        //                 zIndex: 1,
+        //                 map: map,
+        //             });
+
+        //         })
+
+        //         // Adjust map center and zoom to fit the polygon
+        //         const bounds = new google.maps.LatLngBounds();
+        //         zone.coordinates.forEach((polygon) => {
+
+        //         const polygonCoordinates = polygon[0].map(point => ({
+        //             lat: point.coordinates[1], // Latitude
+        //             lng: point.coordinates[0], // Longitude
+        //         }))
+
+
+        //         currentPolygon = new google.maps.Polygon({
+        //             paths: polygonCoordinates,
+        //             fillColor: "#0000FF",
+        //             fillOpacity: 0.3,
+        //             strokeWeight: 1,
+        //             clickable: true,
+        //             editable: false,
+        //             zIndex: 1,
+        //             map: map,
+        //         });
+        //         polygons.push(currentPolygon);
+        //         attachClickListener(currentPolygon);
+
+        //         currentPolygon.getPath().forEach(coord => bounds.extend(coord));
+        //         })
+
+
+        //         map.fitBounds(bounds);
+
+        //         initializeDrawingManager();
+        //     }
+
+        // };
+
         const initializeMap = () => {
             if (zone && zone.coordinates) {
                 map = new google.maps.Map(document.getElementById('map'), {
-                    center: { lat: 0, lng: 0 },
-                    zoom: 10,
+                center: { lat: 0, lng: 0 },
+                zoom: 10,
                 });
 
+                // Draw existing zones
+                console.log("props.existingZones",props.existingZones);
                 props.existingZones.forEach((polygon) => {
+                new google.maps.Polygon({
+                    paths: polygon,
+                    fillColor: "#FF0000",
+                    fillOpacity: 0.5,
+                    strokeWeight: 1,
+                    clickable: false,
+                    editable: false,
+                    zIndex: 1,
+                    map: map,
+                });
+                });
 
-                    new google.maps.Polygon({
-                        paths: polygon,
-                        fillColor: "#FF0000",
-                        fillOpacity: 0.5,
-                        strokeWeight: 1,
-                        clickable: false,
-                        editable: false,
-                        zIndex: 1,
-                        map: map,
-                    });
-
-                })
-
-                // Adjust map center and zoom to fit the polygon
+                // Draw current zone
                 const bounds = new google.maps.LatLngBounds();
-                zone.coordinates.forEach((polygon) => {
-
+                zone.coordinates.coordinates.forEach((polygon) => {
+                    console.log("polygon",polygon);
                 const polygonCoordinates = polygon[0].map(point => ({
-                    lat: point.coordinates[1], // Latitude
-                    lng: point.coordinates[0], // Longitude
-                }))
-
+                    lat: point[1],
+                    lng: point[0],
+                }));
 
                 currentPolygon = new google.maps.Polygon({
                     paths: polygonCoordinates,
@@ -177,18 +232,17 @@ export default {
                     zIndex: 1,
                     map: map,
                 });
+
                 polygons.push(currentPolygon);
                 attachClickListener(currentPolygon);
 
                 currentPolygon.getPath().forEach(coord => bounds.extend(coord));
-                })
-
+                });
 
                 map.fitBounds(bounds);
 
                 initializeDrawingManager();
             }
-
         };
         
         const attachClickListener = (polygon) => {

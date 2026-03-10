@@ -43,6 +43,7 @@ trait EndRequestHelper
 
         }
 
+        
 
         return $distance_and_duration = ['distance'=>$distance_in_unit,'duration'=>$duration];
 
@@ -63,8 +64,9 @@ trait EndRequestHelper
         // Log::info($start_time);
         $end_time = Carbon::parse($current_time);
         // Log::info($end_time);
-        $totald_duration = $end_time->diffInMinutes($start_time);
-        // Log::info($totald_duration);
+        // $totald_duration = $end_time->diffInMinutes($start_time);
+        $totald_duration = $start_time->diffInMinutes($end_time);
+        Log::info($totald_duration);
 
         return $totald_duration;
     }

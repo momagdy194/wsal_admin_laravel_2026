@@ -10,10 +10,15 @@
 |
  */
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\Request\EtaController;
 
-Route::namespace('Request')->prefix('dispatcher')->group(function () {
-    Route::post('request/eta', 'EtaController@eta');
-    Route::post('request/list_packages', 'EtaController@listPackages');
+
+Route::prefix('dispatcher')->group(function () {
+    
+    Route::post('request/eta', [EtaController::class, 'eta']); 
+    Route::post('request/list_packages', [EtaController::class, 'listPackages']);
+
 });
 
 

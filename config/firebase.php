@@ -53,7 +53,7 @@ return [
              // 'credentials' => env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS')),
 
             'credentials' => [
-                'file' => env('FIREBASE_CREDENTIALS', base_path('public/push-configurations/firebase.json')),
+            'file' => config('firebase.credentials.file'),
             ],
 
             /*

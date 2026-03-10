@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Admin\Onboarding;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class OnboardingSeeder extends Seeder
 {
@@ -15,7 +16,7 @@ class OnboardingSeeder extends Seeder
 
         if (!$onboarding) {
             // Seed the notification channels
-            \DB::table('onboarding_screen')->insert([
+            DB::table('onboarding_screen')->insert([
                 [
                     'id' => Str::uuid(),
                     'sn_o' => 1,
@@ -123,7 +124,7 @@ class OnboardingSeeder extends Seeder
         }
 
     //     // Insert translations
-        $onboarding = \DB::table('onboarding_screen')->get();
+        $onboarding = DB::table('onboarding_screen')->get();
 
                     foreach ($onboarding as $onboardData) 
             {

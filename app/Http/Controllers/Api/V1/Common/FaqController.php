@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\V1\Common;
 use App\Models\Admin\Faq;
 use App\Base\Constants\Auth\Role;
 use App\Transformers\Common\FaqTransformer;
-use Fleetbase\LaravelMysqlSpatial\Types\Point;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 use App\Http\Controllers\Api\V1\BaseController;
 
 /**

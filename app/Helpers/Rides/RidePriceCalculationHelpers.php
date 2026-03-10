@@ -20,6 +20,10 @@ use App\Models\Admin\PromoUser;
 use App\Helpers\Rides\CalculatAdminCommissionAndTaxHelper;
 use App\Models\Admin\AgentCommission;
 use App\Models\Admin\Agents;
+use App\Models\Admin\Franchise;
+use App\Models\Admin\ZoneType;
+use App\Models\Admin\ZoneTypePackage;
+use App\Models\Admin\FranchisePromo;
 
 trait RidePriceCalculationHelpers
 {
@@ -47,7 +51,7 @@ trait RidePriceCalculationHelpers
          * 
          * */
 
-        if($request_detail && $request_detail->requestEtaDetail && !$request_detail->is_later){
+        if($request_detail && $request_detail->requestEtaDetail && !$request_detail->is_later && !$request_detail->shared_ride){
             
             $eta_detail = $request_detail->requestEtaDetail;
 
@@ -63,10 +67,10 @@ trait RidePriceCalculationHelpers
         $price_per_distance = $type_prices->price_per_distance;
 
 
-        if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
-            $price_per_distance = $zone_type->shared_price_per_distance;
+        // if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
+        //     $price_per_distance = $zone_type->shared_price_per_distance;
 
-        }
+        // }
 
         if(request()->has('rental_pack_id') || ($request_detail && $request_detail->is_rental)){
             $price_per_distance = $type_prices->distance_price_per_km;
@@ -90,10 +94,10 @@ trait RidePriceCalculationHelpers
 
         $base_distance = (double) $type_prices->base_distance;
 
-        if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
-            $base_distance = 0;
+        // if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
+        //     $base_distance = 0;
 
-        }
+        // }
 
         if((request()->has('is_out_station') && request()->is_out_station) || ($request_detail && $request_detail->is_out_station)){
             
@@ -110,7 +114,7 @@ trait RidePriceCalculationHelpers
         $current_time = Carbon::now()->setTimezone($timezone);
 
         if(request()->is_later){
-            $current_time = Carbon::parse(request()->trip_start_time)->setTimezone($timezone);
+            $current_time = Carbon::parse(request()->trip_start_time, $timezone);
         }
         if($request_detail && $request_detail->is_later){
             $current_time = Carbon::parse($request_detail->trip_start_time)->setTimezone($timezone);
@@ -132,7 +136,7 @@ trait RidePriceCalculationHelpers
         }
 
         // Peak Zone surge
-        $peak_zone = find_peak_zone(request()->pick_lat,request()->pick_lng);
+        $peak_zone = find_peak_zone(request()->pick_lat,request()->pick_lng, $current_time);
 
         if($peak_zone){
             
@@ -159,18 +163,64 @@ trait RidePriceCalculationHelpers
 
         }
 
-        if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
-            $base_price = $zone_type->price_per_seat;
-            if($request_detail){
-                $base_price *= $request_detail->seats_taken;
-            }else{
-                $base_price *= request()->seats_taken;
-            }
 
-        }
+$isSharedRide = false;
+
+if($request_detail){
+    $isSharedRide = (bool) $request_detail->shared_ride;
+} else {
+    $isSharedRide = request()->boolean('shared_ride');
+}
+
+if($isSharedRide){
+
+    $seats_taken = 1;
+
+    if($request_detail && $request_detail->seats_taken){
+        $seats_taken = $request_detail->seats_taken;
+    } elseif(request()->has('seats_taken') && request()->seats_taken > 0){
+        $seats_taken = request()->seats_taken;
+    }
+
+    $base_price = $zone_type->price_per_seat * $seats_taken;
+
+    $base_distance = 0;
+    $price_per_distance = $zone_type->shared_price_per_distance;
+    $price_per_time = 0;
+}
+
+        // if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
+        //     $base_price = $zone_type->price_per_seat;
+        //     if($request_detail){
+        //         $base_price *= $request_detail->seats_taken;
+        //     }else{
+        //         $base_price *= request()->seats_taken;
+        //     }
+
+        // }
+
+        // if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
+
+        //     $seats_taken = 1;
+        
+        //     if($request_detail && $request_detail->seats_taken){
+        //         $seats_taken = $request_detail->seats_taken;
+        //     } elseif(request()->has('seats_taken') && request()->seats_taken > 0){
+        //         $seats_taken = request()->seats_taken;
+        //     }
+        
+        //     $base_price = $zone_type->price_per_seat * $seats_taken;
+        // }
 
          // Time price
-        $price_per_time = (double)$type_prices->price_per_time;
+
+        if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
+            
+            $price_per_time = 0;
+        }else{
+            $price_per_time = (double)$type_prices->price_per_time;
+        }
+            
         
         if((request()->has('is_out_station') && request()->is_out_station) || ($request_detail && $request_detail->is_out_station)){
             $price_per_time = $type_prices->outstation_price_per_time;
@@ -178,10 +228,14 @@ trait RidePriceCalculationHelpers
    
         }
 
-        if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
-            $price_per_time = 0;
 
-        }
+
+        // if(request()->has('shared_ride') || ($request_detail && $request_detail->shared_ride)){
+        //     $price_per_time = 0;
+        //     $calculatable_distance = 0;
+        //     $distance_price = 0;
+
+        // }
 
 
 
@@ -454,6 +508,33 @@ trait RidePriceCalculationHelpers
             }
 
         }
+        $franchise_commission_amount = 0;
+        if( get_settings('franchise-addons') == 1){
+            if($request_detail){            
+                $franchise = Franchise::where('id',$request_detail->franchise_owner_id)->where('approve', 1)->first();
+                Log::info([
+                    'franchise' => $franchise,
+                    'zone_type' => $zone_type,
+                ]);
+                if ($franchise  && $zone_type) {
+                    $franchise_zone_type = ZoneType::where('zone_id',$franchise->zone_id)->where('active', true)->where('type_id',$zone_type->type_id)->where('drop_zone',null)->first();
+                      Log::info([
+                    'franchise_zone_type' => $franchise_zone_type,
+                    ]);
+                    if ($franchise_zone_type) {
+                        if ($franchise_zone_type->franchise_commision_type == 1) {
+                        // percentage
+                           $franchise_commission_amount = $total_amount * ($franchise_zone_type->franchise_commision / 100);
+                        } else {
+
+                          // fixed amount
+                           $franchise_commission_amount = $franchise_zone_type->franchise_commision;
+                        }
+                    }
+                } 
+            }
+
+        }
 
 
         if($request_detail){
@@ -482,6 +563,7 @@ trait RidePriceCalculationHelpers
                 'is_surge_applied' => $is_surge_applied,
                 'cancellation_fee'=>$cancellation_fee,
                 'agent_commision' => $commission_amount,
+                'franchise_owner_commision'=>$franchise_commission_amount
                 ];
 
             if($discount_amount>0){
@@ -699,6 +781,44 @@ trait RidePriceCalculationHelpers
         }
         
                  Log::info($commission_amount);
+                 $franchise_commission_amount = 0;
+        if( get_settings('franchise-addons') == 1){
+            if($request_detail){            
+                $franchise = Franchise::where('zone_id',$zone_type_price->zone_id)->where('approve', 1)->first();
+                 Log::info([
+            'franchise' => $franchise,
+            'zone_type_price' => $zone_type_price,
+        ]);
+
+        if ($franchise  && $zone_type_price) {
+                    $franchise_zone_type = ZoneTypePackage::where('zone_id',$franchise->zone_id)->where('active', true)->where('zone_type_id',$zone_type_price->zone_type_id)->where('package_type_id',$zone_type_price->package_type_id)->first();
+                      Log::info([
+                    'franchise_zone_type' => $franchise_zone_type,
+                    ]);
+                    if ($franchise_zone_type) {
+                        if ($franchise_zone_type->franchise_commision_type == 1) {
+                        // percentage
+                           $franchise_commission_amount = $total_amount * ($franchise_zone_type->franchise_commision / 100);
+                        } else {
+
+                          // fixed amount
+                           $franchise_commission_amount = $franchise_zone_type->franchise_commision;
+                        }
+                    }
+                }
+                // if ($franchise && $zone_type_price) {
+                //     if ($zone_type_price->franchise_commision_type == 1) {
+                //         // percentage
+                //         $franchise_commission_amount = $total_amount * ($zone_type_price->franchise_commision / 100);
+                //     } else {
+
+                //         // fixed amount
+                //         $franchise_commission_amount = $zone_type_price->franchise_commision;
+                //     }
+                // } 
+            }
+
+        }
 
         //  $driver_commision -= $admin_commision_with_tax;
         return $result = [
@@ -722,6 +842,7 @@ trait RidePriceCalculationHelpers
         'total_time'=>$duration,
         'airport_surge_fee'=>$airport_surge_fee,        
         'agent_commision' => $commission_amount,
+        'franchise_owner_commision'=>$franchise_commission_amount
         ];
     }
 

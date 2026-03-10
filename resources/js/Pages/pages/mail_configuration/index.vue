@@ -42,6 +42,9 @@ export default {
 
         });
 
+
+        const showMailPasswordModal = ref(false);
+
         const dismissMessage = () => {
             successMessage.value = "";
             alertMessage.value = "";
@@ -88,6 +91,7 @@ export default {
             dismissMessage,
             handleSubmit,
             form,
+            showMailPasswordModal,
         };
     },
     mounted() {
@@ -166,6 +170,12 @@ export default {
                     <div class="mb-3">
                       <label for="mail_password" class="form-label">{{$t("mail_password")}}
                         <span class="text-danger">*</span>
+                        <BLink @click="showMailPasswordModal = true">
+                            <h6 class="text-success float-end d-flex align-items-center me-3 text-decoration-underline text-decoration-underline-success">
+                                <!-- <i class="bx bx-info-circle fs-20 me-1"></i> -->
+                                {{$t('hint')}}
+                            </h6>
+                        </BLink>  
                       </label>
                       <div class="input-group">
                         <input  type="password" :readonly="app_for === 'demo'" autocomplete="off" class="form-control" :placeholder="$t('enter_mail_password')" id="mail_password"  v-model="form.mail_password"/>
@@ -238,6 +248,33 @@ export default {
                 </div>
             </div>
         </div>
+        <BModal v-model="showMailPasswordModal" hide-footer :title="$t('mail_password')" class="v-modal-custom" size="md">
+          <div class="container"> 
+            <ul class="list-unstyled vstack gap-3">
+              <li>
+                <div class="d-flex">
+                  <div class="flex-shrink-0 text-success me-1">
+                    <i class="ri-checkbox-circle-fill fs-15 align-middle"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    In Laravel, the .env file may not correctly read passwords that contain a backslash (\).
+                    Because of this, SMTP authentication can fail even if the password is correct.
+                  </div>
+                </div>
+              </li>
+               <li>
+                <div class="d-flex">
+                  <div class="flex-shrink-0 text-success me-1">
+                    <i class="ri-checkbox-circle-fill fs-15 align-middle"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    To avoid this issue, please update the email password without using a backslash (\) character.
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </BModal>
     </Layout>
 </template>
 

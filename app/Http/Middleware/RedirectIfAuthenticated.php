@@ -77,6 +77,35 @@ class RedirectIfAuthenticated
                 }
 
                 
+                }elseif (access()->hasRole('franchise_owner')) {
+
+
+                    $access_login = Setting::where('name','franchise_login')->pluck('value')->first();
+
+                    $access_login = "login/".$access_login;
+
+                    if(request()->path()!==$access_login){        
+                        auth('web')->logout();
+
+                        return redirect()->guest(request()->path());
+                    }else {
+                        return redirect('/manage-franchise-owner');
+                    }
+                }
+                elseif (access()->hasRole('franchise_owner')) {
+
+
+                    $access_login = Setting::where('name','franchise_login')->pluck('value')->first();
+
+                    $access_login = "login/".$access_login;
+
+                    if(request()->path()!==$access_login){        
+                        auth('web')->logout();
+
+                        return redirect()->guest(request()->path());
+                    }else {
+                        return redirect('/manage-franchise-owner');
+                    }
                 }
                 else{
                 

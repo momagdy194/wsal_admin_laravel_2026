@@ -18,7 +18,7 @@ class CreateZonesTable extends Migration
             $table->uuid('service_location_id');
             $table->string('name');
             $table->tinyInteger('unit');
-            $table->multiPolygon('coordinates')->nullable();
+            $table->geometry('coordinates',subtype:'multiPolygon')->nullable();
             $table->boolean('active')->default(true);
             $table->uuid('default_vehicle_type')->nullable();
             $table->timestamps();

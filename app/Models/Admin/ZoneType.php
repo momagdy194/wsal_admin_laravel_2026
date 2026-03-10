@@ -34,7 +34,7 @@ class ZoneType extends Model
         'admin_commission_type_from_driver', 'admin_commission_from_driver',
         'admin_commission_type_for_owner', 'admin_commission_for_owner',
         'enable_shared_ride','price_per_seat','shared_price_per_distance','shared_cancel_fee',
-        'drop_zone','agent_commision_type','agent_commision',
+        'drop_zone','agent_commision_type','agent_commision','franchise_commision_type','franchise_commision'
     ];
 
     /**

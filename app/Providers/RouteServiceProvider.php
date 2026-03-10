@@ -34,10 +34,9 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function map()
     {
-        // Load API routes first so /api/* is matched before web catch-all
         $this->mapApiRoutes();
-        // Load main web routes (app considered installed - purchase verification page disabled)
         $this->mapWebRoutes();
+        $this->mapInstallRoutes();
     }
 
     /**
@@ -50,22 +49,38 @@ class RouteServiceProvider extends ServiceProvider
     protected function mapWebRoutes()
     {
         Route::middleware('web')
+             ->namespace($this->namespace)
              ->group(base_path('routes/web.php'));
     }
 
     /**
      * Define the "api" routes for the application.
      *
-     * These routes are typically stateless and use the "api" middleware group.
+     * These routes are typically stateless.
      *
      * @return void
      */
-    
     protected function mapApiRoutes()
     {
         Route::prefix('api')
-            ->middleware('api')
-            ->namespace($this->namespace)
-            ->group(base_path('routes/api.php'));
+             ->middleware('api')
+             ->namespace($this->namespace)
+             ->group(base_path('routes/api.php'));
     }
+
+    /**
+     * Define the "install" routes for the application.
+     *
+     * @return void
+     */
+    protected function mapInstallRoutes()
+    {
+        Route::middleware('web')
+             ->namespace($this->namespace)
+             ->group(base_path('routes/Install/install.php'));
+    }
+
+     
+
+    
 }

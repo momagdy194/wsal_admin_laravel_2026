@@ -30,6 +30,7 @@ export default {
 
         const successMessage = ref(props.successMessage || '');
         const alertMessage = ref(props.alertMessage || '');
+        console.log("airport",props.airport);
 
         const form = useForm({
             service_location_id: airport.service_location_id,
@@ -45,6 +46,7 @@ export default {
         const fetchServiceLocations = async () => {
             const response = await axios.get('/airport/list');
             serviceLocations.value = response.data.results;
+            console.log("serviceLocations.value",serviceLocations.value);
         };
 
 
@@ -132,12 +134,19 @@ export default {
 
                 // Adjust map center and zoom to fit the polygon
                 const bounds = new google.maps.LatLngBounds();
-                airport.coordinates.forEach((polygon) => {
+                // airport.coordinates.forEach((polygon) => {
 
+                // const polygonCoordinates = polygon[0].map(point => ({
+                //     lat: point.coordinates[1], // Latitude
+                //     lng: point.coordinates[0], // Longitude
+                // }))
+
+                airport.coordinates.coordinates.forEach((polygon) => {
+                    console.log("polygon",polygon);
                 const polygonCoordinates = polygon[0].map(point => ({
-                    lat: point.coordinates[1], // Latitude
-                    lng: point.coordinates[0], // Longitude
-                }))
+                    lat: point[1],
+                    lng: point[0],
+                }));
 
 
                 currentPolygon = new google.maps.Polygon({

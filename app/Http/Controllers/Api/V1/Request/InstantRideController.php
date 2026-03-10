@@ -159,6 +159,21 @@ class InstantRideController extends BaseController
  
              $request_params['fleet_id'] = auth()->user()->driver->fleet_id;
          }
+          if(auth()->user()->driver->franchise_owner_id!=null)
+         {
+             // Log::info("--------Accepted_Fleet_driver--------");
+ 
+            //  Log::info(auth()->user()->driver);
+             $request_params['franchise_owner_id'] = auth()->user()->driver->franchise_owner_id;
+         }
+
+          if(auth()->user()->driver->franchise_owner_id!=null)
+         {
+             // Log::info("--------Accepted_Fleet_driver--------");
+ 
+            //  Log::info(auth()->user()->driver);
+             $request_params['franchise_owner_id'] = auth()->user()->driver->franchise_owner_id;
+         }
 
         $request_detail = $this->request->create($request_params);
         // Log::info("Instant Ride Created");  
@@ -333,6 +348,18 @@ class InstantRideController extends BaseController
              $request_params['owner_id'] = auth()->user()->driver->owner_id;
  
              $request_params['fleet_id'] = auth()->user()->driver->fleet_id;
+         }
+         Log::info([
+            'driver' => auth()->user()->driver,
+                    'franchise' => auth()->user()->driver->franchise_owner_id,
+                ]);
+
+         if(auth()->user()->driver->franchise_owner_id!=null)
+         {
+             // Log::info("--------Accepted_Fleet_driver--------");
+ 
+            //  Log::info(auth()->user()->driver);
+             $request_params['franchise_owner_id'] = auth()->user()->driver->franchise_owner_id;
          }
 
 

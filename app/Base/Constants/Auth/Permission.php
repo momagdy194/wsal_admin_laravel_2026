@@ -19,6 +19,7 @@ class Permission
     const CHAT = 'chat';
     const OTHERS = 'others';
     const ACCESS_NOTIFICATIONS = 'access-notifications';
+    const ACCESS_FRANCHISE_OWNER_DASHBOARD = 'access-franchise-owner-dashboard';
 
 
     const PROMOTIONS_MANAGEMENT = 'promotion-management';
@@ -381,6 +382,12 @@ const EDIT_BANNER_IMAGE = 'edit_banner_image';
 const DELETE_BANNER_IMAGE = 'delete_banner_image';
 const TOGGLE_BANNER_IMAGE = 'toggle_banner_image';
 
+/* announcement  */
+const MANAGE_ANNOUNCEMENT = 'manage-announcement';
+const ADD_ANNOUNCEMENT = 'add-announcement';
+const DELETE_ANNOUNCEMENT = 'delete-toggle';
+const TOGGLE_ANNOUNCEMENT = 'toggle-toggle';
+
 /* roles */
 const ROLES = 'roles';
 const CREATE_ROLES = 'create_roles';
@@ -484,8 +491,71 @@ const DISPATHCER_CHAT = 'dispatcher-chat';
     const AGENT_CHAT = 'agent-chat';
     const AGENT_WALLET = 'agent-wallet';
 
-    const ADD_WALLET_PAYMENT = 'add-wallet-payment';
+    /* Manage Franchise Details */ 
+    const MANAGE_FRANCHISE_DETAIL = 'manage-franchise-detail';
+    const ADD_FRANCHISE_DETAIL = 'add-franchise-detail';
+    const EDIT_FRANCHISE_DETAIL = 'edit-franchise-detail';
+    const DELETE_FRANCHISE_DETAIL = 'delete-franchise-detail';
+    const TOGGLE_FRANCHISE_DETAIL_STATUS = 'toggle-franchise-detail';
+    const EDIT_PASSWORD_FRANCHISE_DETAIL = 'edit-password-franchise-detail';
+
+/* Manage Franchise Owner */ 
+    const FRANCHISE_OWNER_MANAGEMENT = 'franchise-owner-management';
+    const MANAGE_FRANCHISE_OWNER = 'manage-franchise-owner';
+    const ADD_FRANCHISE_OWNER = 'add-franchise-owner';
+    const EDIT_FRANCHISE_OWNER = 'edit-franchise-owner';
+    const DELETE_FRANCHISE_OWNER = 'delete-franchise-owner';
+    const TOGGLE_FRANCHISE_OWNER_STATUS = 'toggle-franchise-owner';
+    const VIEW_FRANCHISE_OWNER_DOCUMENT = 'view-franchise-owner-document';
+    const VIEW_FRANCHISE_OWNER_PROFILE = 'view-franchise-owner-profile';
+
+// Manage Franchise Owner Needed Doc
+    const MANAGE_FRANCHISE_OWNER_NEEDED_DOC = 'manage-franchise-owner-needed-document';
+    const ADD_FRANCHISE_OWNER_NEEEDED_DOC = 'add-franchise-owner-needed-document';
+    const EDIT_FRANCHISE_OWNER_NEEEDED_DOC = 'edit-franchise-owner-needed-document';
+    const DELETE_FRANCHISE_OWNER_NEEEDED_DOC = 'delete-franchise-owner-needed-document';
+    const TOGGLE_FRANCHISE_OWNER_NEEEDED_DOC = 'toggle-franchise-owner-needed-document';
+
+    // manage Franchise Drivers
+    const VIEW_FRANCHISE_PENDING_DRIVERS = 'view-franchise-pending-drivers';
+    const VIEW_FRANCHISE_APPROVED_DRIVERS = 'view-franchise-approved-drivers';
+    const ADD_FRANCHISE_DRIVER= 'add-franchise-driver';
+    const EDIT_FRANCHISE_DRIVER = 'edit-franchise-driver';
+    const DELETE_FRANCHISE_DRIVER = 'delete-franchise-driver';
+    const VIEW_FRANCHISE_DRIVER_PROFILE= 'view-franchise-driver-profile';
+    const FRANCHISE_DRIVER_APPROVAL = 'franchise-driver-approval';
+    const FRANCHISE_DRIVER_DISAPPROVAL = 'franchise-driver-disapproval';
+    const FRANCHISE_DRIVER_UPLOAD_DOCUMENTS = 'franchise-driver-upload-documents';
+    const MANAGE_FRANCHISE_DRIVERS = 'manage-franchise-drivers';
+
+    const FRANCHISE_WALLET = 'franchise-wallet';
+    const FRANCHISE_WITHDRAWAL_REQUEST = 'franchise-withdrawal-request';
+    const WALLET_PAYMENT = 'wallet-payment';
 
 
+//franchise promo
+    const MANAGE_FRANCHISE_PROMO = 'manage-franchise-promo';
+    const ADD_FRANCHISE_PROMO = 'add-franchise-promo';
+    const EDIT_FRANCHISE_PROMO = 'edit-franchise-promo';
+    const TOGGLE_FRANCHISE_PROMO = 'toggle-franchise-promo';
+    const DELETE_FRANCHISE_PROMO = 'delete-franchise-promo';
+    const VIEW_FRANCHISE_PROMO = 'view-franchise-promo';
+    const FRANCHISE_WITHDRAWAL = 'withdrawal-franchise';
+    const FRANCHISE_OWNER_REPORT= 'franchise-owner-report';
+
+    const FRANCHISE_ADDONS = 'franchise_addons';
+//single landing page
+
+   const SINGLE_LANDING_HOME = 'single_landing_page';
+   const ADD_SINGLE_LANDING_HOME = 'add_single_landing_page';
+   const EDIT_SINGLE_LANDING_HOME = 'edit_single_landing_page';
+   const DELETE_SINGLE_LANDING_HOME = 'delete_single_landing_page';
+
+   
+/* single landing page header-footer */
+    const SINGLE_HEADER_FOOTER = 'single_header_footer';
+    const SINGLE_ADD_HEADER_FOOTER = 'single_add_header_footer';
+    const SINGLE_EDIT_HEADER_FOOTER = 'single_edit_header_footer';
+    const SINGLE_DELETE_HEADER_FOOTER = 'single_delete_header_footer';
 
 }

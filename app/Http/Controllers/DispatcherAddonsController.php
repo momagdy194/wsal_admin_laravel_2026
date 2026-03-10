@@ -19,19 +19,25 @@ class DispatcherAddonsController extends Controller
         return Inertia::render('pages/dispatcher_addons/index');
     }
      public function verification_submit(Request $request)
-    {    
-            $format = check_code_format($request->purchase_code);
+    {
+        // BYPASS PURCHASE CODE VALIDATION - Always return success
+        $UpdateSettingcontract = app("update-service");
+        $softwarecheck = $UpdateSettingcontract->codeVerify();
+        return json_encode($softwarecheck);
 
-            if($format['success'])
-            {
-                $UpdateSettingcontract = app("update-service");
-                $softwarecheck = $UpdateSettingcontract->codeVerify(); 
-               return json_encode($softwarecheck);
-            }
-            else{
-                return json_encode($format);
-            } 
-       
+        /*
+        $format = check_code_format($request->purchase_code);
+
+        if($format['success'])
+        {
+            $UpdateSettingcontract = app("update-service");
+            $softwarecheck = $UpdateSettingcontract->codeVerify();
+           return json_encode($softwarecheck);
+        }
+        else{
+            return json_encode($format);
+        }
+        */
 
     }
     public function dispatcher_files_uploads(Request $request){

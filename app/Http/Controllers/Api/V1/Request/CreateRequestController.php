@@ -32,6 +32,7 @@ use App\Jobs\ValidateAndGeneratePeakZone;
 use App\Mail\RideLaterMail;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\V1\Payment\Stripe\StripeController;
+use App\Models\Admin\FranchisePromo;
 /**
  * @group User-trips-apis
  *
@@ -125,11 +126,11 @@ class CreateRequestController extends StripeController
         // Fetch user detail
         $user_detail = auth()->user();
 
-        if($user_detail->ride_otp==null)
-        {
+        // if($user_detail->ride_otp==null)
+        // {
             $user_detail->ride_otp=rand(1111, 9999);
 
-        }
+        // }
 
         $user_detail->timezone = $service_location->timezone;
         $user_detail->save();
@@ -152,6 +153,34 @@ class CreateRequestController extends StripeController
         $eta_result = fractal($zone_type_detail, new EtaTransformer);
 
         $eta_result =json_decode($eta_result->toJson());
+        
+        $franchise_promoCode = null;
+        $promo_code = null;
+
+        if( get_settings('franchise-addons') == 1){
+
+            if($request->promocode_id){
+                $franchise_promo = FranchisePromo::find($request->promocode_id);
+                if($franchise_promo){
+                    $franchise_promoCode= $franchise_promo->id;
+                }
+                else{
+                    $promo = Promo::find($request->promocode_id);
+                    if($promo){
+                        $promo_code= $promo->id;
+                    }
+
+                }
+                
+            }
+        }
+        else{
+            $promo = Promo::find($request->promocode_id);
+                    if($promo){
+                        $promo_code= $promo->id;
+                    }            
+        }
+
 
 
         $request_params = [
@@ -160,7 +189,8 @@ class CreateRequestController extends StripeController
             'zone_type_id'=>$request->vehicle_type,
             'payment_opt'=>$request->payment_opt,
             'unit'=>(string)$unit,
-            'promo_id'=>$request->promocode_id,
+            'promo_id'=>$promo_code,
+            'franchise_promo_id'=>$franchise_promoCode,
             'requested_currency_code'=>$currency_code,
             'requested_currency_symbol'=>$currency_symbol,
             'service_location_id'=>$service_location->id,
@@ -228,7 +258,11 @@ class CreateRequestController extends StripeController
                 $this->throwCustomException('please provide the valid contact');
 
             }
+            if (!$request->filled('other_contact_name')) {
+                $this->throwCustomException('Please provide contact name');
+            }
             $request_params['book_for_other_contact'] = $request->input('contact_no_other');
+            $request_params['book_for_other_contact_name'] = $request->input('other_contact_name');
 
         }
 
@@ -285,15 +319,34 @@ class CreateRequestController extends StripeController
 
         if($request->promocode_id) {
             $promo = Promo::find($request->promocode_id);
-            $promo->update([
-                'total_uses' => $promo->total_uses+1,
-            ]);
-            $promo_params = [
-                'promo_code_id' => $request->promocode_id,
-                'request_id' => $request_detail->id,
-                'user_id' => $user_detail->id,
-            ];
-            PromoUser::create($promo_params);
+            if($promo){
+                $promo->update([
+                    'total_uses' => $promo->total_uses+1,
+                ]);     
+                
+                $promo_params = [
+                    'promo_code_id' => $request->promocode_id,
+                    'request_id' => $request_detail->id,
+                    'user_id' => $user_detail->id,
+                ];
+                PromoUser::create($promo_params);           
+            }
+            else{
+                if(get_settings('franchise-addons') == 1){
+                    $franchise_promo = FranchisePromo::find($request->promocode_id);
+                $franchise_promo->update([
+                    'total_uses' => $franchise_promo->total_uses+1,
+                ]);   
+                $promo_params = [
+                    'franchise_promo_id' => $request->promocode_id,
+                    'request_id' => $request_detail->id,
+                    'user_id' => $user_detail->id,
+                    'promo_code_id' => NULL
+                ];
+                PromoUser::create($promo_params);                    
+                }
+                 
+            }
         }
           // To Store Request stops along with poc details
         if ($request->has('stops')) {
@@ -422,11 +475,11 @@ class CreateRequestController extends StripeController
         // Update timezone for user
         $user_detail->timezone = $service_location->timezone;
 
-        if($user_detail->ride_otp==null)
-        {
+        // if($user_detail->ride_otp==null)
+        // {
             $user_detail->ride_otp=rand(1111, 9999);
 
-        }
+        // }
 
 
         $user_detail->save();
@@ -665,6 +718,14 @@ class CreateRequestController extends StripeController
                 $updated_params['owner_id'] = $driver->owner_id;
 
                 $updated_params['fleet_id'] = $driver->fleet_id;
+            }
+
+            if($driver->franchise_owner_id!=null)
+            {
+                // Log::info("--------Accepted_Fleet_driver--------");
+
+                // Log::info($driver);
+                $updated_params['franchise_owner_id'] = $driver->franchise_owner_id;
             }
 
         $request_detail->update($updated_params);

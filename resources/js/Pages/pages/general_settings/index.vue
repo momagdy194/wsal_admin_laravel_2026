@@ -36,7 +36,8 @@ export default {
   },
   data() {
     return {
-      agent_addons:window.agent_addons
+      agent_addons:window.agent_addons,      
+      franchise_addons:window.franchise_addons
     };
   },
   props: {
@@ -95,6 +96,8 @@ export default {
       dispatcher_sidebar_txt_color: props.settings.dispatcher_sidebar_txt_color || "",
       dispatcher_login_pro: props.settings.dispatcher_login_pro || "",
       agent_login: props.settings.agent_login || "",
+      franchise_login: props.settings.franchise_login || "",
+      contact_booking_number: props.settings.contact_booking_number || "",
 
     });
 
@@ -218,6 +221,15 @@ const confirmToggle = async (field, value) => {
       }
     });
 
+    watch(() => form.franchise_login, (newValue) => {
+      if (urlRegex.test(newValue)) {
+        isValidUrl.value = true; // Set the flag to true for valid code
+        errors.value.franchise_login = '';
+      } else {
+        isValidUrl.value = false; // Set the flag to false for invalid code
+        errors.value.franchise_login = 'Invalid Login URL.(valid URL : owner-login (or) owner)';
+      }
+    });
 
     watch(() => form.dispatcher_login, (newValue) => {
       if (urlRegex.test(newValue)) {
@@ -502,6 +514,13 @@ const confirmToggle = async (field, value) => {
                       <span v-for="(error, index) in errors.default_longitude" :key="index" class="text-danger">{{ error }}</span>
                     </div>
                   </div>        
+                  <div class="col-sm-6">
+                    <div class="mb-3">
+                      <label for="contact_booking_number" class="form-label">{{$t("contact_booking_number")}}</label>
+                      <input type="text" class="form-control" :readonly="app_for === 'demo'" :placeholder="$t('enter_contact_booking_number')" id="contact_booking_number" v-model="form.contact_booking_number" />
+                      <span v-for="(error, index) in errors.contact_booking_number" :key="index" class="text-danger">{{ error }}</span>
+                    </div>
+                  </div>   
                   <!-- <div class="col-sm-6">
                     <div class="mb-3">
                       <div class="border rounded">
@@ -630,6 +649,18 @@ const confirmToggle = async (field, value) => {
                           <div class="card-header bg-warning-subtle border border-dashed">
                               <div class="text-center">
                                   <h6 class="mb-0">{{$t("example")}}: <span class="fw-semibold">{{ baseUrl }}<span class="bg-success text-white fw-bold p-1">{{form.agent_login}}</span></span></h6>
+                              </div>
+                          </div>
+                        </div>
+                        <div class="col-sm-6" v-if ="franchise_addons ==1" >
+                          <div class="mb-3 mt-3">
+                              <label for="franchise_login" class="form-label">{{$t("franchise_login_url")}}</label>
+                              <input type="text" :readonly="app_for === 'demo'" :class="{ 'border-success': isValidUrl, 'border-danger': errors.franchise_login }" class="form-control" :placeholder="$t('enter_franchise_url')" id="franchise_login" v-model="form.franchise_login" />
+                              <span v-for="(error, index) in errors.franchise_login" :key="index" class="text-danger">{{ error }}</span>
+                          </div>
+                          <div class="card-header bg-warning-subtle border border-dashed">
+                              <div class="text-center">
+                                  <h6 class="mb-0">{{$t("example")}}: <span class="fw-semibold">{{ baseUrl }}<span class="bg-success text-white fw-bold p-1">{{form.franchise_login}}</span></span></h6>
                               </div>
                           </div>
                         </div>

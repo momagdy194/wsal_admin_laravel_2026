@@ -130,7 +130,7 @@ class DispatcherZipFilesAddons implements ShouldQueue
                         $targetPath = base_path('routes/web/' . substr($relativePath, strlen('routes/')));
                     } 
                     elseif (str_starts_with($relativePath, 'filter/')) {
-                        $targetPath = base_path('app/base/filters/Admin/' . substr($relativePath, strlen('filter/')));
+                        $targetPath = base_path('app/Base/filters/Admin/' . substr($relativePath, strlen('filter/')));
                     }                     
                     elseif (str_starts_with($relativePath, 'transformer/')) {
                         $targetPath = base_path('app/Transformers/Payment/' . substr($relativePath, strlen('transformer/')));

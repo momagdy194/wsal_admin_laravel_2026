@@ -201,7 +201,7 @@ export default {
               </div>
           </BCardHeader>
       </BCard>
-      <!-- <BCol lg="6">
+      <BCol lg="6">
         <BCard no-body id="tasksList">
           <BCardHeader class="border-0"><h5>{{$t("mobile_view")}}</h5></BCardHeader>
           <BCardBody class="border border-dashed border-end-0 border-start-0">
@@ -223,7 +223,7 @@ export default {
             </div>
           </BCardBody>
         </BCard>
-      </BCol> -->
+      </BCol>
       <BCol lg="6">
         <BCard no-body id="tasksList">
           <BCardHeader class="border-0"></BCardHeader>
@@ -329,7 +329,7 @@ export default {
 .onboardingScreen{
   width: 300px;
   height: 550px;
-  background-image: url(/images/onboarding.jpeg);
+  background-image: url(/images/onboarding.png);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -346,7 +346,7 @@ export default {
   box-shadow: none;
 }
 .onboardingImage{
-  clip-path: polygon(0 0, 100% 0, 100% 91%, 0 100%);
+  /* clip-path: polygon(0 0, 100% 0, 100% 91%, 0 100%); */
   width: 206px;
   height: 220px;
   margin-left: 48px;

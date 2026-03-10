@@ -187,17 +187,22 @@ export default {
           </BCardBody>
         </BCard>
       </BCol>
-      <!-- <BCol lg="6">
+      <BCol lg="6">
         <BCard no-body id="tasksList">
           <BCardHeader class="border-0"><h5>{{$t("mobile_view")}}</h5></BCardHeader>
           <BCardBody class="border border-dashed border-end-0 border-start-0">
             <div class="col-sm-12">
                     <div class="mb-3" style="display: grid;place-items:center;">
+                      <!-- <label for="owner_wallet_minimum_amount_to_get_an_order" class="form-label">Mobile View</label> -->
                       
                       <div class="wallet"><div class="overlap">
                         <div class="card cards">
+                          <!-- <input type="text" class="form-control" placeholder="" id="minimum_wallet_amount_for_transfer" 
+                          v-model="form.minimum_wallet_amount_for_transfer" /> -->
                           <div class="input-group mt-3">
                               <span class="input-group-text" id="basic-addon1">$</span>
+                              <!-- <input disabled type="text" class="form-control" id="minimum_amount_added_to_wallet" placeholder="Enter Amount" aria-label="Username" aria-describedby="basic-addon1"
+                              v-model="form.minimum_amount_added_to_wallet"> -->
                               <input disabled type="text" class="form-control" id="calculated_value" v-model="calculatedValue1" >
                           </div>
                           <div class="d-flex align-items-center justify-content-center gap-2 mt-3">
@@ -221,7 +226,7 @@ export default {
                   </div>  
           </BCardBody>
           </BCard>
-          </BCol> -->
+          </BCol>
     </BRow>
     <div>
       <div v-if="successMessage" class="custom-alert alert alert-success alert-border-left fade show" role="alert"

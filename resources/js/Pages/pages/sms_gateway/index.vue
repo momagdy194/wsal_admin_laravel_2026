@@ -67,6 +67,11 @@ export default {
             enable_kudi_sms_api_key: props.settings?.enable_kudi_sms_api_key ?? false,
             kudi_sms_sender_id: props.settings?.kudi_sms_sender_id ?? '',
             kudi_sms_api_key: props.settings?.kudi_sms_api_key ?? '',
+
+            enable_infobip: props.settings?.enable_infobip ?? false,
+            infobip_base_url: props.settings?.infobip_base_url ?? '',
+            infobip_api_key: props.settings?.infobip_api_key ?? '',
+            infobip_sender_id: props.settings?.infobip_sender_id ?? '',
         });
 
         const successMessage = ref(props.successMessage || '');
@@ -385,6 +390,44 @@ export default {
                                             <div class="mb-3">
                                                 <label for="kudi_sms_sender_id" class="form-label">{{$t("kudi_sms_sender_id")}}</label>
                                                 <input :readonly="app_for === 'demo'" v-model="form.kudi_sms_sender_id" :type="app_for === 'demo' ? 'password' : 'text'" class="form-control" :placeholder="$t('your_kudi_sms_sender_id')" id="kudi_sms_sender_id" />
+                                            </div>
+                                            <div class="col-lg-12">
+                                                <div class="text-end">
+                                                    <button type="submit" class="btn btn-primary">{{ $t('save') }}</button>
+                                                </div>
+                                            </div>
+                                        </BCardBody>
+                                    </BCard>
+                                </BCol>
+                                <BCol lg="6">
+                                    <BCard no-body id="tasksList" class="border">
+                                        <BCardHeader class="border-0 mt-2 p-4 border-bottom">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <h5>{{$t("infobip")}}</h5>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-check form-switch form-switch-lg float-end me-3">
+                                                        <input v-model="form.enable_infobip" class="form-check-input" type="checkbox" role="switch" id="enable_infobip" @change="handleCheckboxChange('enable_infobip')" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </BCardHeader>
+                                        <BCardBody>
+                                            <div class="text-center mb-4">
+                                                <img src="@assets/images/infobip.png" style="width: 200px;" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="infobip_base_url" class="form-label">{{ $t("infobip_base_url") }}</label>
+                                                <input :readonly="app_for === 'demo'" v-model="form.infobip_base_url" :type="app_for === 'demo' ? 'password' : 'text'" class="form-control" :placeholder="$t('your_infobip_base_url')" id="infobip_base_url" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="infobip_api_key" class="form-label">{{$t("infobip_api_key")}}</label>
+                                                <input :readonly="app_for === 'demo'" v-model="form.infobip_api_key" :type="app_for === 'demo' ? 'password' : 'text'" class="form-control" :placeholder="$t('your_infobip_api_key')" id="infobip_api_key" />
+                                            </div>
+                                             <div class="mb-3">
+                                                <label for="infobip_sender_id" class="form-label">{{$t("infobip_sender_id")}}</label>
+                                                <input :readonly="app_for === 'demo'" v-model="form.infobip_sender_id" :type="app_for === 'demo' ? 'password' : 'text'" class="form-control" :placeholder="$t('your_infobip_sender_id')" id="infobip_sender_id" />
                                             </div>
                                             <div class="col-lg-12">
                                                 <div class="text-end">

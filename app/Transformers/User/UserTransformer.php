@@ -109,6 +109,9 @@ class UserTransformer extends Transformer
         $params['show_wallet_money_transfer_feature_on_mobile_app'] = get_settings('shoW_wallet_money_transfer_feature_on_mobile_app');
         $params['show_bank_info_feature_on_mobile_app'] =  get_settings('show_bank_info_feature_on_mobile_app');
         $params['show_wallet_feature_on_mobile_app'] =  get_settings('show_wallet_feature_on_mobile_app');
+        
+        $params['show_only_total_amount'] = get_settings('show_only_total_amount');
+        $params['contact_booking_number'] = get_settings('contact_booking_number');
 
         $app_for = config('app.app_for');
         if($app_for == 'delivery'){
@@ -182,6 +185,8 @@ class UserTransformer extends Transformer
 
         $params['enable_map_appearance_change_on_mobile_app'] = (get_settings(Settings::ENABLE_MAP_APPEARANCE_CHANE_ON_MOBILE_APP));
 
+        $params['enable_multiple_ride_feature'] = get_settings(Settings::ENABLE_MULTIPLE_RIDE_FEATURE);
+
         $params['conversation_id'] = "";
         $get_conversation_data = Conversation::where('user_id',$user->id)->where('is_closed', false)->first();
         if($get_conversation_data)
@@ -196,8 +201,18 @@ class UserTransformer extends Transformer
 
         $params['map_type'] = $user->map_type ?? get_map_settings('map_type');
         $ongoing_ride = $user->requestDetail()->where('is_cancelled', false)->where('user_rated', false)->where('is_driver_started',true)->exists();
+        // $ongoing_ride = $user->requestDetail()->where('is_cancelled', false)->where('user_rated', false)->where('is_driver_started',true)->where('is_completed', false)->where('is_paid', false)->exists();
 
         $params['has_ongoing_ride'] = $ongoing_ride;
+
+        $upcoming_ride = $user->requestDetail()
+            ->where('is_later', 1)
+            ->where('is_cancelled', false)
+            ->where('is_completed', false)
+            ->where('trip_start_time', '>', now())
+            ->exists();
+
+        $params['has_upcoming_ride'] = $upcoming_ride;
 
         $completed_ride_count = $user->requestDetail()->where('is_completed', true)->count();
 
@@ -263,7 +278,6 @@ class UserTransformer extends Transformer
 
         }
 
-
         return $request
         ? $this->item($request->fresh(), new TripRequestTransformer)
         : $this->null();
@@ -298,7 +312,7 @@ class UserTransformer extends Transformer
         if(!$findable_duration){
             $findable_duration = 45;
         }
-        $add_45_min = Carbon::now()->addMinutes($findable_duration)->format('Y-m-d H:i:s');
+        $add_45_min = Carbon::now()->addMinutes((int) $findable_duration)->format('Y-m-d H:i:s');
 
 
         $request = $user->requestDetail()->where('is_completed', false)->where('is_cancelled', false)->where('user_rated', false)->where('driver_id', null)->where('is_later', 0)->where('trip_start_time', '<=', $add_45_min)

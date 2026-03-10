@@ -5,9 +5,9 @@ import '../scss/mermaid.min.css';
 import 'leaflet/dist/leaflet.css';
 
 import { createApp, h } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp , router} from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { ZiggyVue } from '../../vendor/tightenco/ziggy/dist/vue.m';
+import { ZiggyVue } from 'ziggy-js';
 import BootstrapVueNext from 'bootstrap-vue-next';
 import vClickOutside from "click-outside-vue3";
 import VueApexCharts from "vue3-apexcharts";
@@ -24,6 +24,10 @@ import CookieConsent from './Components/CookieConsent.vue';
 AOS.init({
     easing: 'ease-out-back',
     duration: 1000
+});
+
+router.on('error', () => {
+    window.location.reload();
 });
 
 

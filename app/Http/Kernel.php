@@ -43,7 +43,7 @@ class Kernel extends HttpKernel
 
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-           'throttle:120,1',
+        //    'throttle:120,1',
             // \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
@@ -69,8 +69,8 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'remove_empty_query' => \App\Http\Middleware\RemoveEmptyQueryParams::class,
         'permission' => \App\Http\Middleware\RouteNeedsPermission::class,
-
         'redirect_dynamic_login' => \App\Http\Middleware\RedirectDynamicLoginUrl::class,   
         'agent_addons' => \App\Http\Middleware\AgentAddonChecking::class,    
+        'franchise_addons' => \App\Http\Middleware\FranchiseAddonChecking::class, 
     ];
 }

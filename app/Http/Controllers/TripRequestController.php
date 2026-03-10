@@ -26,6 +26,8 @@ use App\Jobs\Mails\SendDriverInvoiceMailNotification;
 use App\Http\Controllers\Api\V1\Payment\Stripe\StripeController;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class TripRequestController extends StripeController
 {
@@ -249,7 +251,7 @@ class TripRequestController extends StripeController
         }
 
 
-        $notification = \DB::table('notification_channels')
+        $notification = DB::table('notification_channels')
             ->where('topics', 'User Ride Later') // Match the correct topic
             ->first();
 
@@ -260,14 +262,14 @@ class TripRequestController extends StripeController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -304,7 +306,7 @@ class TripRequestController extends StripeController
             // $body = custom_trans('trip_cancelled_by_user_body',[],$notifiable_driver->lang);
             // dispatch(new SendPushNotification($notifiable_driver,$title,$body));
 
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
                 ->where('topics', 'Trip Cancelled By System') // Match the correct topic
                 ->first();
 
@@ -315,14 +317,14 @@ class TripRequestController extends StripeController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();

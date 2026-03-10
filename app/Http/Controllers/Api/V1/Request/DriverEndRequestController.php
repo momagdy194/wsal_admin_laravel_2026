@@ -51,6 +51,7 @@ use App\Jobs\ValidateAndUpdateDriverLoyaltyJob;
 use App\Http\Controllers\Api\V1\Payment\Stripe\StripeController;
 use App\Helpers\Payment\PaymentReferenceHelper;
 use App\Helpers\Referral\ReferralHelper;
+use App\Models\Admin\FranchisePromo;
 
 /**
  * @group Driver-trips-apis
@@ -181,6 +182,17 @@ class DriverEndRequestController extends StripeController
             $service_location_id = $request_detail->service_location_id;
             $promo_detail = $this->validateAndGetPromoDetail($request_detail->promo_id,$user_id,$request_detail);
         }
+         if ($request_detail->franchise_promo_id) {
+            $user_id = $request_detail->userDetail->id;
+            $service_location_id = $request_detail->service_location_id;
+            $promo_detail = $this->validateAndGetPromoDetail($request_detail->franchise_promo_id,$user_id,$request_detail);
+        }
+
+        if ($request_detail->franchise_promo_id) {
+            $user_id = $request_detail->userDetail->id;
+            $service_location_id = $request_detail->service_location_id;
+            $promo_detail = $this->validateAndGetPromoDetail($request_detail->franchise_promo_id,$user_id,$request_detail);
+        }
 
 
         // Collect Request pickup & drop coords
@@ -242,6 +254,7 @@ class DriverEndRequestController extends StripeController
         $bill = $request_detail->requestBill()->create($calculated_bill);
 
         $bill->agent_commision = $calculated_bill['agent_commision'];
+        $bill->franchise_owner_commision = $calculated_bill['franchise_owner_commision'];
 $bill->save();
 
         if ($request_detail->promo_id) {
@@ -273,7 +286,6 @@ $bill->save();
         {
             dispatch(new ValidateAndUpdateDriverLoyaltyJob($request_detail));
         }
-
 
         if ($request_detail->payment_opt == PaymentType::WALLET) {
 
@@ -474,15 +486,31 @@ $bill->save();
     * @return \Illuminate\Http\JsonResponse
     *
     */
-    public function validateAndGetPromoDetail($promo_code_id,$user_id,$request_detail)
+     public function validateAndGetPromoDetail($promo_code_id,$user_id,$request_detail)
     {
         $current_date = Carbon::today()->toDateTimeString();
 
 
             $transport_type = request()->transport_type;
-            $expired = Promo::where('id', $promo_code_id)->where('service_location_id',$request_detail->service_location_id)->where(function($query)use($request_detail){
-            $query->where('transport_type',$request_detail->transport_type)->orWhere('transport_type','both');
-            })->where('to', '>', $current_date)->where('active',true)->first();
+            if(get_settings('franchise-addons') == 1){            
+                $franchise_promo = FranchisePromo::where('id', $promo_code_id)->where('service_location_id',$request_detail->service_location_id)->exists();
+                if($franchise_promo == true){
+                    $expired = FranchisePromo::where('id', $promo_code_id)->where('service_location_id',$request_detail->service_location_id)->where(function($query)use($request_detail){
+                    $query->where('transport_type',$request_detail->transport_type)->orWhere('transport_type','both');
+                    })->where('to', '>', $current_date)->where('active',true)->first();
+                }
+                else{
+                    $expired = Promo::where('id', $promo_code_id)->where('service_location_id',$request_detail->service_location_id)->where(function($query)use($request_detail){
+                    $query->where('transport_type',$request_detail->transport_type)->orWhere('transport_type','both');
+                    })->where('to', '>', $current_date)->where('active',true)->first();
+                }
+            }
+            else{
+                
+                $expired = Promo::where('id', $promo_code_id)->where('service_location_id',$request_detail->service_location_id)->where(function($query)use($request_detail){
+                $query->where('transport_type',$request_detail->transport_type)->orWhere('transport_type','both');
+                })->where('to', '>', $current_date)->where('active',true)->first();                
+            }
 
         if($expired)
         {
@@ -493,8 +521,20 @@ $bill->save();
                     return null;
                 }
             }
-            $exceed_usage = PromoUser::where('promo_code_id', $expired->id)->where('user_id', $user_id)->count();
+            if(get_settings('franchise-addons') == 1){
+                
+                $franchise_promo = FranchisePromo::where('id', $promo_code_id)->where('service_location_id',$request_detail->service_location_id)->exists();
+                if($franchise_promo == true){
+                    $exceed_usage = PromoUser::where('franchise_promo_id', $expired->id)->where('user_id', $user_id)->count();
+                }
+                else{
+                    $exceed_usage = PromoUser::where('promo_code_id', $expired->id)->where('user_id', $user_id)->count();                
+                }
+            }
+            else{
+                $exceed_usage = PromoUser::where('promo_code_id', $expired->id)->where('user_id', $user_id)->count();                
 
+            }
             if ($exceed_usage > $expired->uses_per_user) {
                 return null;
             }

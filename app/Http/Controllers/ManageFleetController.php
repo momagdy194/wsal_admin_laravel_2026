@@ -18,7 +18,7 @@ use App\Models\Admin\ServiceLocation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Web\BaseController;
 use Kreait\Firebase\Contract\Database;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Log;
 use Carbon\Carbon;
 use App\Jobs\Notifications\SendPushNotification;
@@ -413,7 +413,7 @@ class ManageFleetController extends BaseController
         
 
 
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
             ->where('topics', 'Fleet Approved') // Match the correct topic
             ->first();
 
@@ -424,14 +424,14 @@ class ManageFleetController extends BaseController
                 // dd($userLang);
 
                 // Fetch the translation based on user language or fall back to 'en'
-                $translation = \DB::table('notification_channels_translations')
+                $translation = DB::table('notification_channels_translations')
                     ->where('notification_channel_id', $notification->id)
                     ->where('locale', $userLang)
                     ->first();
 
                 // If no translation exists, fetch the default language (English)
                 if (!$translation) {
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', 'en')
                         ->first();
@@ -498,7 +498,7 @@ class ManageFleetController extends BaseController
             
                 // dispatch(new SendPushNotification($fleet->ownerDetail, $title, $body));  
                 
-                $notification = \DB::table('notification_channels')
+                $notification = DB::table('notification_channels')
                 ->where('topics', 'Fleet Approved') // Match the correct topic
                 ->first();
 
@@ -509,14 +509,14 @@ class ManageFleetController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -548,7 +548,7 @@ class ManageFleetController extends BaseController
             
                 // dispatch(new SendPushNotification($fleet->ownerDetail, $title, $body));
 
-                 $notification = \DB::table('notification_channels')
+                 $notification = DB::table('notification_channels')
                 ->where('topics', 'Fleet Decline') // Match the correct topic
                 ->first();
 
@@ -559,14 +559,14 @@ class ManageFleetController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -694,7 +694,7 @@ class ManageFleetController extends BaseController
             $notifiable_driver = $last_driver->user;
             // dispatch(new SendPushNotification($notifiable_driver,$title,$body));
 
-             $notification = \DB::table('notification_channels')
+             $notification = DB::table('notification_channels')
                 ->where('topics', 'Fleet Account Removed') // Match the correct topic
                 ->first();
 
@@ -705,14 +705,14 @@ class ManageFleetController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -759,7 +759,7 @@ class ManageFleetController extends BaseController
 
         // dispatch(new SendPushNotification($notifiable_driver,$title,$body));
 
-        $notification = \DB::table('notification_channels')
+        $notification = DB::table('notification_channels')
                 ->where('topics', 'New Fleet Assigned') // Match the correct topic
                 ->first();
 
@@ -770,14 +770,14 @@ class ManageFleetController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();

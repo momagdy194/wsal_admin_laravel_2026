@@ -32,6 +32,9 @@ class DashBoardController extends BaseController
         if (access()->hasRole('employee')) {
             return redirect('/support-tickets');
         }
+        if (access()->hasRole('franchise_owner')) {
+            return redirect()->route('franchiseowner.dashboard');
+        }
 
 
 // dd($cancelledtrips);
@@ -47,6 +50,39 @@ class DashBoardController extends BaseController
 
         return Inertia::render('pages/dashboard/index', ['firebaseConfig' => $firebaseConfig,]);
     }
+
+    /**
+     * Classic dashboard (backup of the original). Same role checks and firebaseConfig as index.
+     */
+    public function classic()
+    {
+        if (access()->hasRole('user')) {
+            return redirect('/create-booking');
+        }
+        if (access()->hasRole('owner')) {
+            return redirect()->route('owner.dashboard');
+        }
+        if (access()->hasRole('dispatcher')) {
+            return redirect()->route('dispatch.dashboard');
+        }
+        if (access()->hasRole('employee')) {
+            return redirect('/support-tickets');
+        }
+        if (access()->hasRole('franchise_owner')) {
+            return redirect()->route('franchiseowner.dashboard');
+        }
+        $firebaseConfig = (object) [
+            'apiKey' => get_firebase_settings('firebase_api_key'),
+            'authDomain' => get_firebase_settings('firebase_auth_domain'),
+            'databaseURL' => get_firebase_settings('firebase_database_url'),
+            'projectId' => get_firebase_settings('firebase_project_id'),
+            'storageBucket' => get_firebase_settings('firebase_storage_bucket'),
+            'messagingSenderId' => get_firebase_settings('firebase_messaging_sender_id'),
+            'appId' => get_firebase_settings('firebase_app_id'),
+        ];
+        return Inertia::render('pages/dashboard/classic', ['firebaseConfig' => $firebaseConfig]);
+    }
+
     public function todayEarnings(HttpRequest $request)
     {
         $service_location_id = $request->service_location_id;
@@ -425,6 +461,106 @@ class DashBoardController extends BaseController
                 'values' => $values,                
                 'agent_overall_earnngs' => $overallEarningData,
                 'agent_today_earnings'  => $todayEarningData,
+            ],
+        ];
+    
+        // Return the data as a JSON response
+        return response()->json($earningsData);
+    }
+     public function franchiseEarnings(HttpRequest $request)
+    {
+        $service_location_id = $request->service_location_id;
+
+
+        //Today Earnings && today trips
+        $cardEarningsQuery = "IFNULL(SUM(IF(requests.payment_opt=0,request_bills.franchise_owner_commision,0)),0)";
+        $cashEarningsQuery = "IFNULL(SUM(IF(requests.payment_opt=1,request_bills.franchise_owner_commision,0)),0)";
+        $walletEarningsQuery = "IFNULL(SUM(IF(requests.payment_opt=2,request_bills.franchise_owner_commision,0)),0)";
+        $adminCommissionQuery = "IFNULL(SUM(request_bills.admin_commision_with_tax),0)";
+        $driverCommissionQuery = "IFNULL(SUM(request_bills.driver_commision),0)";
+        $totalEarningsQuery = "$cardEarningsQuery + $cashEarningsQuery + $walletEarningsQuery";
+
+        $earningQuery = Request::leftJoin('request_bills','requests.id','request_bills.request_id')
+                            ->selectRaw("
+                            {$cardEarningsQuery} AS card,
+                            {$cashEarningsQuery} AS cash,
+                            {$walletEarningsQuery} AS wallet,
+                            {$totalEarningsQuery} AS total,
+                            {$adminCommissionQuery} as admin_commision,
+                            {$driverCommissionQuery} as driver_commision
+                        ")
+                        ->companyKey()
+                        ->where('requests.is_completed',true);
+
+        $earningQuery = $earningQuery->whereIn('service_location_id',get_user_location_ids(auth()->user()));
+
+        if($service_location_id && $service_location_id !== 'all'){
+            $earningQuery = $earningQuery->where('service_location_id',$service_location_id);
+        }
+
+        //Over All Earnings
+        $overallEarnings = $earningQuery->first();
+        $todayEarnings = $earningQuery->whereDate('requests.trip_start_time',date('Y-m-d'))->first();
+
+
+        $startDate = Carbon::now()->startOfYear(); // Start of the current year (January 1st)
+        $endDate = Carbon::now(); // End date is now (current date)
+    
+        // Initialize arrays for months and earnings
+        $months = [];
+        $values = [];
+    
+        // Loop through each month from the start of the year to the current date
+        while ($startDate->lte($endDate)) {
+            $from = Carbon::parse($startDate)->startOfMonth(); // Start of the month
+            $to = Carbon::parse($startDate)->endOfMonth(); // End of the month
+    
+            // Add the short name of the month to the months array
+            $months[] = $startDate->shortEnglishMonth;
+    
+            // Sum up the earnings for the current month
+            $totalEarnings = RequestBill::whereHas('requestDetail', function ($query) use ($from, $to, $service_location_id) {
+                $query->companyKey()->whereBetween('trip_start_time', [$from, $to])->whereIsCompleted(true);
+                 if($service_location_id && $service_location_id !== 'all'){
+                        $query->where('service_location_id',$service_location_id);
+                    }
+                    else{
+                        $query->whereIn('service_location_id',get_user_location_ids(auth()->user()));
+                    }
+            })->sum('franchise_owner_commision');
+    
+            // Add the total earnings for the month to the values array
+            $values[] = $totalEarnings;
+    
+            // Move to the next month
+            $startDate->addMonth();
+        }
+
+        $todayEarningData=[
+            "card"=> $todayEarnings->card,
+            "cash"=> $todayEarnings->cash,
+            "wallet"=> $todayEarnings->wallet,
+            "total"=> round($todayEarnings->total, 2),
+            "admin_commision"=> $todayEarnings->admin_commision,
+            "driver_commision"=> $todayEarnings->driver_commision,
+        ];
+
+        $overallEarningData=[
+            "card"=> $overallEarnings->card,
+            "cash"=> $overallEarnings->cash,
+            "wallet"=> $overallEarnings->wallet,
+            "total"=> round($overallEarnings->total, 2),
+            "admin_commision"=> $overallEarnings->admin_commision,
+            "driver_commision"=> $overallEarnings->driver_commision,
+        ];
+    
+        // Prepare the data to be returned
+        $earningsData = [
+            'earnings' => [
+                'months' => $months,
+                'values' => $values,                
+                'franchise_overall_earnngs' => $overallEarningData,
+                'franchise_today_earnings'  => $todayEarningData,
             ],
         ];
     

@@ -15,11 +15,13 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort()
-    ))),
+    // 'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+    //     '%s%s',
+    //     'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
+    //     Sanctum::currentApplicationUrlWithPort()
+    // ))),
+
+    'stateful' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -62,14 +64,6 @@ return [
     */
 
     'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Max tokens per user (multiple devices)
-    |--------------------------------------------------------------------------
-    | When > 0, login keeps this many tokens per user (deletes oldest). Set to 0 to delete all tokens on each login (single device).
-    */
-    'max_tokens_per_user' => (int) env('SANCTUM_MAX_TOKENS_PER_USER', 5),
 
     /*
     |--------------------------------------------------------------------------

@@ -9,15 +9,16 @@ use App\Models\Traits\HasActive;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\HasActiveCompanyKey;
 use Nicolaslopezj\Searchable\SearchableTrait;
-use Fleetbase\LaravelMysqlSpatial\Eloquent\SpatialTrait;
-use Fleetbase\LaravelMysqlSpatial\Types\Point;
 use App\Models\Admin\Subscription;
 use App\Models\Admin\ZoneTranslations;
+use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
+use MatanYadaev\EloquentSpatial\Objects\MultiPolygon;
+
 
 class Zone extends Model
 {
-    use HasActive, UuidModel,SearchableTrait,HasActiveCompanyKey;
-    use SpatialTrait;
+    use HasActive, UuidModel, SearchableTrait, HasActiveCompanyKey;
+    use HasSpatial;
 
     /**
      * The table associated with the model.
@@ -32,9 +33,20 @@ class Zone extends Model
      * @var array
      */
     protected $fillable = [
-        'service_location_id', 'name','unit','active','coordinates','default_vehicle_type',
-        'company_key','lat','lng','default_vehicle_type_for_delivery','for_delivery',
-        'maximum_outstation_distance','maximum_distance','peak_zone_radius',
+        'service_location_id',
+        'name',
+        'unit',
+        'active',
+        'coordinates',
+        'default_vehicle_type',
+        'company_key',
+        'lat',
+        'lng',
+        'default_vehicle_type_for_delivery',
+        'for_delivery',
+        'maximum_outstation_distance',
+        'maximum_distance',
+        'peak_zone_radius',
         'peak_zone_duration',
         'peak_zone_history_duration',
         'peak_zone_ride_count',
@@ -42,6 +54,10 @@ class Zone extends Model
     ];
     protected $spatialFields = [
         'coordinates'
+    ];
+
+    protected $casts = [
+        'coordinates' => MultiPolygon::class,
     ];
 
     /**
@@ -85,7 +101,7 @@ class Zone extends Model
     public function zoneType()
     {
         return $this->hasMany(ZoneType::class, 'zone_id', 'id')->orderBy('order_number');
-    } 
+    }
     /**
      * The Zone has many Types.
      * @tested
@@ -95,17 +111,8 @@ class Zone extends Model
     public function subscription()
     {
         return $this->hasMany(Subscription::class, 'zone_id', 'id');
-    } 
-   
-
-    /**
-     * Scope: zone contains the given point (MySQL-compatible ST_GeomFromText with 2 args only).
-     */
-    public function scopeContainsPoint($query, string $column, Point $point)
-    {
-        $wkt = 'POINT(' . $point->getLng() . ' ' . $point->getLat() . ')';
-        return $query->whereRaw('ST_Contains(`' . $column . '`, ST_GeomFromText(?, 0))', [$wkt]);
     }
+
 
     public function zoneTranslationWords()
     {
@@ -122,41 +129,41 @@ class Zone extends Model
 
 
     /**
-    * Get formated and converted timezone of user's created at.
-    *
-    * @param string $value
-    * @return string
-    */
+     * Get formated and converted timezone of user's created at.
+     *
+     * @param string $value
+     * @return string
+     */
     public function getConvertedCreatedAtAttribute()
     {
-        if ($this->created_at==null||!auth()->user()) {
+        if ($this->created_at == null || !auth()->user()) {
             return null;
         }
-        $timezone = auth()->user()->timezone?:config('app.timezone');
+        $timezone = auth()->user()->timezone ?: config('app.timezone');
         return Carbon::parse($this->created_at)->setTimezone($timezone)->format('jS M h:i A');
     }
     /**
-    * Get formated and converted timezone of user's created at.
-    *
-    * @param string $value
-    * @return string
-    */
+     * Get formated and converted timezone of user's created at.
+     *
+     * @param string $value
+     * @return string
+     */
     public function getConvertedUpdatedAtAttribute()
     {
-        if ($this->updated_at==null||!auth()->user()) {
+        if ($this->updated_at == null || !auth()->user()) {
             return null;
         }
-        $timezone = auth()->user()->timezone?:config('app.timezone');
+        $timezone = auth()->user()->timezone ?: config('app.timezone');
         return Carbon::parse($this->updated_at)->setTimezone($timezone)->format('jS M h:i A');
     }
 
     protected $searchable = [
         'columns' => [
             'zones.name' => 20,
-            'service_locations.name'=> 20,
+            'service_locations.name' => 20,
         ],
         'joins' => [
-            'service_locations' => ['zones.service_location_id','service_locations.id'],
+            'service_locations' => ['zones.service_location_id', 'service_locations.id'],
         ],
     ];
 }

@@ -1327,7 +1327,78 @@ class SettingsSeeder extends Seeder
          'option_value' => null,
          'group_name' => null,
         ],
-
+        
+        SettingSlug::FRANCHISE_LOGIN => [
+         'category'=>SettingCategory::GENERAL,
+         'value' => 'franchise-login',
+         'field' => SettingValueType::TEXT,
+         'option_value' => null,
+         'group_name' => null,
+        ],
+        
+        SettingSlug::SHOW_ONLY_TOTAL_AMOUNT => [
+            'category'=>SettingCategory::CUSTOMIZATION_SETTINGS,
+            'value' => '1',
+            'field' => SettingValueType::SELECT,
+            'option_value' => '{"yes":1,"no":0}',
+            'group_name' => null,
+        ],
+        SettingSlug::CONTACT_BOOKING_NUMBER => [
+            'category'=>SettingCategory::GENERAL,
+            'value' => 9999999999,
+            'field' => SettingValueType::TEXT,
+            'option_value' =>  null,
+            'group_name' => null,
+        ],
+        SettingSlug::ENABLE_SINGLE_LANDING_PAGE => [
+            'category'=>SettingCategory::CUSTOMIZATION_SETTINGS,
+            'value' => '0',
+            'field' => SettingValueType::SELECT,
+            'option_value' => '{"yes":1,"no":0}',
+            'group_name' => null,
+        ],
+         SettingSlug::SINGLE_LANDING_HEADER_BG_COLOR => [
+            'category'=>SettingCategory::GENERAL,
+            'value' => '#101435',
+            'field' => SettingValueType::TEXT,
+            'option_value' => null,
+            'group_name' => null,
+        ],
+        SettingSlug::SINGLE_LANDING_HEADER_TEXT_COLOR => [
+            'category'=>SettingCategory::GENERAL,
+            'value' => '#101435',
+            'field' => SettingValueType::TEXT,
+            'option_value' => null,
+            'group_name' => null,
+        ],
+        SettingSlug::SINGLE_LANDING_HEADER_ACTIVE_TEXT_COLOR => [
+            'category'=>SettingCategory::GENERAL,
+            'value' => '#101435',
+            'field' => SettingValueType::TEXT,
+            'option_value' => null,
+            'group_name' => null,
+        ],
+        SettingSlug::SINGLE_LANDING_FOOTER_BG_COLOR => [
+            'category'=>SettingCategory::GENERAL,
+            'value' => '#101435',
+            'field' => SettingValueType::TEXT,
+            'option_value' => null,
+            'group_name' => null,
+        ],
+        SettingSlug::SINGLE_LANDING_FOOTER_TEXT_COLOR => [
+            'category'=>SettingCategory::GENERAL,
+            'value' => '#ffff',
+            'field' => SettingValueType::TEXT,
+            'option_value' => null,
+            'group_name' => null,
+        ],
+        SettingSlug::ENABLE_DRIVER_SIGN_UP_FEATURE => [
+            'category'=>SettingCategory::CUSTOMIZATION_SETTINGS,
+            'value' => '1',
+            'field' => SettingValueType::SELECT,
+            'option_value' => '{"yes":1,"no":0}',
+            'group_name' => null,
+        ],
          
     ];
 

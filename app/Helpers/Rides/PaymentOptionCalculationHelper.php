@@ -7,6 +7,8 @@ use App\Base\Constants\Masters\PaymentType;
 use App\Base\Constants\Masters\WalletRemarks;
 use App\Models\Payment\AgentWallet;
 use App\Models\Admin\Agents;
+use App\Models\Payment\FranchiseWallet;
+use App\Models\Admin\Franchise;
 
 trait PaymentOptionCalculationHelper
 {
@@ -26,6 +28,11 @@ trait PaymentOptionCalculationHelper
             {
                 if($request_detail->requestBill->agent_commision > 0){
                     $agent_commission = $this->agentCommission($request_detail);
+                }if($request_detail->requestBill->franchise_owner_commision > 0){
+                    $franchise_owner_commision = $this->franchiseOwnerCommission($request_detail);
+                }
+                if($request_detail->requestBill->franchise_owner_commision > 0){
+                    $franchise_owner_commision = $this->franchiseOwnerCommission($request_detail);
                 }
                 return true;
             }
@@ -181,6 +188,9 @@ trait PaymentOptionCalculationHelper
         if($request_detail->requestBill->agent_commision > 0){
             $agent_commission = $this->agentCommission($request_detail);
         }
+        if($request_detail->requestBill->franchise_owner_commision > 0){
+            $franchise_owner_commision = $this->franchiseOwnerCommission($request_detail);
+        }
         return true;
     }
 
@@ -209,6 +219,26 @@ trait PaymentOptionCalculationHelper
                 ]);
                 return  $agent;
             }
+        }
+    }
+     protected function franchiseOwnerCommission($request_detail)
+    {
+        if($request_detail->requestBill->franchise_owner_commision > 0){
+            $franchise = Franchise::where('zone_id', $request_detail->zoneType->zone_id)->where('approve', 1)->first();
+            $franchise_wallet = FranchiseWallet::where('user_id', $franchise->id)->first();
+            
+            $franchise_wallet->amount_added += $request_detail->requestBill->franchise_owner_commision;
+            $franchise_wallet->amount_balance += $request_detail->requestBill->franchise_owner_commision;
+            $franchise_wallet->save();
+
+            // Add the history
+            $franchise->franchiseWalletHistory()->create([
+                'amount'=>$request_detail->requestBill->franchise_owner_commision,
+                'transaction_id'=>str_random(6),
+                'remarks' => WalletRemarks::FRANCHISE_COMMISSION_FOR_REQUEST,
+                'is_credit'=>true,
+            ]);
+            return  $franchise;
         }
     }
 

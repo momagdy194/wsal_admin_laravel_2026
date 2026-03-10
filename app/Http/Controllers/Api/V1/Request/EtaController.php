@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1\Request;
 
 use App\Events\Event;
 use App\AccountApproved;
-use App\AccountActivated; 
+use App\AccountActivated;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Contract\Database;
 use App\Http\Requests\User\EtaRequest;
@@ -28,7 +28,7 @@ use App\Transformers\Driver\CategoryTransformer;
 use Illuminate\Support\Facades\Log;
 use App\Models\Request\RecentSearch;
 use App\Transformers\Requests\RecentSearchesTransformer;
-use Fleetbase\LaravelMysqlSpatial\Types\Point;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 use App\Models\Admin\Zone;
 use App\Jobs\Notifications\SendPushNotification;
 use App\Helpers\Rides\StoreEtaDetailForRideHelper;
@@ -63,6 +63,20 @@ class EtaController extends ApiController
     */
     public function eta(EtaRequest $request)
     {
+
+      // Auto apply redeemed promo if promo_code not sent
+        if (!request()->has('promo_code')) {
+            $user = auth()->user();
+            if ($user) {
+                $redeemedPromo = cache()->get('active_promo_user_'.$user->id);
+                if ($redeemedPromo) {
+                    request()->merge([
+                        'promo_code' => $redeemedPromo
+                    ]);
+                }
+            }
+        }
+        
         $category_result = [];
 // Log::info("Eta Data");
 // Log::info($request->all());
@@ -656,7 +670,7 @@ class EtaController extends ApiController
             
             $drop_location = new Point($drop_address['latitude'], $drop_address['longitude']);
 
-            $drop_zone = Zone::containsPoint('coordinates', $drop_location)->whereHas('serviceLocation',function($query) {
+            $drop_zone = Zone::wherecontains('coordinates', $drop_location)->whereHas('serviceLocation',function($query) {
                 $query->where('active',true);
             })->where('active', 1)->where('id',$pick_zone->id)->first();
     

@@ -44,17 +44,6 @@ return [
 
     'debug' => (bool) env('APP_DEBUG', false),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Debug Send Mail (Exception Reports)
-    |--------------------------------------------------------------------------
-    | When enabled, unhandled exceptions can be emailed to debug_sendmail_email.
-    | Set APP_DEBUG_SENDMAIL_OPEN=true and APP_DEBUG_SENDMAIL_EMAIL in .env.
-    */
-  
-    'debug_sendmail_open' => (bool) env('APP_DEBUG_SENDMAIL_OPEN', false),
-    'debug_sendmail_email' => env('APP_DEBUG_SENDMAIL_EMAIL', ''),
-
     'app_for'=>'bidding',
 
     /*

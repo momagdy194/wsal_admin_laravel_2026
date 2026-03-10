@@ -231,7 +231,7 @@
 	"msg91":"MSG91",
 	"msg91_template_id":"MSG91 Template ID",
 	"your_msg91_template_id":"Your MSG91 Template ID",
-	"msg91_token":"MSG91 Token",
+	"msg91_token":"MSG91 Auth Key",
 	"your_msg91_token":"Your MSG91 Token",
 	"sparrow":"Sparrow",
 	"sparrow_sender_id":"Sparrow Sender ID",

@@ -27,7 +27,8 @@ export default {
   data() {
     return {
       selectedServiceLocation: null, // To store the selected service location      
-      agent_addons:window.agent_addons
+      agent_addons:window.agent_addons,
+      franchise_addons:window.franchise_addons
     };
   },
   computed: {
@@ -79,9 +80,13 @@ export default {
      const agentEarnings = ref(earningData.value);
     const agentEarningsChartOptions = ref({});
 
+    const franchiseEarnings = ref(earningData.value);
+    const franchiseEarningsChartOptions = ref({});
+
     const todayEarnings = ref(earningData.value);
     const overallEarnings = ref(earningData.value);
     const agentOverall = ref([]);
+    const franchiseOverall = ref([]);
 
     const totalDrivers = ref({
         approved : 0,
@@ -92,6 +97,51 @@ export default {
     });
     const totalUsers = ref(0);
     const currencySymbol = ref('');
+
+    // Improved analytics (trips per day, revenue per zone, cancellation reasons)
+    const tripsPerDay = ref({ labels: [], values: [] });
+    const tripsChartOptions = ref({});
+    const tripsSeries = ref([{ name: 'Trips', data: [] }]);
+    const revenuePerZone = ref({ labels: [], values: [] });
+    const revenueChartOptions = ref({});
+    const cancellationReasons = ref({ labels: [], values: [] });
+    const cancellationReasonsChartOptions = ref({});
+
+    const fetchNewAnalytics = async () => {
+      try {
+        const params = { service_location_id: selectedLocation.value || 'all' };
+        const { data } = await axios.get('/new-dashboard/analytics', { params });
+        tripsPerDay.value = data.trips_per_day || { labels: [], values: [] };
+        tripsSeries.value = [{ name: t('today_trips'), data: tripsPerDay.value.values || [] }];
+        tripsChartOptions.value = {
+          chart: { type: 'area', height: 280, toolbar: { show: false } },
+          dataLabels: { enabled: false },
+          stroke: { curve: 'smooth', width: 2 },
+          xaxis: { categories: tripsPerDay.value.labels },
+          yaxis: { min: 0, tickAmount: 5 },
+          colors: getChartColorsArray('["--vz-primary"]'),
+          fill: { type: 'gradient', opacity: 0.2 },
+        };
+        revenuePerZone.value = data.revenue_per_zone || { labels: [], values: [] };
+        revenueChartOptions.value = {
+          chart: { type: 'bar', height: 280, toolbar: { show: false } },
+          plotOptions: { bar: { horizontal: true, columnWidth: '55%', borderRadius: 4 } },
+          dataLabels: { enabled: true, formatter: (v) => (data.currency_symbol ? data.currency_symbol + Number(v).toFixed(0) : Number(v).toFixed(0)) },
+          xaxis: { categories: revenuePerZone.value.labels },
+          colors: getChartColorsArray('["--vz-success"]'),
+        };
+        cancellationReasons.value = data.cancellation_reasons || { labels: [], values: [] };
+        cancellationReasonsChartOptions.value = {
+          chart: { type: 'donut', height: 280 },
+          labels: cancellationReasons.value.labels,
+          plotOptions: { pie: { donut: { size: '70%' } } },
+          legend: { position: 'bottom' },
+          colors: getChartColorsArray('["--vz-danger", "--vz-warning", "--vz-info", "--vz-secondary"]'),
+        };
+      } catch (err) {
+        console.error('New analytics fetch error', err);
+      }
+    };
 
     const fetchDashboardData = async () => {
       try {
@@ -454,6 +504,8 @@ export default {
         await fetchOverallEarnings();
         await fetchCancellationData();
         await fetchAgentEarnings();
+        await fetchFranchiseEarnings();
+        await fetchNewAnalytics();
     }
     // Call APIs on component mount
     onMounted(async() => {
@@ -544,6 +596,56 @@ export default {
       }
     };
 
+    // Fetch data for overall earnings chart
+    const fetchFranchiseEarnings = async () => {
+      try {
+        const response = await axios.get('/dashboard/franchise-earnings',{ params:{service_location_id : selectedLocation.value}});
+        franchiseEarnings.value = response.data.earnings;
+        franchiseOverall.value = [
+          {
+            name: t('franchise_earnings'),
+            data: response.data.earnings.values,
+          },
+        ];
+        franchiseEarningsChartOptions.value = {
+          chart: {
+            height: 100,
+            type: "area",
+            toolbar: "false",
+          },
+          dataLabels: {
+            enabled: false,
+          },
+          stroke: {
+            curve: "smooth",
+            width: 3,
+          },
+          xaxis: {
+            categories: response.data.earnings.months, // x Axis months
+          },
+          yaxis: {
+            labels: {
+              formatter: function (value) {
+                return value.toFixed(1);
+              },
+            },
+            tickAmount: 5,
+            min: 0,
+            max: Math.max(...response.data.earnings.values) * 1.1, // Adjust max value dynamically
+          },
+          colors: getChartColorsArray('["--vz-success"]'),
+          fill: {
+            opacity: 0,
+            colors: ["#0AB39C", "#F06548"],
+            type: "solid",
+          },
+        };
+      } catch (error) {
+        console.error(t('error_fetching_agent_earnings'), error);
+      }
+    };
+
+
 
     return {
       series,
@@ -563,7 +665,17 @@ export default {
       currencySymbol,
       agentEarningsChartOptions,
       agentEarnings,
-      agentOverall
+      agentOverall,
+      franchiseEarningsChartOptions,
+      franchiseEarnings,
+      franchiseOverall,
+      tripsPerDay,
+      tripsChartOptions,
+      tripsSeries,
+      revenuePerZone,
+      revenueChartOptions,
+      cancellationReasons,
+      cancellationReasonsChartOptions,
     };
   },
 
@@ -704,6 +816,69 @@ export default {
                 </BCardBody>
               </BCard>
             </BCol>
+          </BRow>
+
+          <!-- Improved analytics: trips per day, revenue per zone, cancellation reasons -->
+          <BRow>
+            <BCol xl="12">
+              <BCard no-body class="card-height-100">
+                <BCardHeader class="align-items-center d-flex py-0">
+                  <BCardTitle class="mb-0 flex-grow-1 p-3">{{ $t("trips_per_day") }}</BCardTitle>
+                </BCardHeader>
+                <BCardBody>
+                  <apexchart
+                    v-if="tripsPerDay.values && tripsPerDay.values.length"
+                    class="apex-charts"
+                    dir="ltr"
+                    height="280"
+                    type="area"
+                    :options="tripsChartOptions"
+                    :series="tripsSeries"
+                  />
+                  <p v-else class="text-muted mb-0">{{ $t("no_data_found") }}</p>
+                </BCardBody>
+              </BCard>
+            </BCol>
+          </BRow>
+          <BRow>
+            <BCol xl="12">
+              <BCard no-body class="card-height-100">
+                <BCardHeader class="align-items-center d-flex py-0">
+                  <BCardTitle class="mb-0 flex-grow-1 p-3">{{ $t("revenue_per_zone") }}</BCardTitle>
+                </BCardHeader>
+                <BCardBody>
+                  <apexchart
+                    v-if="revenuePerZone.values && revenuePerZone.values.length"
+                    class="apex-charts"
+                    dir="ltr"
+                    height="280"
+                    type="bar"
+                    :options="revenueChartOptions"
+                    :series="[{ name: $t('overall_earnings'), data: revenuePerZone.values }]"
+                  />
+                  <p v-else class="text-muted mb-0">{{ $t("no_data_found") }}</p>
+                </BCardBody>
+              </BCard>
+            </BCol>
+            <!-- <BCol xl="6">
+              <BCard no-body class="card-height-100">
+                <BCardHeader class="align-items-center d-flex py-0">
+                  <BCardTitle class="mb-0 flex-grow-1 p-3">{{ $t("cancellation_reasons") }}</BCardTitle>
+                </BCardHeader>
+                <BCardBody>
+                  <apexchart
+                    v-if="cancellationReasons.values && cancellationReasons.values.some(v => v > 0)"
+                    class="apex-charts"
+                    dir="ltr"
+                    height="280"
+                    type="donut"
+                    :options="cancellationReasonsChartOptions"
+                    :series="cancellationReasons.values"
+                  />
+                  <p v-else class="text-muted mb-0">{{ $t("no_data_found") }}</p>
+                </BCardBody>
+              </BCard>
+            </BCol> -->
           </BRow>
 
 <!-- Notified sos -->
@@ -1284,7 +1459,7 @@ export default {
 
 <!-- agent earnings -->
 
-  <!-- <BRow v-if="agent_addons == 1">
+  <BRow v-if="agent_addons == 1">
     <BCol xl="6" md="12" lg="12">
       <BCard no-body>
         <BCardBody class="p-0">
@@ -1322,9 +1497,9 @@ export default {
                   </div>
                 </div>
               </div>
-            </div>
-          </div> 
-        </div> 
+            </div><!-- end card body -->
+          </div> <!-- end card-->
+        </div> <!-- end col-->
 
         <div class="col-md-6 col-lg-6 col-xl-12">
           <div class="card card-animate">
@@ -1345,11 +1520,81 @@ export default {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div> 
+            </div><!-- end card body -->
+          </div> <!-- end card-->
+        </div> <!-- end col-->
       </div>
 </Bcol>
-</BRow> -->
+</BRow>
+
+
+<!-- franchise earnings -->
+  <BRow v-if="franchise_addons ==1">
+    <BCol xl="6" md="12" lg="12">
+      <BCard no-body>
+        <BCardBody class="p-0">
+          <BRow class="g-0">
+            <BCol xxl="12">
+              <div class="">
+                <BCardHeader class="align-items-center d-flex">
+                  <BCardTitle class="mb-0 flex-grow-1">{{ $t("franchise_owner_earnings") }}</BCardTitle>
+                </BCardHeader>
+                <apexchart class="apex-charts" height="350" dir="ltr" :series="franchiseOverall" :options="franchiseEarningsChartOptions"></apexchart>
+              </div>
+            </BCol>       
+         </BRow>
+        </BCardBody>
+      </BCard>
+    </BCol>
+    <BCol xl="6" md="12" lg="12">
+      <div class="row">
+        <div class="col-md-6 col-lg-6 col-xl-12">
+          <div class="card card-animate">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <p class="fw-medium text-muted mb-0">{{ $t("franchise_overall_earnings") }}</p>
+                  <h2 class="mt-4 ff-secondary fw-semibold">
+                    <span class="counter-value" data-target="97.66">{{currencySymbol}}</span>
+                    {{ franchiseEarnings.franchise_overall_earnngs?.total}} 
+                  </h2>  
+                </div>
+                <div>
+                  <div class="avatar-sm flex-shrink-0">
+                    <span class="avatar-title bg-danger-subtle rounded-circle fs-2">
+                      <i class="bx bx-money text-danger icon-lg"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div><!-- end card body -->
+          </div> <!-- end card-->
+        </div> <!-- end col-->
+
+        <div class="col-md-6 col-lg-6 col-xl-12">
+          <div class="card card-animate">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <p class="fw-medium text-muted mb-0">{{ $t("franchise_today_earnings") }}</p>
+                  <h2 class="mt-4 ff-secondary fw-semibold">
+                    <span class="counter-value" data-target="97.66">{{currencySymbol}}</span>
+                    {{ franchiseEarnings.franchise_today_earnings?.total}} 
+                  </h2>                     
+                </div>
+                <div>
+                  <div class="avatar-sm flex-shrink-0">
+                    <span class="avatar-title bg-warning-subtle rounded-circle fs-2">
+                      <i class="bx bx-money text-warning icon-lg"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div><!-- end card body -->
+          </div> <!-- end card-->
+        </div> <!-- end col-->
+      </div>
+</Bcol>
+</BRow>
   </Layout>
 </template>

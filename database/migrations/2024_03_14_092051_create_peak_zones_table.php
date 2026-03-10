@@ -19,7 +19,7 @@ class CreatePeakZonesTable extends Migration
             $table->double('lat', 15, 8)->nullable();
             $table->double('lng', 15, 8)->nullable();
             $table->string('name')->nullable();
-            $table->multiPolygon('coordinates')->nullable();
+            $table->geometry('coordinates',subtype:'multiPolygon')->nullable();
             $table->time('start_time');
             $table->time('end_time');
             $table->integer('distance_price_percentage')->comment('In percentage');

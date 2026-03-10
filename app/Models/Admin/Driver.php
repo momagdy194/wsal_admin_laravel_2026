@@ -24,18 +24,25 @@ use App\Models\Admin\SubscriptionDetail;
 use App\Models\Admin\ServiceLocation;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
-use Fleetbase\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use App\Models\Master\DriverPreference;
+use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
+use MatanYadaev\EloquentSpatial\Objects\LineString;
 
 class Driver extends Model
 {
-    use HasActive,SoftDeletes,SearchableTrait,HasActiveCompanyKey,Notifiable,SpatialTrait;
+    use HasActive,SoftDeletes,SearchableTrait,HasActiveCompanyKey,Notifiable,HasSpatial;
     /**
      * The table associated with the model.
      *
      * @var string
      */
     protected $table = 'drivers';
+
+
+     protected $casts = [
+        'route_coordinates' => LineString::class,
+    ];
+    
 
     /**
      * The attributes that are mass assignable.
@@ -51,7 +58,7 @@ class Driver extends Model
         'vehicle_year','transport_type','custom_make','custom_model','my_route_lat',
         'my_route_lng','my_route_address','is_subscribed','is_on_commission','subscription_detail_id',
         'enable_my_route_booking','route_coordinates',
-        'price_per_distance','driver_level_up_id','occupied_seats',
+        'price_per_distance','driver_level_up_id','occupied_seats','franchise_owner_id'
         ];
     /**
     * The accessors to append to the model's array form.
@@ -226,6 +233,10 @@ class Driver extends Model
    public function owner()
     {
         return $this->belongsTo(Owner::class, 'owner_id', 'id')->withTrashed();
+    }
+    public function franchiseOwner()
+    {
+        return $this->belongsTo(Franchise::class, 'franchise_owner_id', 'id')->withTrashed();
     }
 
     public function carMake()

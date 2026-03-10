@@ -1,5 +1,5 @@
 <template>
-    <div class="auth-page-wrapper overflow-hidden" style="height: 100vh;">
+    <div class="auth-page-wrapper overflow-hidden" style="height: 100vh;" role="main" aria-label="Customer sign in">
       <div class="auth-page-content overflow-hidden">
         <BContainerFluid>
           <BRow>
@@ -8,59 +8,68 @@
                 <BCol lg="4">
                   <div class="p-lg-5 p-4">
                     <div class="mt-4 text-center">
-                      <img :src="logo" alt="" height="30" />
+                      <img :src="logo" alt="" height="30" aria-hidden="true" />
                     </div>
                     <div class="text-center mt-5">
-                      <h5 class="text-primary">{{$t("enter_your_mobile_number")}}</h5>
-                      <p class="text-muted">{{$t("otp_will_be_sent_on_sms")}}</p>
+                      <h5 class="text-primary" id="customer-signin-heading">{{ $t("enter_your_mobile_number") }}</h5>
+                      <p class="text-muted">{{ $t("otp_will_be_sent_on_sms") }}</p>
                     </div>
   
                     <div class="mt-4">
                       <!-- Step 1: Enter mobile number -->
-                      <form @submit.prevent="validateMobile">
+                      <form @submit.prevent="validateMobile" aria-labelledby="customer-signin-heading" role="form">
                         <div class="mb-3">
                         <div class="input-group" data-input-flag="">
                           <button
                             class="btn btn-light border"
                             type="button"
                             @click="toggleDropdown"
+                            :aria-expanded="showDropdown"
+                            aria-haspopup="listbox"
+                            :aria-label="$t('select_country') || 'Select country'"
                           >
                             <img
                               :src="selectedCountry.flag"
-                              alt="flag"
+                              alt=""
                               height="20"
                               class="country-flagimg rounded"
+                              aria-hidden="true"
                             />
                             <span class="ms-2 country-codeno">{{ selectedCountry.dial_code }}</span>
                           </button>
                           <input
-                            type="text"
+                            type="tel"
                             v-model="phoneNumber"
                             class="form-control"
                             id="number"
                             :placeholder="$t('enter_mobile')"
                             required
+                            autocomplete="tel"
+                            aria-label="Mobile number"
                           />
                         </div>
 
                         <div
                           class="dropdown-menu w-60 mt-0" v-if="showDropdown"
-                          :class="{ 'show': showDropdown }" 
-                          
+                          :class="{ 'show': showDropdown }"
+                          role="listbox"
+                          aria-label="Country list"
                         >
                           <div class="p-2 px-3 pt-1 searchlist-input">
                             <input
-                              type="text"
+                              type="search"
                               class="form-control form-control-sm border search-countryList"
                               :placeholder="$t('search_country_name_or_country_code')"
                               v-model="searchQuery"
                               @click.stop
+                              :aria-label="$t('search_country_name_or_country_code')"
                             />
                           </div>
                           <ul class="list-unstyled dropdown-menu-list mb-0">
                             <li
                               v-for="country in filteredCountries"
                               :key="country.id"
+                              role="option"
                             >
                               <a
                                 href="javascript:void(0);"
@@ -69,9 +78,10 @@
                               >
                                 <img
                                   :src="country.flag"
-                                  alt="flag"
+                                  alt=""
                                   class="me-2 rounded"
                                   height="18"
+                                  aria-hidden="true"
                                 />
                                 <span class="align-middle">{{ country.name }} {{ country.dial_code }}</span>
                               </a>
@@ -84,15 +94,18 @@
                           <div v-if="mobileExists">
                             <!-- Show password field if mobile is already registered -->
                             <div class="mb-3">
-                              <label for="password" class="form-label">{{$t("password")}}</label>
+                              <label for="password" class="form-label">{{ $t("password") }}</label>
                               <input
                                 type="password"
                                 v-model="password"
-                                 :class="{'form-control is-invalid': passwordError, 'form-control': !passwordError}"
+                                :class="{'form-control is-invalid': passwordError, 'form-control': !passwordError}"
                                 id="password"
                                 :placeholder="$t('enter_password')"
+                                autocomplete="current-password"
+                                :aria-invalid="!!passwordError"
+                                :aria-describedby="passwordError ? 'password-error-msg' : undefined"
                               />
-                              <div v-if="passwordError" class="invalid-feedback">
+                              <div v-if="passwordError" id="password-error-msg" class="invalid-feedback" role="alert">
                                 {{ passwordErrorMessage }}
                               </div>
                             </div>

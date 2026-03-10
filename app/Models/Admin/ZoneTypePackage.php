@@ -20,7 +20,7 @@ class ZoneTypePackage extends Model
         'cancellation_fee','free_distance','free_min','zone_id',
         'admin_commission_type','admin_commission','service_tax',
         'admin_commission_type_from_driver', 'admin_commission_from_driver',
-        'admin_commission_type_from_owner', 'admin_commission_from_owner','agent_commision_type','agent_commision',
+        'admin_commission_type_from_owner', 'admin_commission_from_owner','agent_commision_type','agent_commision','franchise_commision_type','franchise_commision',
     ];
 
     /**

@@ -198,22 +198,19 @@ export default {
     
     toggleDarkMode() {
       const theme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
-      const sidebarColor = document.documentElement.getAttribute("data-sidebar") === "dark" ? "light" : "dark";
+      const sidebarColor = theme === "dark" ? "dark" : "light";
       document.documentElement.setAttribute("data-bs-theme", theme);
-      document.documentElement.setAttribute("data-sidebar", sidebarColor);     
-
-      localStorage.setItem('toggleDarkMode', theme === 'dark');  
-
+      document.documentElement.setAttribute("data-sidebar", sidebarColor);
+      localStorage.setItem("theme", theme);
       this.changeMode({ mode: theme });
       this.changeSidebarColor({ sidebarColor: sidebarColor });
     },
     savedToggleTheme() {
-      const isDarkMode = localStorage.getItem('toggleDarkMode') === 'true'; // Retrieve saved preference
-      const theme = isDarkMode ? 'dark' : 'light';
-      const sidebarColor = isDarkMode ? 'dark' : 'light';
-
+      let theme = localStorage.getItem("theme");
+      if (!theme) theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      const sidebarColor = theme === "dark" ? "dark" : "light";
       document.documentElement.setAttribute("data-bs-theme", theme);
-      document.documentElement.setAttribute("data-sidebar", sidebarColor);      
+      document.documentElement.setAttribute("data-sidebar", sidebarColor);
       this.changeMode({ mode: theme });
       this.changeSidebarColor({ sidebarColor: sidebarColor });
     },
@@ -233,6 +230,12 @@ export default {
   mounted() {
     this.savedToggleTheme();
     this.flag = this.$i18n.locale;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    if (media.addEventListener) {
+      media.addEventListener("change", () => {
+        if (!localStorage.getItem("theme")) this.savedToggleTheme();
+      });
+    }
     document.addEventListener("scroll", function () {
       const pageTopbar = document.getElementById("page-topbar");
       if (pageTopbar) {

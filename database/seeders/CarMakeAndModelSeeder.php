@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\Master\CarMake;
 use App\Models\Master\CarModel;
 use Illuminate\Database\Seeder;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class CarMakeAndModelSeeder extends Seeder
 {

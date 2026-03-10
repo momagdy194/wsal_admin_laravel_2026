@@ -1240,6 +1240,16 @@ return { lat: lat, lon: lon };
                         </h5>
                     </div>
                 </div>
+                <div class="bg-body bg-success-subtle p-3" v-if="result.requestBill.data.franchise_owner_commision > 0">
+                    <div class="d-flex justify-content-between">                                
+                        <h5  class="text-success"> 
+                            {{$t("franchise_owner_commission")}}
+                        </h5>
+                        <h5  class="text-success">
+                            {{result.requested_currency_symbol}}{{ result.requestBill.data.franchise_owner_commision }}
+                        </h5>
+                    </div>
+                        </div>
                 </div>
             </BRow>
             </BCardBody>

@@ -1,22 +1,23 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Inertia\Inertia;
 use App\Models\Admin\Setting;
 use Illuminate\Http\Request;
 use App\Models\ThirdPartySetting;
 use App\Helpers\Rides\StorePaymentDetailForRideHelper;
 
-class PaymentGatewayController  extends Controller
+class PaymentGatewayController extends Controller
 {
     use StorePaymentDetailForRideHelper;
 
-    public function index() 
+    public function index()
     {
         $settings = ThirdPartySetting::where('module', 'payment')
             ->pluck('value', 'name')
             ->toArray();
-    // dd($settings);
+        // dd($settings);
         // Transform settings into a structured object
         $formattedSettings = [
             'enable_paystack' => filter_var($settings['enable_paystack'] ?? false, FILTER_VALIDATE_BOOLEAN),
@@ -25,21 +26,21 @@ class PaymentGatewayController  extends Controller
             'paystack_test_secret_key' => $settings['paystack_test_secret_key'] ?? '',
             'paystack_production_secret_key' => $settings['paystack_production_secret_key'] ?? '',
             'paystack_environment' => $settings['paystack_environment'] ?? '',
-    
+
             'enable_cashfree' => filter_var($settings['enable_cashfree'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'cash_free_environment' => $settings['cash_free_environment'] ?? '',
             'cash_free_secret_key' => $settings['cash_free_secret_key'] ?? '',
             'cash_free_production_secret_key' => $settings['cash_free_production_secret_key'] ?? '',
             'cash_free_app_id' => $settings['cash_free_app_id'] ?? '',
             'cash_free_production_app_id' => $settings['cash_free_production_app_id'] ?? '',
-    
+
             'enable_mercadopago' => filter_var($settings['enable_mercadopago'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'mercadopago_environment' => $settings['mercadopago_environment'] ?? '',
             'mercadopago_test_public_key' => $settings['mercadopago_test_public_key'] ?? '',
             'mercadopago_live_public_key' => $settings['mercadopago_live_public_key'] ?? '',
             'mercadopago_test_access_token' => $settings['mercadopago_test_access_token'] ?? '',
             'mercadopago_live_access_token' => $settings['mercadopago_live_access_token'] ?? '',
-    
+
             'enable_stripe' => filter_var($settings['enable_stripe'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'enable_stripe_authorization' => filter_var($settings['enable_stripe_authorization'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'stripe_environment' => $settings['stripe_environment'] ?? '',
@@ -47,19 +48,19 @@ class PaymentGatewayController  extends Controller
             'stripe_live_secret_key' => $settings['stripe_live_secret_key'] ?? '',
             'stripe_test_publishable_key' => $settings['stripe_test_publishable_key'] ?? '',
             'stripe_live_publishable_key' => $settings['stripe_live_publishable_key'] ?? '',
-    
+
             'enable_flutterwave' => filter_var($settings['enable_flutterwave'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'flutter_wave_environment' => $settings['flutter_wave_environment'] ?? '',
             'flutter_wave_test_secret_key' => $settings['flutter_wave_test_secret_key'] ?? '',
             'flutter_wave_production_secret_key' => $settings['flutter_wave_production_secret_key'] ?? '',
-    
+
             'enable_razorpay' => filter_var($settings['enable_razorpay'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'razor_pay_environment' => $settings['razor_pay_environment'] ?? '',
             'razor_pay_test_api_key' => $settings['razor_pay_test_api_key'] ?? '',
             'razor_pay_live_api_key' => $settings['razor_pay_live_api_key'] ?? '',
             'razor_pay_secrect_key' => $settings['razor_pay_secrect_key'] ?? '',
             'razor_pay_test_secrect_key' => $settings['razor_pay_test_secrect_key'] ?? '',
-    
+
             'enable_khalti' => filter_var($settings['enable_khalti'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'khalti_pay_environment' => $settings['khalti_pay_environment'] ?? '',
             'khalti_pay_test_api_key' => $settings['khalti_pay_test_api_key'] ?? '',
@@ -123,15 +124,20 @@ class PaymentGatewayController  extends Controller
             'fedapay_environment' => $settings['fedapay_environment'] ?? '',
             'fedapay_test_secret_key' => $settings['fedapay_test_secret_key'] ?? '',
             'fedapay_live_secret_key' => $settings['fedapay_live_secret_key'] ?? '',
-            
+
+            'enable_sslcommerz' => filter_var($settings['enable_sslcommerz'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'sslcommerz_environment' => $settings['sslcommerz_environment'] ?? '',
+            'sslcommerz_store_id' => $settings['sslcommerz_store_id'] ?? '',
+            'sslcommerz_store_password' => $settings['sslcommerz_store_password'] ?? '',
+
         ];
-    
+
         return Inertia::render('pages/payment_gateway/index', [
-            'app_for'=>env('APP_FOR'),
+            'app_for' => env('APP_FOR'),
             'settings' => $formattedSettings,
         ]);
     }
-    
+
 
     public function update(Request $request)
     {
@@ -150,14 +156,14 @@ class PaymentGatewayController  extends Controller
             'cash_free_production_secret_key' => "sometimes",
             'cash_free_app_id' => "sometimes",
             'cash_free_production_app_id' => "sometimes",
-    
+
             'enable_mercadopago' => "required",
             'mercadopago_environment' => "required",
             'mercadopago_test_public_key' => "sometimes",
             'mercadopago_live_public_key' => "sometimes",
             'mercadopago_test_access_token' => "sometimes",
             'mercadopago_live_access_token' => "sometimes",
-    
+
             'enable_stripe' => "required",
             'enable_stripe_authorization' => "required",
             'stripe_environment' => "required",
@@ -165,19 +171,19 @@ class PaymentGatewayController  extends Controller
             'stripe_live_secret_key' => "sometimes",
             'stripe_test_publishable_key' => "sometimes",
             'stripe_live_publishable_key' => "sometimes",
-    
+
             'enable_flutterwave' => "required",
             'flutter_wave_environment' => "required",
             'flutter_wave_test_secret_key' => "sometimes",
             'flutter_wave_production_secret_key' => "sometimes",
-    
+
             'enable_razorpay' => "required",
             'razor_pay_environment' => "required",
             'razor_pay_test_api_key' => "sometimes",
             'razor_pay_live_api_key' => "sometimes",
             'razor_pay_secrect_key' => "sometimes",
             'razor_pay_test_secrect_key' => "sometimes",
-    
+
             'enable_khalti' => "required",
             'khalti_pay_environment' => "required",
             'khalti_pay_test_api_key' => "sometimes",
@@ -193,7 +199,7 @@ class PaymentGatewayController  extends Controller
             // 'easypay_environment' => "required",
             // 'easypaisa_store_id' => "sometimes",
             // 'easypaisa_hash_key' => "sometimes",
-            
+
             'enable_flexpaie' => "required",
             'flexpaie_environment' => "required",
             'flexpaie_test_bearer_token' => "sometimes",
@@ -238,6 +244,11 @@ class PaymentGatewayController  extends Controller
             'fedapay_test_secret_key' => "sometimes",
             'fedapay_live_secret_key' => "sometimes",
 
+            'enable_sslcommerz' => "required",
+            'sslcommerz_environment' => "required",
+            'sslcommerz_store_id' => "sometimes",
+            'sslcommerz_store_password' => "sometimes",
+
         ]);
 
         // dd($settings);
@@ -245,24 +256,23 @@ class PaymentGatewayController  extends Controller
         ThirdPartySetting::where('module', 'payment')->delete(); // corrected delete command
 
         $paypal_settings = [
-            'paypal_environment'=>$request->paypal_environment,
-            'paypal_sandbox_client_id'=>$request->paypal_sandbox_client_id,
-            'paypal_sandbox_client_secret'=>$request->paypal_sandbox_client_secret,
-            'paypal_sandbox_app_id'=>$request->paypal_sandbox_app_id,
-            'paypal_live_client_id'=>$request->paypal_client_id,
-            'paypal_live_client_secret'=>$request->paypal_client_secret,
-            'paypal_live_app_id'=>$request->paypal_app_id,
-            'paypal_notify_url'=>$request->paypal_notify_url,
+            'paypal_environment' => $request->paypal_environment,
+            'paypal_sandbox_client_id' => $request->paypal_sandbox_client_id,
+            'paypal_sandbox_client_secret' => $request->paypal_sandbox_client_secret,
+            'paypal_sandbox_app_id' => $request->paypal_sandbox_app_id,
+            'paypal_live_client_id' => $request->paypal_client_id,
+            'paypal_live_client_secret' => $request->paypal_client_secret,
+            'paypal_live_app_id' => $request->paypal_app_id,
+            'paypal_notify_url' => $request->paypal_notify_url,
         ];
 
         $this->updateEnvFile($paypal_settings);
-        
 
-        foreach ($settings as $key => $setting) 
-        {
+
+        foreach ($settings as $key => $setting) {
             // dd($setting);
 
-            ThirdPartySetting::create(['name' => $key, 'value' => $setting, 'module' => 'payment']);                 
+            ThirdPartySetting::create(['name' => $key, 'value' => $setting, 'module' => 'payment']);
         }
 
         return response()->json(['message' => 'Sms  Destails updated successfully'], 201);
@@ -295,7 +305,8 @@ class PaymentGatewayController  extends Controller
                 // If the key exists, replace it; otherwise, append the new key-value pair
                 if (preg_match($pattern, $envContent)) {
                     $envContent = preg_replace($pattern, "{$envKey}={$value}", $envContent);
-                } else {
+                }
+                else {
                     $envContent .= "\n{$envKey}={$value}";
                 }
             }
@@ -320,9 +331,9 @@ class PaymentGatewayController  extends Controller
     }
 
 
-    public function payNow($transaction_id,$database)
+    public function payNow($transaction_id, $database)
     {
-        $payment = $this->makePayment($transaction_id,$database);
+        $payment = $this->makePayment($transaction_id, $database);
         return $payment;
     }
 }

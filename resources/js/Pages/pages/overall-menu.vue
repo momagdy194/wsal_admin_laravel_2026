@@ -147,13 +147,16 @@ export default {
                                                                         <li  style="height: 48px;" v-if="permissions.includes('manage-goods-types')">
                                                                             <Link href="/goods-type"  class="list-unstyled  mt-3 ">{{$t("goods-type")}}</Link>
                                                                         </li>
+                                                                         <li  style="height: 50px;" v-if="permissions.includes('app_modules_view')">
+                                                                            <Link href="/app_modules" class="list-unstyled mt-4">{{$t("app_modules")}}</Link>
+                                                                        </li>
                                                                     </ul>                                                                    
                                                                 </div>
                                                             </li>
                                                             <!-- End Price Management -->
 
                                                             <!-- Geo Fencing Collapsible Section -->
-                                                            <li ref="geoFencingSection" style="margin-top: 300px;">
+                                                            <li ref="geoFencingSection" style="margin-top: 360px;">
                                                                 <div class="first-list" >
                                                                     <div class="list-wrap" v-if="permissions.includes('geo-fencing')">
                                                                         <BLink href="javascript:void(0);" class="menu-item ">
@@ -433,9 +436,7 @@ export default {
                                                                         <li  style="height: 50px;" v-if="permissions.includes('manage-country')">
                                                                             <Link href="/country" class="list-unstyled mt-4">{{$t("country")}}</Link>
                                                                         </li>
-                                                                        <li  style="height: 50px;" v-if="permissions.includes('app_modules_view')">
-                                                                            <Link href="/app_modules" class="list-unstyled mt-4">{{$t("app_modules")}}</Link>
-                                                                        </li>
+                                                                       
                                                                         <li  style="height: 66px;" v-if="permissions.includes('onboarding-screen-settings-view')">
                                                                             <Link href="onboarding-screen"  class="list-unstyled  mt-5 ">{{$t("onboard-screens")}}</Link>
                                                                         </li>
@@ -506,7 +507,25 @@ export default {
                                                                         <li  style="height: 48px;" v-if="permissions.includes('landing_quicklinks')">
                                                                             <Link href="/landing-quicklink"  class="list-unstyled  mt-3 ">{{$t("quicklinks")}}</Link>
                                                                         </li>
+                                                                       
                                                                     </ul>                                                                    
+                                                                </div>
+                                                            </li>
+                                                            <li ref="cmssinglelandingSection" style="margin-top: 380px;">
+                                                                <div class="first-list" >
+                                                                    <div class="list-wrap" v-if="permissions.includes('single_landing_page')">
+                                                                        <BLink href="javascript:void(0);" class="menu-item ">
+                                                                            <span>{{$t("cms-single-landing-page")}}</span>
+                                                                        </BLink>
+                                                                    </div>  
+                                                                    <ul class="second-list">
+                                                                       <li  style="height: 73px;" v-if="permissions.includes('single_landing_page')">
+                                                                            <Link href="/single-landing-page"  class="list-unstyled  mt-5 ">{{$t("single_landing_page")}}</Link>
+                                                                        </li>
+                                                                          <li  style="height: 57px;" v-if="permissions.includes('single_header_footer')">
+                                                                            <Link href="/single-landing-header-footer"  class="list-unstyled  mt-5 ">{{$t("single_landing_header_footer")}}</Link>
+                                                                        </li>
+                                                                    </ul>
                                                                 </div>
                                                             </li>
                                                         </ul>

@@ -21,7 +21,7 @@ class DriverFilter implements FilterContract {
 		return [
 			'approve','service_location_id','transport_type','vehicle_type',
             'owner_id','fleet_vehicle_type','driver_id','driver_service_location',
-            'upload_pending','document_status','subscription',
+            'upload_pending','document_status','subscription','franchise_owner_id'
 		];
 	}
     /**
@@ -74,6 +74,10 @@ class DriverFilter implements FilterContract {
         $builder->whereHas('fleetDetail', function ($q) use ($value) {
             $q->whereIn('vehicle_type',$value);
         });
+    }
+    public function franchise_owner_id($builder,$value=null)
+    {
+        $builder->where('franchise_owner_id',$value);
     }
     
 

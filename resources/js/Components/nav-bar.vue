@@ -170,7 +170,8 @@ export default {
       myVar: 1, 
       profilePhotoUrl: this.$page.props.auth.user.profile_picture,
       appFor : this.$page.props.app_for,
-      agent_addons:window.agent_addons
+      agent_addons:window.agent_addons,
+      franchise_addons:window.franchise_addons,
     };
   },
   components: {
@@ -242,22 +243,21 @@ export default {
     
     toggleDarkMode() {
       const theme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
-      const sidebarColor = document.documentElement.getAttribute("data-sidebar") === "dark" ? "light" : "dark";
+      const sidebarColor = theme === "dark" ? "dark" : "light";
       document.documentElement.setAttribute("data-bs-theme", theme);
-      document.documentElement.setAttribute("data-sidebar", sidebarColor);     
-
-      localStorage.setItem('toggleDarkMode', theme === 'dark');  
-
+      document.documentElement.setAttribute("data-sidebar", sidebarColor);
+      localStorage.setItem("theme", theme);
       this.changeMode({ mode: theme });
       this.changeSidebarColor({ sidebarColor: sidebarColor });
     },
     savedToggleTheme() {
-      const isDarkMode = localStorage.getItem('toggleDarkMode') === 'true'; // Retrieve saved preference
-      const theme = isDarkMode ? 'dark' : 'light';
-      const sidebarColor = isDarkMode ? 'dark' : 'light';
-
+      let theme = localStorage.getItem("theme");
+      if (!theme) {
+        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      const sidebarColor = theme === "dark" ? "dark" : "light";
       document.documentElement.setAttribute("data-bs-theme", theme);
-      document.documentElement.setAttribute("data-sidebar", sidebarColor);      
+      document.documentElement.setAttribute("data-sidebar", sidebarColor);
       this.changeMode({ mode: theme });
       this.changeSidebarColor({ sidebarColor: sidebarColor });
     },
@@ -275,9 +275,14 @@ export default {
     },
   },
   mounted() {
-    
     this.savedToggleTheme();
     this.flag = this.$i18n.locale;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    if (media.addEventListener) {
+      media.addEventListener("change", () => {
+        if (!localStorage.getItem("theme")) this.savedToggleTheme();
+      });
+    }
     document.addEventListener("scroll", function () {
       const pageTopbar = document.getElementById("page-topbar");
       if (pageTopbar) {
@@ -355,7 +360,7 @@ export default {
                                             '/rental-package-types','/dispatch/delivery-package-ride','/dispatch/delivery-ride','/airport','/farefix',
                                             '/goods-type','/dispatch/delivery-ride','/service-locations','/zones' ,'/vehicle_type','/map/heat_map',
                                             '/map/gods_eye','/user-complaint/general-complaint','/user-complaint/request-complaint','/general-complaint/general-complaint',
-                                            '/owner-complaint/request-complaint','/owner-complaint/general-complaint','/dispatch/taxi-package-ride',
+                                            '/owner-complaint/request-complaint','/owner-complaint/general-complaint','/dispatch/taxi-package-ride','/app_modules',
                                             '/dispatch/delivery-package-ride','/rides-request', '/scheduled-rides','/cancellation-rides', '/out-station-rides',
                                             '/delivery-rides-request', '/delivery-scheduled-rides', '/delivery-cancellation-rides','/dispatch','/sos','/faq',
                                             '/push-notifications','/cancellation','/mail-template','/banner-image','/complaint-title',
@@ -388,12 +393,12 @@ export default {
                                     <li class="nav-item dropdown"  v-if="permissions.includes('access-user-nav-list')">
                                         <Link class="nav-link nav-menu" href="/users" id="dropdownMenuButton" role="button" aria-expanded="false"  
                                                 :class="{ 'active': ['/manage-owners','/fleet-drivers/pending','/report/driver-duty-report',
-                                                'owner-needed-documents', '/report/owner-report', '/report/finance-report', '/admins',
+                                                'owner-needed-documents', '/report/owner-report', '/report/finance-report', '/admins','/employee-franchise',
                                                 '/users', '/users/deleted-user', '/report/user-report', '/negative-balance-drivers', '/withdrawal-request-drivers',
                                                 '/delete-request-drivers', '/driver-needed-documents', '/report/driver-report','profile-edit',
                                                 '/pending-drivers', '/approved-drivers','/owner-needed-documents','/driver-bank-info','/report/fleet-report','/manage-payment',
                                                 ,'/fleet-drivers','/referral-settings','/driver-referral-settings','/referral-dashboard','/referral-translation','/agents','/agent-commission','/subscription','/drivers-rating','/manage-fleet',
-                                                '/fleet-needed-documents','/owner-dashboard','/withdrawal-request-owners','/category','/title','/support-tickets','/user-import','/driver-import','/owner/bookride',].some(path => $page.url.startsWith(path)) }"
+                                                '/fleet-needed-documents','/owner-dashboard','/withdrawal-request-owners','/category','/title','/support-tickets','/user-import','/driver-import','/owner/bookride','/approved-franchise-drivers','/pending-franchise-drivers','/manage-franchise-owner','/withdrawal-request-franchise','/franchise/promo-code','/franchise-owner-needed-documents','/franchiseowner-dashboard','/franchise/withdrawal-request','/report/franchiseowner-report'].some(path => $page.url.startsWith(path)) }"
                                                 @click="('/approved-drivers')">
                                                     
                                             <i class=" ri-user-3-line"></i>
@@ -428,15 +433,21 @@ export default {
                                                     {{ $t("agent_management") }}
                                                 </Link> 
                                             </li> 
+                                             <li class="dropdown-submenu mb-2"  v-if="permissions.includes('franchise-owner-management') &&  franchise_addons == 1" >
+                                                <Link class="nav-link" href="/franchiseowner-dashboard"
+                                                    :class="{ 'active': ['/franchiseowner-dashboard'].some(path => $page.url.startsWith(path)) }">
+                                                    {{ $t("franchise-management") }}
+                                                </Link> 
+                                            </li> 
                                         </ul>
                                     </li>
 
                                     <li class="nav-item dropdown"  v-if="permissions.includes('access-settings-nav-list')">
                                         <Link class="nav-link nav-menu" href="/general-settings" id="dropdownMenuButton" aria-expanded="false" 
                                             :class="{ 'active': ['/general-settings','/commission-settings','/transport-ride-settings','/bid-ride-settings',
-                                            '/wallet-settings','/payment-gateway','/sms-gateway','/tip-settings','/country','/app_modules',
-                                            '/firebase','/map-setting','/landing-header','/landing-home','/landing-driver','/landing-user','/landing-contact','/landing-quicklink','/onboarding-screen','/invoice-configuration',
-                                            '/mail-configuration','/map-apis','/recaptcha','/notification-channel','/customization-settings','/landing-aboutus'].some(path => $page.url.startsWith(path)) }">
+                                            '/wallet-settings','/payment-gateway','/sms-gateway','/tip-settings','/country',
+                                            '/firebase','/map-setting','/landing-header','/landing-home','/landing-driver','/landing-user','/landing-contact','/landing-quicklink','/single-landing-page','/single-landing-header-footer','/onboarding-screen','/invoice-configuration',
+                                            '/mail-configuration','/map-apis','/recaptcha','/notification-channel','/customization-settings','/landing-aboutus','/franchise-addons'].some(path => $page.url.startsWith(path)) }">
                                                 <i class="ri-settings-5-fill"></i>
                                                 <span class="ms-2 dropdown-toggle">{{ $t("settings") }}</span>
                                         </Link>

@@ -259,15 +259,17 @@ class ProfileController extends ApiController
         // dd($driver_params);
         // Update driver or owner details
         if (!$owner) {
-            $flag = isset($user_params['profile_picture']) && count($request->only(['service_location_id','vehicle_type','car_make', 'car_model', 'car_color', 'car_number', 'name', 'email', 'vehicle_year', 'custom_make', 'custom_model','transport_type','mobile']))>0;
-
+            $flag =  count($request->only(['service_location_id','vehicle_type','car_make', 'car_model', 'car_color', 'car_number', 'name', 'email', 'vehicle_year', 'custom_make', 'custom_model','transport_type','mobile','profile_picture']))>0;
+        
             if (get_settings('enable_driver_profile_disapprove_on_update') == 1 && $flag && !$request->has('sub_vehicle_type')) {
                 $driver_params['approve'] = false;
-                $this->database->getReference('drivers/driver_' . $driver_details->id)
+               
+                 $this->database->getReference('drivers/driver_' . $driver_details->id)
                 ->update(['approve' => false, 'is_active' => true, 'available'=>false, 'updated_at' => Database::SERVER_TIMESTAMP]);
             }
 
             $driver_details->update($driver_params);
+            
         } else {
 
             $request->validate([

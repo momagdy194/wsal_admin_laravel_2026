@@ -120,7 +120,13 @@ class XenditController extends PaymentGatewayController
         }
 
 
-        $user = User::find($request->user_id);
+        // $user = User::find($request->user_id);
+        $user = User::find($payment->user_id);
+
+        if (!$user) {
+            Log::error("User not found for payment ID: ".$payment->id);
+            return redirect()->route('failure');
+        }
 
         $user->apn_token = $response->id;
 

@@ -191,6 +191,75 @@
                     </div>
                   </div>
                   </BCardFooter>
+                  <BCardFooter class="mt-5" v-if="franchise_addons ==1" >
+                    <h5>{{$t("franchise_commission_type")}}</h5>
+                    <div class="row">
+                    <div class="col-sm-6">
+                      <div class="mb-2 mt-2">
+                        <label class="form-label">
+                          {{ $t("franchise_commission_type") }} <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" v-model="form.franchise_commision_type">
+                          <option disabled value="">{{ $t('select') }}</option>
+                          <option value="1">{{ $t('percentage') }}</option>
+                          <option value="2">{{ $t('fixed_amount') }}</option>
+                        </select>
+                        <span v-for="(e,i) in errors.franchise_commision_type" :key="i" class="text-danger">{{ e }}</span>
+                      </div>
+                    </div>
+                    <!-- COMMISSION -->
+                    <div class="col-sm-6">
+                      <div class="mb-2 mt-2">
+                        <label class="form-label">
+                          {{ $t("franchise_commission") }} <span class="text-danger">*</span>
+                        </label>
+                        <input 
+                          type="number"
+                          class="form-control"
+                          v-model.number="form.franchise_commision"
+                          :max="form.franchise_commision == 1 ? 100 : null"
+                          :placeholder="$t('enter_franchise_commission')"
+                        />
+                        <span v-for="(e,i) in errors.franchise_commision" :key="i" class="text-danger">{{ e }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  </BCardFooter>
+
+                  <BCardFooter class="mt-5" v-if="franchise_addons ==1" >
+                    <h5>{{$t("franchise_commission_type")}}</h5>
+                    <div class="row">
+                    <div class="col-sm-6">
+                      <div class="mb-2 mt-2">
+                        <label class="form-label">
+                          {{ $t("franchise_commission_type") }} <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" v-model="form.franchise_commision_type">
+                          <option disabled value="">{{ $t('select') }}</option>
+                          <option value="1">{{ $t('percentage') }}</option>
+                          <option value="2">{{ $t('fixed_amount') }}</option>
+                        </select>
+                        <span v-for="(e,i) in errors.franchise_commision_type" :key="i" class="text-danger">{{ e }}</span>
+                      </div>
+                    </div>
+                    <!-- COMMISSION -->
+                    <div class="col-sm-6">
+                      <div class="mb-2 mt-2">
+                        <label class="form-label">
+                          {{ $t("franchise_commission") }} <span class="text-danger">*</span>
+                        </label>
+                        <input 
+                          type="number"
+                          class="form-control"
+                          v-model.number="form.franchise_commision"
+                          :max="form.franchise_commision == 1 ? 100 : null"
+                          :placeholder="$t('enter_franchise_commission')"
+                        />
+                        <span v-for="(e,i) in errors.franchise_commision" :key="i" class="text-danger">{{ e }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  </BCardFooter>
 
                     <div class="col-12 text-end">
                       <button type="submit" class="btn btn-success">{{$t("save")}}</button>
@@ -284,7 +353,8 @@
   export default {
     data() {
     return {
-      agent_addons:window.agent_addons
+      agent_addons:window.agent_addons,
+      franchise_addons:window.franchise_addons
     }
   },
     components: {
@@ -322,6 +392,8 @@
         service_tax: props.zoneTypePackage ? props.zoneTypePackage.service_tax ||  0 : "",
         agent_commision_type: props.zoneTypePackage ? props.zoneTypePackage.agent_commision_type || "" : "",
         agent_commision: props.zoneTypePackage ? props.zoneTypePackage.agent_commision ||  0 : "",
+        franchise_commision_type: props.zoneTypePackage ? props.zoneTypePackage.franchise_commision_type || "" : "",
+        franchise_commision: props.zoneTypePackage ? props.zoneTypePackage.franchise_commision ||  0 : "",
       });
   
       const validationRules = {

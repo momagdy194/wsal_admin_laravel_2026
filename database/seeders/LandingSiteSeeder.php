@@ -9,7 +9,7 @@ use App\Models\Admin\LandingDriver;
 use App\Models\Admin\LandingAbouts;
 use App\Models\Admin\LandingUser;
 use App\Models\Admin\LandingContact;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Admin\LandingQuickLink;
 
@@ -25,7 +25,7 @@ class LandingSiteSeeder extends Seeder
             goto home;
 
         }
-        \DB::table('landing_headers')->insert([
+        DB::table('landing_headers')->insert([
             [
                 'id' => Str::uuid(),
                 'header_logo' => 'rest.png',
@@ -179,7 +179,7 @@ class LandingSiteSeeder extends Seeder
 
         }
         
-        \DB::table('landing_homes')->insert([
+        DB::table('landing_homes')->insert([
             // English
             [
                 'id' => Str::uuid(),
@@ -383,7 +383,7 @@ class LandingSiteSeeder extends Seeder
 
         }
         
-        \DB::table('landing_drivers')->insert([
+        DB::table('landing_drivers')->insert([
             [
                 'id' => Str::uuid(),
                 'hero_title' => 'Driver',
@@ -613,7 +613,7 @@ class LandingSiteSeeder extends Seeder
         }
 
         // \Log::info('Seeding LandingUser...');
-        \DB::table('landing_users')->insert([
+        DB::table('landing_users')->insert([
          [
             'id' => Str::uuid(),
             'hero_title' => 'User',
@@ -780,7 +780,7 @@ class LandingSiteSeeder extends Seeder
         }
         
         // \Log::info('Seeding LandingContact...');
-        \DB::table('landing_contacts')->insert([
+        DB::table('landing_contacts')->insert([
            [
             'id' => Str::uuid(),
             'hero_title' => 'Contact',
@@ -884,7 +884,7 @@ class LandingSiteSeeder extends Seeder
         }
         
         // \Log::info('Seeding LandingQuickLink...');
-        \DB::table('landing_quicklinks')->insert([
+        DB::table('landing_quicklinks')->insert([
            [
             'id' => Str::uuid(),
             'privacy_title' => 'Privacy Policy',
@@ -3568,7 +3568,7 @@ class LandingSiteSeeder extends Seeder
 
     }
     // \Log::info('Seeding LandingAbouts...');
-    \DB::table('landing_abouts')->insert([ 
+    DB::table('landing_abouts')->insert([ 
     [
         'id' => Str::uuid(),
         'hero_title' => 'About Us',

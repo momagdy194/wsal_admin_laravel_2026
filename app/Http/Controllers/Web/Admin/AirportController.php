@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Web\Admin;
 
-use App\Models\User; 
+use App\Models\User;
 use App\Models\Admin\Airport;
 use App\Http\Controllers\ApiController;
 use Inertia\Inertia;
-use Fleetbase\LaravelMysqlSpatial\Types\Point;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 use App\Base\Constants\Auth\Role as RoleSlug;
 use App\Base\Exceptions\CustomValidationException;
 use App\Base\Filters\Master\CommonMasterFilter;
 use App\Base\Libraries\QueryFilter\QueryFilterContract;
-use Fleetbase\LaravelMysqlSpatial\Types\Polygon;
+use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use App\Http\Controllers\Api\V1\BaseController;
-use Fleetbase\LaravelMysqlSpatial\Types\LineString;
-use Fleetbase\LaravelMysqlSpatial\Types\MultiPolygon;
+use MatanYadaev\EloquentSpatial\Objects\LineString;
+use MatanYadaev\EloquentSpatial\Objects\MultiPolygon;
 use App\Models\Request\Request;
 use Carbon\Carbon;
 use Illuminate\Http\Request as HttpRequest;
@@ -49,13 +49,12 @@ class AirportController extends BaseController
     }
 
     /**
-    * Get all Airports
-    * @return \Illuminate\Http\JsonResponse
-    */
+     * Get all Airports
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index()
     {
-        return inertia('airport/index', ['app_for'=>env('APP_FOR'),]);
-        
+        return inertia('airport/index', ['app_for' => env('APP_FOR'),]);
     }
 
     public function getAllAirports(QueryFilterContract $queryFilter)
@@ -70,8 +69,8 @@ class AirportController extends BaseController
     }
 
     /**
-    * Create Airport view
-    */
+     * Create Airport view
+     */
     public function create()
     {
         $googleMapKey =  get_map_settings('google_map_key'); // Retrieve the Google Map API key
@@ -79,16 +78,15 @@ class AirportController extends BaseController
         // dd($requestData);
         $map_type = get_map_settings('map_type');
 
-        if($map_type=="open_street_map")
-        {
-            return inertia('airport/open-create',[
-                'default_lat'=>get_settings('default_latitude'),
-                'default_lng'=>get_settings('default_longitude'),
+        if ($map_type == "open_street_map") {
+            return inertia('airport/open-create', [
+                'default_lat' => get_settings('default_latitude'),
+                'default_lng' => get_settings('default_longitude'),
             ]);
-        }else{
-            return inertia('airport/create',[
-                'default_lat'=>get_settings('default_latitude'),
-                'default_lng'=>get_settings('default_longitude'),
+        } else {
+            return inertia('airport/create', [
+                'default_lat' => get_settings('default_latitude'),
+                'default_lng' => get_settings('default_longitude'),
                 'googleMapKey' => $googleMapKey, // Pass the Google Map API key to the Vue component
             ]);
         }
@@ -107,19 +105,20 @@ class AirportController extends BaseController
         // dd($airport->coordinates);
         $map_type = get_map_settings('map_type');
 
-        if($map_type=="open_street_map")
-        {
-            return inertia('airport/open-edit',['airport' => $airport,
-            'default_lat'=>get_settings('default_latitude'),
-            'default_lng'=>get_settings('default_longitude'),
+        if ($map_type == "open_street_map") {
+            return inertia('airport/open-edit', [
+                'airport' => $airport,
+                'default_lat' => get_settings('default_latitude'),
+                'default_lng' => get_settings('default_longitude'),
             ]);
-
-        }else{
-            return inertia('airport/edit',['airport' => $airport,
-            'default_lat'=>get_settings('default_latitude'),
-            'default_lng'=>get_settings('default_longitude'),
-            'googleMapKey' => $googleMapKey,'app_for'=>env('APP_FOR'),]);
-
+        } else {
+            return inertia('airport/edit', [
+                'airport' => $airport,
+                'default_lat' => get_settings('default_latitude'),
+                'default_lng' => get_settings('default_longitude'),
+                'googleMapKey' => $googleMapKey,
+                'app_for' => env('APP_FOR'),
+            ]);
         }
     }
 
@@ -130,14 +129,14 @@ class AirportController extends BaseController
      */
     public function store(HttpRequest $request)
     {
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
         }
         // dd($request->all());
         $validated = $request->validate(['name' => 'required']);
-        $created_params = $request->only(['service_location_id','airport_surge_fee']);
+        $created_params = $request->only(['service_location_id', 'airport_surge_fee']);
         $set = [];
         if ($request->coordinates == null) {
             throw ValidationException::withMessages(['name' => __('Please Complete the shape before submit')]);
@@ -156,8 +155,7 @@ class AirportController extends BaseController
             foreach ($coordinates as $key => $coordinate) {
 
                 // Check if the coordinate is an array with exactly two elements (lng, lat)
-                if (is_array($coordinate) && count($coordinate) === 2)
-                 {
+                if (is_array($coordinate) && count($coordinate) === 2) {
 
                     if ($key == 0) {
                         $created_params['lat'] = $coordinate[1];
@@ -166,7 +164,7 @@ class AirportController extends BaseController
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
 
-                    $check_if_exists = Airport::companyKey()->containsPoint('coordinates', $point)->exists();
+                    $check_if_exists = Airport::companyKey()->wherecontains('coordinates', $point)->exists();
                     if ($check_if_exists) {
                         throw ValidationException::withMessages(['airport_name' => __('Coordinates already exists with our exists airport')]);
                     }
@@ -189,7 +187,7 @@ class AirportController extends BaseController
 
 
         $created_params['name'] = $request->input('name');
-        $created_params['airport_surge_fee'] = $request->input('airport_surge_fee')?? 0;
+        $created_params['airport_surge_fee'] = $request->input('airport_surge_fee') ?? 0;
 
         $created_params['coordinates'] = $multi_polygon;
 
@@ -201,19 +199,19 @@ class AirportController extends BaseController
         return response()->json(['airport' => $airport], 201);
     }
 
-    public function list() 
+    public function list()
     {
         $results = get_user_locations(auth()->user());
         return response()->json(['results' => $results]);
     }
     /**
-    * Create Airport.
-    *
-    * @return \Illuminate\Http\JsonResponse
-    */
+     * Create Airport.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function update(Airport $airport, HttpRequest $request)
     {
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
@@ -226,7 +224,7 @@ class AirportController extends BaseController
 
         // Prepare updated parameters
         $updated_params['service_location_id'] = $request->service_location_id;
-        
+
         $set = [];
 
         if ($request->coordinates == null) {
@@ -246,8 +244,7 @@ class AirportController extends BaseController
             foreach ($coordinates as $key => $coordinate) {
 
                 // Check if the coordinate is an array with exactly two elements (lng, lat)
-                if (is_array($coordinate) && count($coordinate) === 2)
-                 {
+                if (is_array($coordinate) && count($coordinate) === 2) {
 
                     if ($key == 0) {
                         $created_params['lat'] = $coordinate[1];
@@ -256,7 +253,7 @@ class AirportController extends BaseController
 
                     $point = new Point($coordinate[1], $coordinate[0]); // Point(lat, lng)
 
-                    $check_if_exists = Airport::companyKey()->containsPoint('coordinates', $point)->where('id','!=',$airport->id)->exists();
+                    $check_if_exists = Airport::companyKey()->wherecontains('coordinates', $point)->where('id', '!=', $airport->id)->exists();
                     if ($check_if_exists) {
                         throw ValidationException::withMessages(['airport_name' => __('Coordinates already exists with our exists airport')]);
                     }
@@ -282,7 +279,7 @@ class AirportController extends BaseController
         // Update additional parameters
         $updated_params['name'] = $validated['name'];
         $updated_params['coordinates'] = $multi_polygon;
-        
+
         $airport->update($updated_params);
 
         // Return a response indicating success
@@ -290,8 +287,8 @@ class AirportController extends BaseController
     }
 
     /**
-    * Airport map view
-    */
+     * Airport map view
+     */
     public function airportMapView($id)
     {
         $airport = Airport::findOrFail($id);
@@ -299,30 +296,29 @@ class AirportController extends BaseController
 
         $map_type = get_map_settings('map_type');
 
-        if($map_type=="open_street_map")
-        {
+        if ($map_type == "open_street_map") {
 
             return inertia('airport/open-map', [
                 'airport' => $airport,
             ]);
-        }else{
-    
+        } else {
+
             return inertia('airport/map', [
                 'airport' => $airport,
                 'googleMapKey' => $googleMapKey, // Pass the Google Map API key to the Vue component
-            ]);         
+            ]);
         }
     }
 
 
 
     /**
-    * Airport Delete
-    *
-    */
+     * Airport Delete
+     *
+     */
     public function delete(Airport $airport)
     {
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
@@ -336,20 +332,17 @@ class AirportController extends BaseController
 
 
 
-    public function toggleAirportStatus(Airport $airport,HttpRequest $request)
+    public function toggleAirportStatus(Airport $airport, HttpRequest $request)
     {
-        if(env('APP_FOR') == 'demo'){
+        if (env('APP_FOR') == 'demo') {
             return response()->json([
                 'alertMessage' => 'You are not Authorized'
             ], 403);
         }
-        Airport::where('id', $request->id)->update(['active'=> $request->status]);
+        Airport::where('id', $request->id)->update(['active' => $request->status]);
 
         return response()->json([
             'successMessage' => 'Airport status updated successfully',
         ]);
     }
-
-
-
 }

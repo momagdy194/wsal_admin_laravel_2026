@@ -11,6 +11,9 @@
  */
 use App\Base\Constants\Auth\Role;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\Owner\FleetController;
+use App\Http\Controllers\Api\V1\Owner\FleetDriversController;
+use App\Http\Controllers\Api\V1\Owner\OwnerController;
 
 /**
  * These routes are prefixed with 'api/v1'.
@@ -19,22 +22,27 @@ use Illuminate\Support\Facades\Route;
  */
 
 
-Route::prefix('owner')->namespace('Owner')->middleware(['auth:sanctum','throttle:120,1'])->group(function () {
-        Route::get('list-fleets','FleetController@index');
-        Route::get('fleet/documents/needed','FleetController@neededDocuments');
-        Route::get('list-drivers','FleetController@listDrivers');
-        Route::post('assign-driver/{fleet}','FleetController@assignDriver');
-        Route::post('add-fleet','FleetController@storeFleet');
-        Route::post('update-fleet/{fleet}','FleetController@updateFleet');
-        Route::post('delete-fleet/{fleet}','FleetController@deleteFleet');
-        Route::post('add-drivers','FleetDriversController@addDriver');
-        Route::get('delete-driver/{driver}','FleetDriversController@deleteDriver');
+Route::prefix('owner')
+    ->middleware(['auth:sanctum', 'throttle:120,1'])
+    ->group(function () {
 
-        //Owner Dashboard
-        Route::post('dashboard','OwnerController@ownerDashboard');
-        Route::post('fleet-dashboard','OwnerController@fleetDashboard');
+        // Fleet Management
+        Route::get('list-fleets', [FleetController::class, 'index']);
+        Route::get('fleet/documents/needed', [FleetController::class, 'neededDocuments']);
+        Route::get('list-drivers', [FleetController::class, 'listDrivers']);
+        Route::post('assign-driver/{fleet}', [FleetController::class, 'assignDriver']);
+        Route::post('add-fleet', [FleetController::class, 'storeFleet']);
+        Route::post('update-fleet/{fleet}', [FleetController::class, 'updateFleet']);
+        Route::post('delete-fleet/{fleet}', [FleetController::class, 'deleteFleet']);
 
-        Route::post('fleet-driver-dashboard','OwnerController@fleetDriverDashboard');
+        // Fleet Drivers
+        Route::post('add-drivers', [FleetDriversController::class, 'addDriver']);
+        Route::get('delete-driver/{driver}', [FleetDriversController::class, 'deleteDriver']);
 
+        // Owner Dashboards
+        Route::post('dashboard', [OwnerController::class, 'ownerDashboard']);
+        Route::post('fleet-dashboard', [OwnerController::class, 'fleetDashboard']);
+        Route::post('fleet-driver-dashboard', [OwnerController::class, 'fleetDriverDashboard']);
+   
+    });
 
-});

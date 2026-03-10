@@ -50,7 +50,7 @@
     "trip_started_title": "بدأت الرحلة 😊️",
     "trip_started_body": "بدأت الرحلة نحو موقع الإنزال",
     "driver_is_on_the_way_to_pickup_title": "السائق في طريقه إلى استلام العنوان",
-    "driver_is_on_the_way_to_pickup_body": "السائق في طريقه إلى موقع الاستلام",
+    "driver_is_on_the_way_to_pickup_body": "السائق في طريقه إلى التقاط الجثة",
     "fleet_removed_from_your_account_title": "تمت إزالة الأسطول من حسابك",
     "fleet_removed_from_your_account_body": "تمت إزالة الأسطول من حسابك، يرجى الانتظار لتعيين الأسطول",
     "new_fleet_assigned_title": "أسطول جديد مخصص لك",
@@ -60,7 +60,7 @@
     "payment_credited_body": "تم إضافة الدفعة الخاصة بك إلى حسابك المحدد",
     "conversion_credited_title": "نقاط المكافأة تم تحويلها 😃️",
     "conversion_credited_body": "نقاط المكافأة الخاصة بك تم إضافتها إلى حسابك",
-    "payment_declained": "تم رفض الدفعة 🙁️",
+    "payment_declained": "تم رفض الدفع 🙁️",
     "payment_declained_body": "تم رفض الدفع الخاص بك",
     "daily_incentive_title": "حافز يومي",
     "daily_incentive_notify_body": "حافز يومي يتم إضافته إلى محفظتك"

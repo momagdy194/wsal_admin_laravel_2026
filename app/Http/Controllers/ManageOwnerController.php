@@ -18,7 +18,7 @@ use Kreait\Firebase\Contract\Database;
 use App\Models\Country;
 use App\Transformers\CountryTransformer;
 use Log;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Base\Constants\Masters\WalletRemarks;
 use App\Models\Method;
@@ -800,7 +800,7 @@ class ManageOwnerController extends BaseController
         $this->database->getReference('owners/owner_' . $owner->id)
         ->update(['approve' => $status, 'updated_at' => Database::SERVER_TIMESTAMP]);
 
-        $notification = \DB::table('notification_channels')
+        $notification = DB::table('notification_channels')
             ->where('topics', 'Driver Account Approval')
             ->first();
 
@@ -811,14 +811,14 @@ class ManageOwnerController extends BaseController
             // dd($userLang);
 
             // Fetch the translation based on user language or fall back to 'en'
-            $translation = \DB::table('notification_channels_translations')
+            $translation = DB::table('notification_channels_translations')
                 ->where('notification_channel_id', $notification->id)
                 ->where('locale', $userLang)
                 ->first();
 
             // If no translation exists, fetch the default language (English)
             if (!$translation) {
-                $translation = \DB::table('notification_channels_translations')
+                $translation = DB::table('notification_channels_translations')
                     ->where('notification_channel_id', $notification->id)
                     ->where('locale', 'en')
                     ->first();
@@ -882,7 +882,7 @@ class ManageOwnerController extends BaseController
             
                 // dispatch(new SendPushNotification($owner->user, $title, $body));
 
-                 $notification = \DB::table('notification_channels')
+                 $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Account Approval') // Match the correct topic
                 ->first();
 
@@ -893,14 +893,14 @@ class ManageOwnerController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -933,7 +933,7 @@ class ManageOwnerController extends BaseController
             
                 // dispatch(new SendPushNotification($owner->user, $title, $body)); 
                 
-                $notification = \DB::table('notification_channels')
+                $notification = DB::table('notification_channels')
                 ->where('topics', 'Account Disapproval') // Match the correct topic
                 ->first();
 
@@ -944,14 +944,14 @@ class ManageOwnerController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -1008,7 +1008,7 @@ class ManageOwnerController extends BaseController
     
         // dispatch(new SendPushNotification($ownerId->user, $title, $body));
 
-        $notification = \DB::table('notification_channels')
+        $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Account Approval') // Match the correct topic
                 ->first();
 
@@ -1019,14 +1019,14 @@ class ManageOwnerController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -1173,7 +1173,7 @@ class ManageOwnerController extends BaseController
         
             // dispatch(new SendPushNotification($user, $title, $body,$push_data));
 
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Withdrawal Request Approval') // Match the correct topic
                 ->first();
 
@@ -1184,14 +1184,14 @@ class ManageOwnerController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();
@@ -1216,7 +1216,7 @@ class ManageOwnerController extends BaseController
         
             // dispatch(new SendPushNotification($user, $title, $body,$push_data));
 
-            $notification = \DB::table('notification_channels')
+            $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Withdrawal Request Decline') // Match the correct topic
                 ->first();
 
@@ -1227,14 +1227,14 @@ class ManageOwnerController extends BaseController
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();

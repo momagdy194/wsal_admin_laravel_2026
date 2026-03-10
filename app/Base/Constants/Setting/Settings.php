@@ -346,6 +346,18 @@ class Settings
 
     const BIDDING_RIDE_MAXIMUM_DISTANCE = 'bidding_ride_maximum_distance';
     const AGENT_LOGIN = 'agent_login';
-    
+    const FRANCHISE_LOGIN = 'franchise_login';
+
+    const SHOW_ONLY_TOTAL_AMOUNT = 'show_only_total_amount';
+    const CONTACT_BOOKING_NUMBER = 'contact_booking_number';
+
+    const ENABLE_SINGLE_LANDING_PAGE = 'enable_single_landing_page';
+    const SINGLE_LANDING_HEADER_BG_COLOR = 'single_landing_header_bg_color';
+    const SINGLE_LANDING_HEADER_TEXT_COLOR = 'single_landing_header_text_color';
+    const SINGLE_LANDING_HEADER_ACTIVE_TEXT_COLOR = 'single_landing_header_active_text_color';
+    const SINGLE_LANDING_FOOTER_BG_COLOR = 'single_landing_footer_bg_color';
+    const SINGLE_LANDING_FOOTER_TEXT_COLOR = 'single_landing_footer_text_color';
+
+    const ENABLE_DRIVER_SIGN_UP_FEATURE = 'enable_driver_sign_up_feature';
 
 }

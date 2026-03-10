@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Admin\DriverBankInfo;
 use App\Models\Admin\OwnerBankInfo;
 use App\Models\Payment\AgentBankInfo;
+use App\Models\Payment\FranchiseBankInfo;
 
 class Method extends Model
 {
@@ -36,6 +37,12 @@ class Method extends Model
     public function agentBankInfo()
     {
         return $this->hasOne(AgentBankInfo::class, 'method_id', 'id');
+
+    }
+    
+    public function franchiseBankInfo()
+    {
+        return $this->hasOne(FranchiseBankInfo::class, 'method_id', 'id');
 
     }
     public function getFieldNamesAttribute()

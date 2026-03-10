@@ -22,6 +22,7 @@ class WalletRemarks
     const USER_CANCELLATION_FEE = 'user_cancellation_fee';
     const ADDITIONAL_CHARGE_AMOUNT = 'additional_charge_amount';
     const AGENT_COMMISSION_FOR_REQUEST = 'agent_commission_for_trip';
+    const FRANCHISE_COMMISSION_FOR_REQUEST = 'franchise_commision_for_trip';
 
 
 }

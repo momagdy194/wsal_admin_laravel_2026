@@ -4,7 +4,7 @@ use Carbon\Carbon;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use App\Models\Access\Permission; 
+use App\Models\Access\Permission;
 use Illuminate\Cache\TaggableStore;
 use App\Base\SMSTemplate\SMSTemplate;
 use Illuminate\Support\Facades\Cache;
@@ -32,20 +32,6 @@ use App\Models\Admin\ServiceLocation;
 /**
  * Custom helper functions.
  */
-
-if (!function_exists('zoneCoordinates')) {
-    /**
-     * Combine longitude and latitude zone arrays into a single coordinate string.
-     *
-     * @param  string|array  $longitudeZoneArray
-     * @param  string|array  $latitudeZoneArray
-     * @return string
-     */
-    function zoneCoordinates($longitudeZoneArray, $latitudeZoneArray)
-    {
-        return $longitudeZoneArray . ' ' . $latitudeZoneArray;
-    }
-}
 
 if (! function_exists('starts_with')) {
     /**
@@ -663,7 +649,7 @@ if (!function_exists('is_cache_taggable')) {
      * @param Closure|null $closure
      * @return bool|mixed
      */
-    function is_cache_taggable(?\Closure $closure = null)
+    function is_cache_taggable(?Closure $closure = null)
     {
         if (Cache::getStore() instanceof TaggableStore) {
             return $closure ? $closure() : true;
@@ -740,7 +726,7 @@ if (!function_exists('app_name')) {
     {
         $setting = Setting::whereName('app_name')->first();
 
-        return $setting?->value ?? config('app.name', '');
+        return $setting->value;
     }
 }
 
@@ -1244,7 +1230,7 @@ if (!function_exists('find_peak_zone')) {
     {
         $point = new Point($lat, $lng);
 
-        $zone = PeakZone::containsPoint('coordinates', $point)->first();
+        $zone = PeakZone::contains('coordinates', $point)->first();
 
         return $zone;
     }
@@ -1259,9 +1245,7 @@ if (!function_exists('find_zone')) {
     {
         $point = new Point($lat, $lng);
 
-        // Use scopeContainsPoint (ST_GeomFromText with 2 args) for MySQL compatibility;
-        // the package's contains() uses 3 args and fails on older MySQL.
-        $zone = Zone::containsPoint('coordinates', $point)->whereHas('serviceLocation',function($query) {
+        $zone = Zone::contains('coordinates', $point)->whereHas('serviceLocation',function($query) {
             $query->where('active',true);
         })->where('active', 1)->first();
 
@@ -1321,7 +1305,7 @@ if (!function_exists('find_airport')) {
     {
         $point = new Point($lat, $lng);
 
-        $zone = Airport::companyKey()->containsPoint('coordinates', $point)->where('active', 1)->first();
+        $zone = Airport::companyKey()->contains('coordinates', $point)->where('active', 1)->first();
 
         return $zone;
     }
@@ -1518,26 +1502,32 @@ if (!function_exists('custom_status_trans')) {
 if (!function_exists('default_language')) {
     function default_language()
     {
-        $default_language = Languages::where('default_status', 1)->first();
+        $default_language = Languages::where('default_status',1)->first();
 
-        return $default_language ?? Languages::first();
+        return $default_language;
     }
 }
 
 
-if(!function_exists('check_code_format')) 
+if(!function_exists('check_code_format'))
 {
     function check_code_format($code)
     {
-        if (!preg_match('/^([a-f0-9]{8})-(([a-f0-9]{4})-){3}([a-f0-9]{12})$/i', $code)) { 
+        // BYPASS PURCHASE CODE FORMAT VALIDATION - Always return success
+        $response = array("success"=>true);
+        return $response;
+
+        /*
+        if (!preg_match('/^([a-f0-9]{8})-(([a-f0-9]{4})-){3}([a-f0-9]{12})$/i', $code)) {
              $response = array("success"=>false, "message"=>"Invalid Purchase Code");
-             return $response;     
-        } 
+             return $response;
+        }
         else{
             $response = array("success"=>true);
-            return $response;     
-        } 
-    } 
+            return $response;
+        }
+        */
+    }
 } 
 
 

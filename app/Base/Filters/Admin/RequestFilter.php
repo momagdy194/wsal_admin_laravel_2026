@@ -22,7 +22,7 @@ class RequestFilter implements FilterContract
         return [
             'is_completed','is_cancelled','is_trip_start','is_paid','payment_opt','vehicle_type',
             'is_assigned','is_later','on_trip','date_option','ride_status','transport_type','zone_id',
-            'vehicle_type_id','is_bid_ride','service_location_id','promo_id',
+            'vehicle_type_id','is_bid_ride','service_location_id','promo_id','franchise_promo_id',
         ];
     }
 
@@ -171,10 +171,9 @@ class RequestFilter implements FilterContract
     {
         $builder->where('promo_id', $value);
     }
-    //   public function driver_id($builder, $value = 0)
-    // {
-    //     $builder->where('driver_id',$value);
-    // }
-
+    public function franchise_promo_id($builder, $value = 0)
+    {
+        $builder->where('franchise_promo_id',$value);
+    }
 
 }

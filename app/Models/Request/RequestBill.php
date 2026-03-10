@@ -24,7 +24,7 @@ class RequestBill extends Model
     'admin_commision_with_tax','total_distance','total_time','requested_currency_symbol','airport_surge_fee',
     'before_trip_start_waiting_time','after_trip_start_waiting_time','calculated_waiting_time','tips',
     'waiting_charge_per_min','admin_commission_from_driver','driver_id','admin_commision','additional_charges_reason','additional_charges_amount',
-    'preference_price_total','agent_commision'
+    'preference_price_total','agent_commision','franchise_owner_commision'
     ];
 
     /**

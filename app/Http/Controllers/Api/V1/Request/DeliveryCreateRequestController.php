@@ -27,6 +27,8 @@ use App\Transformers\User\EtaTransformer;
 use App\Helpers\Rides\StoreEtaDetailForRideHelper;
 use App\Jobs\ValidateAndGeneratePeakZone;
 use App\Http\Controllers\Api\V1\Payment\Stripe\StripeController;
+use App\Models\Admin\Promo;
+use App\Models\Admin\FranchisePromo;
 
 
 
@@ -133,11 +135,11 @@ class DeliveryCreateRequestController extends StripeController
         // Fetch user detail
         $user_detail = auth()->user();
 
-        if($user_detail->ride_otp==null)
-        {
+        // if($user_detail->ride_otp==null)
+        // {
             $user_detail->ride_otp=rand(1111, 9999);
 
-        }
+        // }
 
 
         $user_detail->timezone = $service_location->timezone;
@@ -158,13 +160,41 @@ class DeliveryCreateRequestController extends StripeController
 
         $request_number = 'REQ_'.$current_timestamp;
 
+         $franchise_promoCode = null;
+        $promo_code = null;
+
+        if( get_settings('franchise-addons') == 1){
+
+            if($request->promocode_id){
+                $franchise_promo = FranchisePromo::find($request->promocode_id);
+                if($franchise_promo){
+                    $franchise_promoCode= $franchise_promo->id;
+                }
+                else{
+                    $promo = Promo::find($request->promocode_id);
+                    if($promo){
+                        $promo_code= $promo->id;
+                    }
+
+                }
+                
+            }
+        }
+        else{
+            $promo = Promo::find($request->promocode_id);
+                    if($promo){
+                        $promo_code= $promo->id;
+                    }            
+        }
+
         $request_params = [
             'request_number'=>$request_number,
             'user_id'=>$user_detail->id,
             'zone_type_id'=>$request->vehicle_type,
             'payment_opt'=>$request->payment_opt,
             'unit'=>(string)$unit,
-            'promo_id'=>$request->promocode_id,
+            'promo_id'=>$promo_code,
+            'franchise_promo_id'=>$franchise_promoCode,
             'requested_currency_code'=>$currency_code,
             'requested_currency_symbol'=>$currency_symbol,
             'service_location_id'=>$service_location->id,

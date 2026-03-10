@@ -105,7 +105,9 @@ class SettingController extends BaseController
         'dispatcher_sidebar_color',
         'dispatcher_sidebar_txt_color',
         'dispatcher_login_pro',
-        'agent_login',
+        'agent_login', 
+        'franchise_login',
+        'contact_booking_number'
         
     ]);
 
@@ -258,7 +260,10 @@ class SettingController extends BaseController
         'enable_driver_email_login',
         'enable_driver_mobile_login',
         'enable_owner_email_login',
-        'enable_owner_mobile_login'
+        'enable_owner_mobile_login',
+        'show_only_total_amount',
+        'enable_single_landing_page',
+        'enable_driver_sign_up_feature'
     ]);
    //dd($request);
 

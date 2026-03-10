@@ -1,6 +1,7 @@
 <?php
- 
-use Illuminate\Support\Facades\Session;
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Install\InstallController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,12 +18,11 @@ use Illuminate\Support\Facades\Session;
 /*
  * These routes use the root namespace 'App\Http\Controllers\Web'.
  */
-Route::namespace('Install')->group(function () { 
-    
+Route::group([],function () {
 
-    Route::get('/', 'InstallController@index');
-    Route::post('/verfication-submit', 'InstallController@verification_submit')->name('verfication-submit');
-   
+    Route::get('/', [InstallController::class, 'index']);
+
+    Route::post('/verfication-submit', [InstallController::class, 'verification_submit'])
+        ->name('verfication-submit');
+
 });
-
-?>

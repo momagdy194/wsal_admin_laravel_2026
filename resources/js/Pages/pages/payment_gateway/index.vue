@@ -145,6 +145,11 @@ export default {
         fedapay_test_secret_key: props.settings.fedapay_test_secret_key ?? '',
         fedapay_live_secret_key: props.settings.fedapay_live_secret_key ?? '',
 
+        enable_sslcommerz: props.settings.enable_sslcommerz ?? false,
+        sslcommerz_environment: props.settings.sslcommerz_environment ?? '',
+        sslcommerz_store_id: props.settings.sslcommerz_store_id ?? '',
+        sslcommerz_store_password: props.settings.sslcommerz_store_password ?? '',
+
 
     });
 
@@ -804,13 +809,16 @@ export default {
                                         </div>
                                         <div class="col-lg-12">
                                             <div class="text-end">
-                                            <button type="submit" class="btn btn-primary"> {{ $t('save') }}</button>
+                                            <button type="submit" class="btn btn-primary"> {{ serviceLocation ? $t('update') : $t('save') }}</button>
                                             </div>
                                         </div>
                                     </BCardBody>    
                                 </BCard>        
                             </BCol>
                         </BRow>
+
+                        
+
                         <BRow>
                             <BCol lg="6">
                                 <BCard no-body id="tasksList" class="border">
@@ -968,6 +976,50 @@ export default {
                                     </BCardBody>    
                                 </BCard>        
                             </BCol> -->
+                            <BRow class="mt-4">
+                            <BCol lg="6">
+                                <BCard no-body id="tasksList" class="border" >
+                                    <BCardHeader class="border-0">
+                                        <div class="row border-bottom p-2">
+                                            <div class="col-6 ">
+                                                <h5 class="mt-1">SSLCOMMERZ</h5>                                                           
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-check form-switch form-switch-lg float-end me-3">
+                                                    <input v-model="form.enable_sslcommerz" class="form-check-input" type="checkbox" role="switch" id="enable_sslcommerz" @change="handleCheckboxChange('enable_sslcommerz')" />
+                                                </div>                                                              
+                                            </div>
+                                        </div>
+                                    </BCardHeader>
+                                    <BCardBody >
+                                        <div  class="text-center mb-4">
+                                            <img src="@assets/images/sslcommerz.png"  style="width: 200px;" >
+                                        </div> 
+                                        <div class="mb-3">
+                                            <label for="sslcommerz_environment" class="form-label">SSLCOMMERZ Environment</label>
+                                            <select :disabled="app_for === 'demo'" id="sslcommerz_environment" class="form-select" v-model="form.sslcommerz_environment">
+                                                <option disabled value="">{{$t("select")}}</option>
+                                                <option value="test">{{$t("test")}}</option>
+                                                <option value="production">{{$t("production")}}</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="sslcommerz_store_id" class="form-label">Store ID</label>
+                                            <input :type="app_for === 'demo' ? 'password' : 'text'" :readonly="app_for === 'demo'" class="form-control" placeholder="Enter Store ID" id="sslcommerz_store_id" v-model="form.sslcommerz_store_id" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="sslcommerz_store_password" class="form-label">Store Password</label>
+                                            <input :type="app_for === 'demo' ? 'password' : 'text'" :readonly="app_for === 'demo'" class="form-control" placeholder="Enter Store Password" id="sslcommerz_store_password" v-model="form.sslcommerz_store_password" />
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <div class="text-end">
+                                            <button type="submit" class="btn btn-primary"> {{ serviceLocation ? $t('update') : $t('save') }}</button>
+                                            </div>
+                                        </div>
+                                    </BCardBody>    
+                                </BCard>        
+                            </BCol>
+                            </BRow>
                         </BRow>
                     </BCardBody>
                 </BCard>

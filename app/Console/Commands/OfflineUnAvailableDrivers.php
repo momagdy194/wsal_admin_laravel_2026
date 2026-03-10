@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 use App\Jobs\Notifications\AndroidPushNotification;
 use App\Jobs\Notifications\SendPushNotification;
 use Log;
+use Illuminate\Support\Facades\DB;
 
 class OfflineUnAvailableDrivers extends Command
 {
@@ -50,7 +51,7 @@ class OfflineUnAvailableDrivers extends Command
         $current_timestamp = Carbon::now()->timestamp;
         $conditional_timestamp = Carbon::now()->subMinutes(15);
 
-        $one_hr_conditional_time = Carbon::now()->subMinutes(10);
+        $one_hr_conditional_time = Carbon::now()->subMinutes(30);
 
         $drivers = $this->database->getReference('drivers')->orderByChild('is_active')->equalTo(1)->getValue();
         foreach ($drivers as $key => $driver) {
@@ -59,10 +60,14 @@ class OfflineUnAvailableDrivers extends Command
                 $mysql_driver = Driver::where('id', $driver['id'])->first();
                 // Check if the driver is on trip
                 if($mysql_driver && $mysql_driver->requestDetail()->where('is_completed',false)->where('is_cancelled',false)->exists()){
+                    Log::info('Skipping driver with active request', [
+                        'driver_id' => $mysql_driver->id
+                    ]);
                     goto end;
                 }
 
             if($one_hr_conditional_time > $driver_updated_at){
+                $this->info("no drivers offline");
                 goto make_offline;
             }
 
@@ -79,7 +84,7 @@ class OfflineUnAvailableDrivers extends Command
 
                     // dispatch(new SendPushNotification($notifable_driver,$title,$body));
 
-                     $notification = \DB::table('notification_channels')
+                     $notification = DB::table('notification_channels')
                 ->where('topics', 'Driver Ride Remainder') // Match the correct topic
                 ->first();
 
@@ -90,14 +95,14 @@ class OfflineUnAvailableDrivers extends Command
                     // dd($userLang);
     
                     // Fetch the translation based on user language or fall back to 'en'
-                    $translation = \DB::table('notification_channels_translations')
+                    $translation = DB::table('notification_channels_translations')
                         ->where('notification_channel_id', $notification->id)
                         ->where('locale', $userLang)
                         ->first();
     
                     // If no translation exists, fetch the default language (English)
                     if (!$translation) {
-                        $translation = \DB::table('notification_channels_translations')
+                        $translation = DB::table('notification_channels_translations')
                             ->where('notification_channel_id', $notification->id)
                             ->where('locale', 'en')
                             ->first();

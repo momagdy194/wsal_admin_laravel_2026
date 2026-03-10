@@ -1,39 +1,42 @@
 import Vuex from 'vuex';
 
 import layout from './modules/layout';
-import notification from './modules/layout';
+import notification from './modules/notification';
 import todo from './modules/todo';
 
+/**
+ * Central store for permissions and shared app state.
+ * Use Ziggy's route() for URLs (injected globally via ZiggyVue).
+ * For Composition API, use useAppGlobals() composable to access permissions and route in one place.
+ */
 const store = new Vuex.Store({
   state: {
     permissions: []
-},
+  },
   modules: {
-    layout: layout, // Register the layout module
-    notification, // Register the notifications module
+    layout,
+    notification,
     todo
-
-    // Add more modules as needed
   },
   mutations: {
     setPermissions(state, permissions) {
-        state.permissions = permissions;
+      state.permissions = permissions;
     }
-},
+  },
   actions: {
     fetchPermissions({ commit }) {
-        return axios.get('/user/permissions')
-            .then(response => {
-                commit('setPermissions', response.data.data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
+      return axios.get('/user/permissions')
+        .then(response => {
+          commit('setPermissions', response.data.data);
+        })
+        .catch(error => {
+          console.error(error);
+        });
     }
-},
-getters: {
-  permissions: state => state.permissions
-}
+  },
+  getters: {
+    permissions: state => state.permissions
+  }
 });
 
 export default store;

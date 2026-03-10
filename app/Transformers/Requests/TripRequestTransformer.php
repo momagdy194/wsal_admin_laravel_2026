@@ -170,19 +170,31 @@ class TripRequestTransformer extends Transformer
             'is_parcel' => $request->is_parcel,
             'additional_charges_reason' => $request->additional_charges_reason,
             'additional_charges_amount' => round($request->additional_charges_amount, 2),
+            'enable_multiple_ride_feature' => get_settings('enable_multiple_ride_feature'),
 
+            'contact_booking_number' => get_settings('contact_booking_number'),
+            'show_only_total_amount' => get_settings('show_only_total_amount'),
             'show_additional_charge_feature' => get_settings('enable_additional_charge_feature'),
             'enable_driver_tips_feature'=> get_settings('enable_driver_tips_feature'),
             'minimum_tip_amount' => round((float)get_settings('minimum_tip_amount'), 2),
             'show_otp_feature'=>false,
             'parcel_type'=>$request->parcel_type,
+            'contact_no_other' => $request->book_for_other_contact,
+            'book_for_other' => (bool)$request->book_for_other,
+            'other_contact_name' => $request->book_for_other_contact_name,
 
         ];
             $params['completed_ride'] =false;
             $params['later_ride'] =false;
             $params['cancelled_ride'] =false;
 
-            $params['ongoing_ride'] = true;
+            // $params['ongoing_ride'] = true;
+
+            if ($request->is_completed == 1 && $request->is_paid == 0) {
+                $params['ongoing_ride'] = true;
+            } else {
+                $params['ongoing_ride'] = false;
+            }
 
             if(request()->has('is_completed') && request()->is_completed){
 
@@ -267,7 +279,7 @@ class TripRequestTransformer extends Transformer
         if($final_interval<0){
             $final_interval =1;
         }
-        $params['maximum_time_for_find_drivers_for_regular_ride'] = $final_interval;
+        $params['maximum_time_for_find_drivers_for_regular_ride'] = (int) $final_interval;
 
 
             $ride_type = 1;
@@ -420,6 +432,7 @@ class TripRequestTransformer extends Transformer
             'enable_paymongo'=> get_payment_settings('enable_paymongo'),
             'enable_paypal'=> get_payment_settings('enable_paypal'),
             'enable_fedapay'=> get_payment_settings('enable_fedapay'),
+            'enable_sslcommerz' => get_payment_settings('enable_sslcommerz'),
         ];
 
         $flags = [];
@@ -446,6 +459,7 @@ class TripRequestTransformer extends Transformer
             'paymongo' => asset('assets/img/paymongo.png'),
             'paypal' => asset('assets/img/paypal.png'),
             'fedapay' => asset('assets/img/fedapay.svg'),
+            'sslcommerz' => asset('assets/img/sslcommerz.png'),
 
         ];
 

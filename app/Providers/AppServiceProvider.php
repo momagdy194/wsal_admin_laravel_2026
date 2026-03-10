@@ -42,12 +42,7 @@ class AppServiceProvider extends ServiceProvider
         
         $this->validator = $validator;
 
-        try {
-            Schema::defaultStringLength(191);
-        } catch (\PDOException $e) {
-            // Database not available (e.g. during composer dump-autoload)
-            return;
-        }
+        Schema::defaultStringLength(191);
 
         $this->loadCustomValidators();
 
@@ -69,26 +64,19 @@ class AppServiceProvider extends ServiceProvider
         }
 
 
-    $firebaseCredsValid = false;
-    if (file_exists($firebaseCredentialsPath)) {
-        $creds = @json_decode((string) file_get_contents($firebaseCredentialsPath), true);
-        $firebaseCredsValid = is_array($creds) && !empty($creds['type']) && !empty($creds['project_id']) && !empty($creds['client_email']) && !empty($creds['private_key']);
-    }
-    if ($firebase_database_url && $firebaseCredsValid) {
-        try {
-            config([
-                'firebase.projects.app.credentials' => $firebaseCredentialsPath,
-                'firebase.projects.app.database.url' => $firebase_database_url,
-            ]);
+    if ($firebase_database_url) {
+        
+        config([
+            'firebase.projects.app.credentials' => $firebaseCredentialsPath,
+            'firebase.projects.app.database.url' => $firebase_database_url,
+        ]);
 
-            $firebase = (new Firebase)
-                ->withServiceAccount($firebaseCredentialsPath)
-                ->withDatabaseUri($firebase_database_url);
 
-            app()->instance('firebase', $firebase);
-        } catch (\Throwable $e) {
-            // Firebase credentials invalid or missing
-        }
+        $firebase = (new Firebase)
+            ->withServiceAccount($firebaseCredentialsPath)
+            ->withDatabaseUri($firebase_database_url);
+        
+        app()->instance('firebase', $firebase);
     }
 
         // if (Schema::hasTable('landing_headers')) {
@@ -107,72 +95,56 @@ class AppServiceProvider extends ServiceProvider
 
         if (Schema::hasTable('settings')) {
 
-            $admin_url =  Setting::whereName( 'admin_login')->firstorNew([]);
-            view()->share('admin_url', 'login/'. $admin_url->value);
-            $owner_url = Setting::whereName( 'owner_login')->firstorNew([]);
-            view()->share('owner_url', 'login/'. $owner_url->value);
-            $user_url =  Setting::whereName( 'user_login')->firstorNew([]);
-            view()->share('user_url', 'login/'.$user_url->value);
-            $dispatch_url =  Setting::whereName( 'dispatcher_login')->firstorNew([]);
-            view()->share('dispatch_url', 'login/'.$dispatch_url->value);
-            $agent_url =  Setting::whereName( 'agent_login')->firstorNew([]);
-            view()->share('agent_url','login/'. $agent_url->value);
-            $dispatch_pro_url =  Setting::whereName( 'dispatcher_login_pro')->firstorNew([]);
-            view()->share('dispatch_pro_url', 'login/'.$dispatch_pro_url->value);
+            $s = Setting::getCached();
+            $v = fn (string $key, $default = null) => $s[$key] ?? $default;
+            view()->share('admin_url', 'login/' . ($v('admin_login') ?? 'admin'));
+            view()->share('owner_url', 'login/' . ($v('owner_login') ?? 'owner'));
+            view()->share('user_url', 'login/' . ($v('user_login') ?? 'user'));
+            view()->share('dispatch_url', 'login/' . ($v('dispatcher_login') ?? 'dispatcher'));
+            view()->share('agent_url', 'login/' . ($v('agent_login') ?? 'agent'));
+            view()->share('dispatch_pro_url', 'login/' . ($v('dispatcher_login_pro') ?? 'dispatcher_pro'));
            
+            $franchise_addons = Setting::whereName('franchise-addons')->firstOrNew([]);
+            view()->share('franchise_addons', $franchise_addons->value); 
 
-            $agent_addons = Setting::whereName('dispatcher-addons')->firstOrNew([]);
-            view()->share('agent_addons', $agent_addons->value);
 
-            $supportTicket = Setting::whereName('enable_support_ticket_feature')->firstOrNew([]);
-            view()->share('supportTicket', $supportTicket->value);
+            view()->share('agent_addons', $v('dispatcher-addons'));
 
-            $navs = Setting::whereName('nav_color')->firstOrNew([]);
-            view()->share('navs', $navs);
+            view()->share('franchise_url', 'login/' . ($v('franchise_login') ?? 'franchise'));
+            view()->share('franchise_addons', $v('franchise-addons'));
 
-            $side = Setting::whereName('sidebar_color')->firstOrNew([]);
-            view()->share('side', $side);
+            view()->share('supportTicket', $v('enable_support_ticket_feature'));
 
-            $side_txt = Setting::whereName('sidebar_text_color')->firstOrNew([]);
-            view()->share('side_txt', $side_txt);
+            view()->share('navs', $v('nav_color') ?? '#0ab39c');
+            view()->share('side', $v('sidebar_color') ?? '#405189');
+            view()->share('side_txt', $v('sidebar_text_color') ?? '#a2a5af');
 
-            $landing_header_bg_color = Setting::whereName('landing_header_bg_color')->firstOrNew([]);
-            view()->share('landing_header_bg_color', $landing_header_bg_color);
+            view()->share('landing_header_bg_color', $v('landing_header_bg_color') ?? '#ffffff');
+            view()->share('landing_header_text_color', $v('landing_header_text_color') ?? '#212529');
+            view()->share('landing_header_active_text_color', $v('landing_header_active_text_color') ?? '#0ab39c');
+            view()->share('landing_footer_bg_color', $v('landing_footer_bg_color') ?? '#000000');
+            view()->share('landing_footer_text_color', $v('landing_footer_text_color') ?? '#f1ffff');
 
-            $landing_header_text_color = Setting::whereName('landing_header_text_color')->firstOrNew([]);
-            view()->share('landing_header_text_color', $landing_header_text_color);
+            //single landing page
+            view()->share('single_landing_header_bg_color', $v('single_landing_header_bg_color') ?? '#100a64');
+            view()->share('single_landing_header_text_color', $v('single_landing_header_text_color') ?? '#fcfcfc');
+            view()->share('single_landing_header_active_text_color', $v('single_landing_header_active_text_color') ?? '#100a64');
+            view()->share('single_landing_footer_bg_color', $v('single_landing_footer_bg_color') ?? '#100a64');
+            view()->share('single_landing_footer_text_color', $v('single_landing_footer_text_color') ?? '#fffff');
 
-            $landing_header_active_text_color = Setting::whereName('landing_header_active_text_color')->firstOrNew([]);
-            view()->share('landing_header_active_text_color', $landing_header_active_text_color);
+            view()->share('footer_content1', $v('footer_content1'));
+            view()->share('footer_content2', $v('footer_content2'));
+            view()->share('dispatcher_sidebar_color', $v('dispatcher_sidebar_color'));
+            view()->share('dispatcher_sidebar_txt_color', $v('dispatcher_sidebar_txt_color'));
 
-            $landing_footer_bg_color = Setting::whereName('landing_footer_bg_color')->firstOrNew([]);
-            view()->share('landing_footer_bg_color', $landing_footer_bg_color);
-
-            $landing_footer_text_color = Setting::whereName('landing_footer_text_color')->firstOrNew([]);
-            view()->share('landing_footer_text_color', $landing_footer_text_color);
-
-            $footer_content1 = Setting::whereName('footer_content1')->firstOrNew([]);
-            view()->share('footer_content1', $footer_content1->value);
-            $footer_content2 = Setting::whereName('footer_content2')->firstOrNew([]);
-            view()->share('footer_content2', $footer_content2->value);
-
-            $dispatcher_sidebar_color = Setting::whereName('dispatcher_sidebar_color')->firstOrNew([]);
-            view()->share('dispatcher_sidebar_color', $dispatcher_sidebar_color);
-
-            $dispatcher_sidebar_txt_color = Setting::whereName('dispatcher_sidebar_txt_color')->firstOrNew([]);
-            view()->share('dispatcher_sidebar_txt_color', $dispatcher_sidebar_txt_color);
-
-            $logo = Setting::whereName('logo')->firstOrNew([]);
-            view()->share('logo', !empty($logo->value) ? asset('storage/uploads/system-admin/logo/' . $logo->value) : asset('storage/uploads/system-admin/logo/rest.png')); 
-
-            $favicon = Setting::whereName('favicon')->firstOrNew([]);
-            view()->share('favicon', !empty($favicon->value) ? asset('storage/uploads/system-admin/logo/' . $favicon->value) : asset('storage/uploads/system-admin/logo/Restart user.jpg')); 
-
-            $loginbg = Setting::whereName('loginbg')->firstOrNew([]);
-            view()->share('loginbg', !empty($loginbg->value) ? asset('storage/uploads/system-admin/logo/' . $loginbg->value) : asset('storage/uploads/system-admin/logo/workspace.jpg')); 
-
-            $owner_loginbg = Setting::whereName('owner_loginbg')->firstOrNew([]);
-            view()->share('owner_loginbg', !empty($owner_loginbg->value) ? asset('storage/uploads/system-admin/logo/' . $owner_loginbg->value) : asset('storage/uploads/system-admin/logo/workspace.jpg')); 
+            $logoVal = $v('logo');
+            view()->share('logo', !empty($logoVal) ? asset('storage/uploads/system-admin/logo/' . $logoVal) : asset('storage/uploads/system-admin/logo/rest.png'));
+            $faviconVal = $v('favicon');
+            view()->share('favicon', !empty($faviconVal) ? asset('storage/uploads/system-admin/logo/' . $faviconVal) : asset('storage/uploads/system-admin/logo/Restart user.jpg'));
+            $loginbgVal = $v('loginbg');
+            view()->share('loginbg', !empty($loginbgVal) ? asset('storage/uploads/system-admin/logo/' . $loginbgVal) : asset('storage/uploads/system-admin/logo/workspace.jpg'));
+            $ownerLoginbgVal = $v('owner_loginbg');
+            view()->share('owner_loginbg', !empty($ownerLoginbgVal) ? asset('storage/uploads/system-admin/logo/' . $ownerLoginbgVal) : asset('storage/uploads/system-admin/logo/workspace.jpg')); 
         } else {
 
             view()->share('navs', "#0ab39c");
@@ -187,6 +159,13 @@ class AppServiceProvider extends ServiceProvider
             view()->share('landing_footer_bg_color', "#000000");
             view()->share('landing_footer_text_color', "#f1ffff");
 
+            
+            view()->share('single_landing_header_bg_color', "#101435");
+            view()->share('single_landing_header_text_color', "#f7f7f7");
+            view()->share('single_landing_header_active_text_color', "#101435");
+            view()->share('single_landing_footer_bg_color', "#101435");
+            view()->share('single_landing_footer_text_color', "#f1ffff");
+
             view()->share('logo', asset('storage/uploads/system-admin/logo/rest.png'));
             view()->share('favicon',asset('storage/uploads/system-admin/logo/Restart user.jpg'));
             view()->share('loginbg', asset('storage/uploads/system-admin/logo/workspace.jpg'));
@@ -195,19 +174,33 @@ class AppServiceProvider extends ServiceProvider
 
         if (Schema::hasTable('landing_headers')) {
             // $headers = LandingHeader::all();
-            $headers = LandingHeader::all()->map(function ($header) {
+            $headerSettings = Schema::hasTable('settings') ? Setting::getCached() : [];
+            $headers = LandingHeader::all()->map(function ($header) use ($headerSettings) {
                 $header->header_logo_url = asset('storage/uploads/website/images/' . $header->header_logo);
                 $header->footer_logo_url = asset('storage/uploads/website/images/' . $header->footer_logo);
-                $enable_web_booking = Setting::whereName('enable_web_booking_feature')->firstOrNew([]);
-                $header->enable_web_booking = $enable_web_booking->value  ? 1 : 0;
-                $user_login_url = Setting::whereName('user_login')->firstOrNew([]);
-                $header->userlogin = 'login/'.$user_login_url->value;
+                $header->enable_web_booking = !empty($headerSettings['enable_web_booking_feature']) ? 1 : 0;
+                $header->userlogin = 'login/' . ($headerSettings['user_login'] ?? 'user');
                 return $header;
             });
             $locales = $headers->pluck('locale', 'id');
             View::share('headers', $headers);
             View::share('locales', $locales);
-        } else {
+        }
+        elseif (Schema::hasTable('single_landing_page')) {
+            // $headers = LandingHeader::all();
+            $headerSettings = Schema::hasTable('settings') ? Setting::getCached() : [];
+            $headers = SingleLandingHeader::all()->map(function ($header) use ($headerSettings) {
+                $header->header_logo_url = asset('storage/uploads/website/images/' . $header->header_logo);
+                $header->footer_logo_url = asset('storage/uploads/website/images/' . $header->footer_logo);
+                $header->enable_web_booking = !empty($headerSettings['enable_web_booking_feature']) ? 1 : 0;
+                $header->userlogin = 'login/' . ($headerSettings['user_login'] ?? 'user');
+                return $header;
+            });
+            $locales = $headers->pluck('locale', 'id');
+            View::share('headers', $headers);
+            View::share('locales', $locales);
+        }
+         else {
             $defaultHeaders = collect([
                 'id' => '1',
                 'header_logo' => 'rest.png',
@@ -385,8 +378,7 @@ class AppServiceProvider extends ServiceProvider
                 view()->share('landing_footer_text_color', $landing_footer_text_color);
             
             
-            }
-            
+            }                    
             public function logo() 
         {
         
@@ -397,6 +389,63 @@ class AppServiceProvider extends ServiceProvider
         
         
             }
+//singlelandingpage
+
+              public function singlelandingbgcolor() 
+            {
+            
+                $single_landing_header_bg_color = Setting::whereName('single_landing_header_bg_color')->first();
+        
+        
+                view()->share('single_landing_header_bg_color', $single_landing_header_bg_color);
+            
+            
+            }
+
+            public function singlelandingtextcolor() 
+            {
+            
+                $single_landing_header_text_color = Setting::whereName('single_landing_header_text_color')->first();
+        
+        
+                view()->share('single_landing_header_text_color', $single_landing_header_text_color);
+            
+            
+            }
+
+            public function singlelandingacttextcolor() 
+            {
+            
+                $single_landing_header_active_text_color = Setting::whereName('single_landing_header_active_text_color')->first();
+        
+        
+                view()->share('single_landing_header_active_text_color', $single_landing_header_active_text_color);
+            
+            
+            }
+
+            public function singlelandingfooterbgcolor() 
+            {
+            
+                $single_landing_footer_bg_color = Setting::whereName('single_landing_footer_bg_color')->first();
+        
+        
+                view()->share('single_landing_footer_bg_color', $single_landing_footer_bg_color);
+            
+            
+            }
+
+            public function singlelandingfootertextcolor() 
+            {
+            
+                $single_landing_footer_text_color = Setting::whereName('single_landing_footer_text_color')->first();
+        
+        
+                view()->share('single_landing_footer_text_color', $single_landing_footer_text_color);
+            
+            
+            }
+
             public function favicon() 
         {
         
@@ -421,7 +470,7 @@ class AppServiceProvider extends ServiceProvider
             public function owner_loginbg() 
             {
             
-                    $loginbg = Setting::whereName('owner_loginbg')->first();
+                    $owner_loginbg = Setting::whereName('owner_loginbg')->first();
             
             
                  view()->share('owner_loginbg', $owner_loginbg);

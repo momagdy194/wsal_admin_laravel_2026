@@ -29,6 +29,8 @@
                           <option value="normal">{{$t("normal")}}</option>
                           <option value="rental">{{$t("rental")}}</option>
                           <option value="outstation">{{$t("outstation")}}</option>
+                          <option value="bidding">{{$t("bidding")}}</option>
+                          <option value="shared_ride">{{$t("shared_ride")}}</option>
                         </select>
                         <span v-for="(error, index) in errors.service_type" :key="index" class="text-danger">{{ error }}</span>
                       </div>

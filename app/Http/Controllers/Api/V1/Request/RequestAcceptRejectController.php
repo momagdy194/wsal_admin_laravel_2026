@@ -124,6 +124,13 @@ class RequestAcceptRejectController extends StripeController
 
                 $updated_params['fleet_id'] = $driver->fleet_id;
             }
+             if($driver->franchise_owner_id!=null)
+            {
+                // Log::info("--------Accepted_Fleet_driver--------");
+
+                // Log::info($driver);
+                $updated_params['franchise_owner_id'] = $driver->franchise_owner_id;
+            }
 
             $request_detail->update($updated_params);
             $request_detail->fresh();
