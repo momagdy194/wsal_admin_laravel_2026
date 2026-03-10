@@ -51,7 +51,7 @@ class AccountController extends ApiController
             }
 
             if($driver_details->owner_id && !$driver_details->transport_type){
-                $driver_details->update(['transport_type'=>Owner::find($driver->owner_id)->transport_type]);
+                $driver_details->update(['transport_type'=>Owner::find($driver_details->owner_id)->transport_type]);
             }
 
 
@@ -131,7 +131,7 @@ class AccountController extends ApiController
             $uploadedDoc = $owner_details->ownerDocument()->count();
 
             if( $neededDoc > $uploadedDoc){
-                Owner::where('id',$driver_id)->update([
+                Owner::where('id',$owner_details->id)->update([
                     'approve' => 0,
                     'active' => 0
                 ]);

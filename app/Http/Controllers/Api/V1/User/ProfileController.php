@@ -543,17 +543,25 @@ class ProfileController extends ApiController
 
 
         Log::info("location", $request->all());
-        $zone = find_zone($request->current_lat,$request->current_lng);
-        // Log::info(auth()->user()->id);
-        
-        if($zone){
-            auth()->user()->update(['zone_id'=>$zone->id,'service_location_id'=>$zone->service_location_id,'current_lat'=>$request->current_lat, 'current_lng' =>$request->current_lng]);
-            if(auth()->user()->timezone != $zone->serviceLocation->timezone){
-                auth()->user()->update(['timezone'=>$zone->serviceLocation->timezone]);
+        $zone = find_zone($request->current_lat, $request->current_lng);
+
+        if ($zone) {
+            auth()->user()->update([
+                'zone_id' => $zone->id,
+                'service_location_id' => $zone->service_location_id,
+                'current_lat' => $request->current_lat,
+                'current_lng' => $request->current_lng,
+            ]);
+            $serviceLocation = $zone->serviceLocation;
+            if ($serviceLocation && auth()->user()->timezone != $serviceLocation->timezone) {
+                auth()->user()->update(['timezone' => $serviceLocation->timezone]);
             }
-
+        } else {
+            auth()->user()->update([
+                'current_lat' => $request->current_lat,
+                'current_lng' => $request->current_lng,
+            ]);
         }
-
 
         return $this->respondSuccess();
     }

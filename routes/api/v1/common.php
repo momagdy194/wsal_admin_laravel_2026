@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\Common\SupportTicketController;
 use App\Http\Controllers\Api\V1\Common\PreferenceController;
 use App\Http\Controllers\Api\V1\Common\ReferralController;
 use App\Http\Controllers\Api\V1\Common\LandingQuickLinkController;
+use App\Http\Controllers\Api\V1\Common\MapSettingsController;
 
 use App\Http\Controllers\Api\V1\VehicleType\VehicleTypeController;
 
@@ -33,6 +34,7 @@ Route::get('on-boarding-owner', [CountryController::class, 'onBoardingOwner']);
 
 Route::prefix('common')->group(function () {
 
+    Route::get('map-settings', [MapSettingsController::class, 'index']);
     Route::get('modules', [CarMakeAndModelController::class, 'getAppModule']);
     Route::get('test-api', [CarMakeAndModelController::class, 'testApi']);
     Route::get('ride_modules', [CarMakeAndModelController::class, 'mobileAppMenu']);
