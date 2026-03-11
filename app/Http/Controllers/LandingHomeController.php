@@ -319,15 +319,11 @@ class LandingHomeController extends BaseController
         //  dd($imageColumns);
     //     // Construct URLs for each image column
             foreach ($imageColumns as $column) {
-                
                 if ($singlelandingpage && $singlelandingpage->$column) {
                     $singlelandingpage->{$column . '_url'} = asset('storage/uploads/website/images/' . $singlelandingpage->$column);
-                }
-                 
-                 else {
+                } elseif ($singlelandingpage) {
                     $singlelandingpage->{$column . '_url'} = null;
                 }
-                // dd($singlelandingpage->{$column . '_url'});
             }
          if ($setting == 1) {
             return Inertia::render('pages/landingpage/home',[
