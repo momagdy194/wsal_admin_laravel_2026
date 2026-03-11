@@ -235,17 +235,7 @@ class UserCancelRequestController extends StripeController
         $this->database->getReference('SOS/' . $request_detail->id)->remove();
         $this->database->getReference('request-meta/' . $request_detail->id)->remove();
 
-
-        $
-        $this->database->getReference('requests/' . $request_detail->id)->update(['is_cancelled' => true, 'cancelled_by_user' => true]);
-        $this->database->getReference('requests/' . $request_detail->id)->remove();
-        $this->database->getReference('SOS/' . $request_detail->id)->remove();
-        $this->database->getReference('request-meta/' . $request_detail->id)->remove();
-
-
         $this->database->getReference('bid-meta/'.$request_detail->id)->remove();
-$request->payment_opt,
-        ]);
 
         if($request_detail->payment_opt == 0){
 
