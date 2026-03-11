@@ -11,8 +11,8 @@ class InstallController extends Controller
 {
 
     public function index() {
-
-        return Inertia::render('pages/installation/index');
+        // Skip purchase verification - redirect to landing page
+        return redirect()->route('landing.index');
     }
 
 

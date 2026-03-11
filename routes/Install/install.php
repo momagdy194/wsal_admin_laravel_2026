@@ -20,7 +20,7 @@ use App\Http\Controllers\Install\InstallController;
  */
 Route::group([],function () {
 
-    Route::get('/', [InstallController::class, 'index']);
+    Route::get('/install', [InstallController::class, 'index']);
 
     Route::post('/verfication-submit', [InstallController::class, 'verification_submit'])
         ->name('verfication-submit');
