@@ -236,35 +236,15 @@ class UserCancelRequestController extends StripeController
         $this->database->getReference('request-meta/' . $request_detail->id)->remove();
 
 
+        $
+        $this->database->getReference('requests/' . $request_detail->id)->update(['is_cancelled' => true, 'cancelled_by_user' => true]);
+        $this->database->getReference('requests/' . $request_detail->id)->remove();
+        $this->database->getReference('SOS/' . $request_detail->id)->remove();
+        $this->database->getReference('request-meta/' . $request_detail->id)->remove();
+
+
         $this->database->getReference('bid-meta/'.$request_detail->id)->remove();
-
-         Artisan::call('assign_drivers:for_regular_rides');
-         
-        return $this->respondSuccess();
-    }
-    /**
-     * Update payment Method
-     * 
-     * @response
-     * {
-     *     "success": true,
-     *     "message": "success",
-     * }
-     */
-    public function paymentMethod(Request $request)
-    {
-
-       $user = auth()->user();
-       
-       $request_detail = $user->requestDetail()->where('id', $request->request_id)->first();
-
-        // dd($user);
-        // Throw an exception if the user is not authorised for this request
-        if (!$request_detail) {
-            $this->throwAuthorizationException();
-        }
-        $request_detail->update([
-            'payment_opt'=>$request->payment_opt,
+$request->payment_opt,
         ]);
 
         if($request_detail->payment_opt == 0){

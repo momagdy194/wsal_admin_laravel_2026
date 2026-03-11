@@ -22,6 +22,8 @@ use App\Jobs\Notifications\FcmPushNotification;
 use App\Base\Constants\Setting\Settings;
 use Sk\Geohash\Geohash;
 use Kreait\Firebase\Contract\Database;
+use Kreait\Firebase\Exception\Database\DatabaseError;
+use Kreait\Firebase\Exception\FirebaseException;
 use App\Jobs\Notifications\SendPushNotification;
 use Illuminate\Http\Request as ValidatorRequest;
 use App\Helpers\Rides\FetchDriversFromFirebaseHelpers;
@@ -377,28 +379,41 @@ class CreateRequestController extends StripeController
         // store request place details
         $request_detail->requestPlace()->create($request_place_params);
 
-        // Add Request detail to firebase database
-         $this->database->getReference('requests/'.$request_detail->id)->update(['request_id'=>$request_detail->id,'request_number'=>$request_detail->request_number,'service_location_id'=>$service_location->id,'user_id'=>$request_detail->user_id,'pick_address'=>$request->pick_address,'drop_address'=>$request->drop_address,'active'=>1,'date'=>$request_detail->converted_created_at,'updated_at'=> Database::SERVER_TIMESTAMP]);
+        $nearest_drivers = null;
+        try {
+            // Add Request detail to firebase database
+            $this->database->getReference('requests/'.$request_detail->id)->update(['request_id'=>$request_detail->id,'request_number'=>$request_detail->request_number,'service_location_id'=>$service_location->id,'user_id'=>$request_detail->user_id,'pick_address'=>$request->pick_address,'drop_address'=>$request->drop_address,'active'=>1,'date'=>$request_detail->converted_created_at,'updated_at'=> Database::SERVER_TIMESTAMP]);
 
+            $request_detail = $this->request->where('id',$request_detail->id)->first();
 
-        $request_detail = $this->request->where('id',$request_detail->id)->first();
+            // Log::info($request_detail);
 
-        // Log::info($request_detail);
+            $request_result =  fractal($request_detail, new TripRequestTransformer)->parseIncludes('userDetail');
 
-        $request_result =  fractal($request_detail, new TripRequestTransformer)->parseIncludes('userDetail');
-
-
-        if ($request->has('is_bid_ride') && $request->input('is_bid_ride')==1) {
-                goto no_drivers_available;
-        }
-        Log::channel('activity')->info([ 'Fetching nearest drivers: '=>'createRequest',]);
-
-        $nearest_drivers =  $this->fetchDriversFromFirebase($request_detail,$this->database);
-
-        // Send Request to the nearest Drivers
-         if ($nearest_drivers==null) {
+            if ($request->has('is_bid_ride') && $request->input('is_bid_ride')==1) {
                 goto no_drivers_available;
             }
+            Log::channel('activity')->info([ 'Fetching nearest drivers: '=>'createRequest',]);
+
+            $nearest_drivers =  $this->fetchDriversFromFirebase($request_detail,$this->database);
+        } catch (DatabaseError $e) {
+            Log::error('Firebase Database error in createRequest: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+            $request_detail = $this->request->where('id',$request_detail->id)->first();
+            $request_result = fractal($request_detail, new TripRequestTransformer)->parseIncludes('userDetail');
+        } catch (FirebaseException $e) {
+            Log::error('Firebase error in createRequest: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+            $request_detail = $this->request->where('id',$request_detail->id)->first();
+            $request_result = fractal($request_detail, new TripRequestTransformer)->parseIncludes('userDetail');
+        } catch (\Throwable $e) {
+            Log::error('Error syncing to Firebase in createRequest: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+            $request_detail = $this->request->where('id',$request_detail->id)->first();
+            $request_result = fractal($request_detail, new TripRequestTransformer)->parseIncludes('userDetail');
+        }
+
+        // Send Request to the nearest Drivers
+        if ($nearest_drivers==null) {
+            goto no_drivers_available;
+        }
 
         no_drivers_available:
 
@@ -656,8 +671,15 @@ class CreateRequestController extends StripeController
             $request_detail->requestEtaDetail()->create($request_eta_params);
         
 
-
-        $this->database->getReference('requests/'.$request_detail->id)->update(['request_id'=>$request_detail->id,'request_number'=>$request_detail->request_number,'service_location_id'=>$service_location->id,'user_id'=>$request_detail->user_id,'pick_address'=>$request->pick_address,'drop_address'=>$request->drop_address,'active'=>1,'date'=>$request_detail->converted_trip_start_time,'updated_at'=> Database::SERVER_TIMESTAMP]);
+        try {
+            $this->database->getReference('requests/'.$request_detail->id)->update(['request_id'=>$request_detail->id,'request_number'=>$request_detail->request_number,'service_location_id'=>$service_location->id,'user_id'=>$request_detail->user_id,'pick_address'=>$request->pick_address,'drop_address'=>$request->drop_address,'active'=>1,'date'=>$request_detail->converted_trip_start_time,'updated_at'=> Database::SERVER_TIMESTAMP]);
+        } catch (DatabaseError $e) {
+            Log::error('Firebase Database error in createRideLater: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+        } catch (FirebaseException $e) {
+            Log::error('Firebase error in createRideLater: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+        } catch (\Throwable $e) {
+            Log::error('Error syncing to Firebase in createRideLater: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+        }
 
         $request_result =  fractal($request_detail, new TripRequestTransformer)->parseIncludes('userDetail');
 
