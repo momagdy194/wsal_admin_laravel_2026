@@ -11,15 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-       if (Schema::hasTable('requests')) {
-            if (!Schema::hasColumn('requests', 'franchise_promo_id')) {
-                Schema::table('requests', function (Blueprint $table) {
-                    $table->uuid('franchise_promo_id')->after('dispatcher_id')->nullable();
-
-                  
-                });
-            }
-        };
+        if (Schema::hasTable('requests') && !Schema::hasColumn('requests', 'franchise_promo_id')) {
+            Schema::table('requests', function (Blueprint $table) {
+                $table->uuid('franchise_promo_id')->nullable();
+            });
+        }
     }
 
     /**
@@ -27,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('requests', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasTable('requests') && Schema::hasColumn('requests', 'franchise_promo_id')) {
+            Schema::table('requests', function (Blueprint $table) {
+                $table->dropColumn('franchise_promo_id');
+            });
+        }
     }
 };
