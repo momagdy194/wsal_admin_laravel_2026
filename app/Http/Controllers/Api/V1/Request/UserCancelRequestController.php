@@ -16,6 +16,8 @@ use App\Base\Constants\Masters\zoneRideType;
 use App\Base\Constants\Masters\PaymentType;
 use App\Models\Admin\CancellationReason;
 use Kreait\Firebase\Contract\Database;
+use Kreait\Firebase\Exception\Database\DatabaseError;
+use Kreait\Firebase\Exception\FirebaseException;
 use App\Jobs\Notifications\SendPushNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -189,10 +191,16 @@ class UserCancelRequestController extends StripeController
 
             $push_data = ['success'=>true,'success_message'=>PushEnums::REQUEST_CANCELLED_BY_USER,'result'=>(string)$push_request_detail];
 
+            try {
+                $this->database->getReference('drivers/'.'driver_'.$driver->id)->update(['is_available'=>true,'updated_at'=> Database::SERVER_TIMESTAMP]);
+            } catch (DatabaseError $e) {
+                Log::error('Firebase Database error in cancelRequest (driver update): ' . $e->getMessage(), ['driver_id' => $driver->id, 'exception' => $e]);
+            } catch (FirebaseException $e) {
+                Log::error('Firebase error in cancelRequest (driver update): ' . $e->getMessage(), ['driver_id' => $driver->id, 'exception' => $e]);
+            } catch (\Throwable $e) {
+                Log::error('Error syncing to Firebase in cancelRequest (driver update): ' . $e->getMessage(), ['driver_id' => $driver->id, 'exception' => $e]);
+            }
 
-         $this->database->getReference('drivers/'.'driver_'.$driver->id)->update(['is_available'=>true,'updated_at'=> Database::SERVER_TIMESTAMP]);
-
-           
             // dispatch(new SendPushNotification($notifiable_driver,$title,$body));
 
             $notification = \DB::table('notification_channels')
@@ -229,13 +237,19 @@ class UserCancelRequestController extends StripeController
         
         $request_detail->requestMeta()->delete();
 
-
-        $this->database->getReference('requests/' . $request_detail->id)->update(['is_cancelled' => true, 'cancelled_by_user' => true]);
-        $this->database->getReference('requests/' . $request_detail->id)->remove();
-        $this->database->getReference('SOS/' . $request_detail->id)->remove();
-        $this->database->getReference('request-meta/' . $request_detail->id)->remove();
-
-        $this->database->getReference('bid-meta/'.$request_detail->id)->remove();
+        try {
+            $this->database->getReference('requests/' . $request_detail->id)->update(['is_cancelled' => true, 'cancelled_by_user' => true]);
+            $this->database->getReference('requests/' . $request_detail->id)->remove();
+            $this->database->getReference('SOS/' . $request_detail->id)->remove();
+            $this->database->getReference('request-meta/' . $request_detail->id)->remove();
+            $this->database->getReference('bid-meta/'.$request_detail->id)->remove();
+        } catch (DatabaseError $e) {
+            Log::error('Firebase Database error in cancelRequest: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+        } catch (FirebaseException $e) {
+            Log::error('Firebase error in cancelRequest: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+        } catch (\Throwable $e) {
+            Log::error('Error syncing to Firebase in cancelRequest: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+        }
 
         if($request_detail->payment_opt == 0){
 
@@ -319,7 +333,15 @@ class UserCancelRequestController extends StripeController
 
             $requestBill->fresh();
 
-        $this->database->getReference('requests/' . $request_detail->id)->update(['driver_tips' => $tips]);
+        try {
+            $this->database->getReference('requests/' . $request_detail->id)->update(['driver_tips' => $tips]);
+        } catch (DatabaseError $e) {
+            Log::error('Firebase Database error in addDriverTips: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+        } catch (FirebaseException $e) {
+            Log::error('Firebase error in addDriverTips: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+        } catch (\Throwable $e) {
+            Log::error('Error syncing to Firebase in addDriverTips: ' . $e->getMessage(), ['request_id' => $request_detail->id, 'exception' => $e]);
+        }
 
         $result = fractal($requestBill->fresh(), new RequestBillTransformer);
 
