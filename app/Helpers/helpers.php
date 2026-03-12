@@ -1243,7 +1243,10 @@ if (!function_exists('find_peak_zone')) {
 if (!function_exists('find_zone')) {
     function find_zone($lat, $lng)
     {
-        $point = new Point($lat, $lng);
+        if ($lat === null || $lng === null || !is_numeric($lat) || !is_numeric($lng)) {
+            return null;
+        }
+        $point = new Point((float) $lat, (float) $lng);
 
         $zone = Zone::whereContains('coordinates', $point)->whereHas('serviceLocation',function($query) {
             $query->where('active',true);
