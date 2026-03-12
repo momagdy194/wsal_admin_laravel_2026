@@ -23,6 +23,8 @@ export default {
         existingZones: Array,
         enable_maximum_distance_feature: Boolean,
         settings: Object,
+        default_lat: [Number, String],
+        default_lng: [Number, String],
     },
     setup(props) {
         const { zone, googleMapKey } = props;
@@ -191,37 +193,68 @@ export default {
 
         // };
 
-        const initializeMap = () => {
-            if (zone && zone.coordinates) {
-                map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 0, lng: 0 },
-                zoom: 10,
+        /** Normalize zone coordinates from backend (GeoJSON MultiPolygon or array). Returns array of polygons, each polygon = array of {lat, lng}. */
+        const getZonePolygonsForMap = (coordData) => {
+            if (!coordData) return [];
+            // GeoJSON: { type: 'MultiPolygon', coordinates: [[[[lng,lat],...]]] }
+            if (coordData.coordinates && Array.isArray(coordData.coordinates)) {
+                return coordData.coordinates.map((polygon) => {
+                    const ring = polygon && polygon[0] ? polygon[0] : polygon;
+                    return ring.map((point) => ({
+                        lat: Array.isArray(point) ? point[1] : (point.lat ?? point.latitude),
+                        lng: Array.isArray(point) ? point[0] : (point.lng ?? point.longitude),
+                    }));
                 });
+            }
+            // Direct array of polygons
+            if (Array.isArray(coordData)) {
+                return coordData.map((polygon) =>
+                    (polygon && polygon[0] ? polygon[0] : polygon).map((point) =>
+                        Array.isArray(point)
+                            ? { lat: point[1], lng: point[0] }
+                            : { lat: point.lat ?? point.latitude, lng: point.lng ?? point.longitude }
+                    )
+                );
+            }
+            return [];
+        };
 
-                // Draw existing zones
-                console.log("props.existingZones",props.existingZones);
-                props.existingZones.forEach((polygon) => {
+        const defaultCenter = () => {
+            const lat = parseFloat(props.default_lat) || 0;
+            const lng = parseFloat(props.default_lng) || 0;
+            return { lat: lat || 20, lng: lng || 0 };
+        };
+
+        const initializeMap = () => {
+            if (!zone) return;
+            const center = defaultCenter();
+            map = new google.maps.Map(document.getElementById('map'), {
+                center,
+                zoom: 10,
+            });
+
+            // Draw existing zones (other zones, read-only)
+            (props.existingZones || []).forEach((polygon) => {
+                if (!polygon || !polygon.length) return;
+                const paths = polygon.map((p) => ({ lat: p.lat, lng: p.lng }));
                 new google.maps.Polygon({
-                    paths: polygon,
+                    paths,
                     fillColor: "#FF0000",
                     fillOpacity: 0.5,
                     strokeWeight: 1,
                     clickable: false,
                     editable: false,
                     zIndex: 1,
-                    map: map,
+                    map,
                 });
-                });
+            });
 
-                // Draw current zone
-                const bounds = new google.maps.LatLngBounds();
-                zone.coordinates.coordinates.forEach((polygon) => {
-                    console.log("polygon",polygon);
-                const polygonCoordinates = polygon[0].map(point => ({
-                    lat: point[1],
-                    lng: point[0],
-                }));
+            // Draw current zone polygons (editable / can add more)
+            const zonePolygons = getZonePolygonsForMap(zone.coordinates);
+            const bounds = new google.maps.LatLngBounds();
 
+            zonePolygons.forEach((polygonCoordinates) => {
+                if (!polygonCoordinates || polygonCoordinates.length < 2) return;
                 currentPolygon = new google.maps.Polygon({
                     paths: polygonCoordinates,
                     fillColor: "#0000FF",
@@ -230,19 +263,21 @@ export default {
                     clickable: true,
                     editable: false,
                     zIndex: 1,
-                    map: map,
+                    map,
                 });
-
                 polygons.push(currentPolygon);
                 attachClickListener(currentPolygon);
+                polygonCoordinates.forEach((c) => bounds.extend(c));
+            });
 
-                currentPolygon.getPath().forEach(coord => bounds.extend(coord));
-                });
-
+            if (zonePolygons.length > 0 && bounds.getNorthEast && bounds.getSouthWest()) {
                 map.fitBounds(bounds);
-
-                initializeDrawingManager();
             }
+
+            initializeDrawingManager();
+            setTimeout(() => {
+                if (map) google.maps.event.trigger(map, 'resize');
+            }, 100);
         };
         
         const attachClickListener = (polygon) => {

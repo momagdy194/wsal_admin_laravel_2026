@@ -24,6 +24,8 @@ export default {
         existingZones: Array,
         enable_maximum_distance_feature: Boolean,
         settings: Object,
+        default_lat: [Number, String],
+        default_lng: [Number, String],
     },
     setup(props) {
         const { zone } = props;
@@ -111,10 +113,36 @@ export default {
         //     }
         // };
 
-const initializeMap = () => {
-    if (!zone || !zone.coordinates) return;
+    /** Normalize zone coordinates (GeoJSON MultiPolygon/Polygon or array). Returns array of rings, each ring = [[lat,lng],...]. */
+    const getZoneRingsForLeaflet = (coordData) => {
+        if (!coordData) return [];
+        if (coordData.type === 'MultiPolygon' && Array.isArray(coordData.coordinates)) {
+            return coordData.coordinates.flatMap((polygon) => polygon || []);
+        }
+        if (coordData.type === 'Polygon' && Array.isArray(coordData.coordinates)) {
+            return coordData.coordinates;
+        }
+        if (Array.isArray(coordData)) {
+            return coordData.map((polygon) =>
+                (polygon && polygon[0] ? polygon[0] : polygon).map((point) =>
+                    Array.isArray(point) ? [point[1], point[0]] : [point.lat ?? point.latitude, point.lng ?? point.longitude]
+                )
+            );
+        }
+        return [];
+    };
 
-    map = L.map('map').setView([0, 0], 10);
+    const getDefaultCenter = () => {
+        const lat = parseFloat(props.default_lat) || 20;
+        const lng = parseFloat(props.default_lng) || 0;
+        return [lat, lng];
+    };
+
+const initializeMap = () => {
+    if (!zone) return;
+
+    const [defaultLat, defaultLng] = getDefaultCenter();
+    map = L.map('map').setView([defaultLat, defaultLng], 10);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -127,44 +155,30 @@ const initializeMap = () => {
     const bounds = L.latLngBounds();
 
     /* 🔴 EXISTING ZONES (READ-ONLY) */
-    props.existingZones.forEach(polygon => {
+    (props.existingZones || []).forEach(polygon => {
         if (!polygon || !polygon.length) return;
-
-        const latLngs = polygon.map(p => [p.lat, p.lng]);
-
+        const latLngs = polygon.map((p) => [p.lat, p.lng]);
         const poly = L.polygon(latLngs, {
             color: 'red',
             interactive: false,
         }).addTo(map);
-
         bounds.extend(poly.getBounds());
     });
 
     /* 🔵 CURRENT ZONE (EDITABLE) */
-
-    // 👇 NORMALIZE HERE (no helper function needed)
-    let multiPolygons = [];
-
-    if (zone.coordinates.type === 'MultiPolygon') {
-        multiPolygons = zone.coordinates.coordinates;
-    } else if (zone.coordinates.type === 'Polygon') {
-        multiPolygons = [zone.coordinates.coordinates];
-    }
-
-    multiPolygons.forEach(polygon => {
-        polygon.forEach(ring => {
-
-            const latLngs = ring.map(([lng, lat]) => [lat, lng]);
-
-            const poly = L.polygon(latLngs, {
-                color: 'blue',
-                weight: 3,
-                fillOpacity: 0.2,
-            }).addTo(drawnItems);
-
-            bounds.extend(poly.getBounds());
-            polygons.push(poly);
-        });
+    const rings = getZoneRingsForLeaflet(zone.coordinates);
+    rings.forEach((ring) => {
+        if (!ring || ring.length < 2) return;
+        const latLngs = ring.map((point) =>
+            Array.isArray(point) ? [point[1], point[0]] : [point.lat ?? point.latitude, point.lng ?? point.longitude]
+        );
+        const poly = L.polygon(latLngs, {
+            color: 'blue',
+            weight: 3,
+            fillOpacity: 0.2,
+        }).addTo(drawnItems);
+        bounds.extend(poly.getBounds());
+        polygons.push(poly);
     });
 
     if (bounds.isValid()) {
@@ -172,8 +186,6 @@ const initializeMap = () => {
     }
 
     initializeDrawing(drawnItems);
-
-    // 🔥 REQUIRED if map container was hidden / resized
     setTimeout(() => map.invalidateSize(), 300);
 };
         const initializeDrawing = (drawnItems) => {
