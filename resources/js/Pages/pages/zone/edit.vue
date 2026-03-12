@@ -21,6 +21,7 @@ export default {
         alertMessage: String,
         app_for: String,
         existingZones: Array,
+        serviceLocations: { type: Array, default: () => [] }, // From server so dropdown works without extra request
         enable_maximum_distance_feature: Boolean,
         settings: Object,
         default_lat: [Number, String],
@@ -50,7 +51,7 @@ export default {
             peak_zone_ride_count: zone.peak_zone_ride_count ?? (props.peak_zone_ride_count ? '' : 0),
             distance_price_percentage: zone.distance_price_percentage ?? (props.distance_price_percentage ? '' : 0),
         });
-        const serviceLocations = ref([]);
+        const serviceLocations = ref(Array.isArray(props.serviceLocations) ? [...props.serviceLocations] : []);
         let map, currentPolygon;
         let polygons = [];
         const drawingManager = ref(null);

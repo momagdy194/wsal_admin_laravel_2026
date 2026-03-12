@@ -253,7 +253,9 @@ class ZoneController extends Controller
         }
         $zone->languageFields = $languageFields ?? null;
 
-        // dd($zone->coordinates);
+        $serviceLocations = get_user_locations(auth()->user());
+        $serviceLocationsList = $serviceLocations ? $serviceLocations->map(fn ($loc) => ['id' => $loc->id, 'name' => $loc->name])->values()->all() : [];
+
         $map_type = get_map_settings('map_type');
 
         if ($map_type == "open_street_map") {
@@ -263,6 +265,7 @@ class ZoneController extends Controller
                 'default_lat' => get_settings('default_latitude'),
                 'default_lng' => get_settings('default_longitude'),
                 'existingZones' => $existing_coordinates,
+                'serviceLocations' => $serviceLocationsList,
                 'settings' => $settings
             ]);
         } else {
@@ -272,6 +275,7 @@ class ZoneController extends Controller
                 'default_lat' => get_settings('default_latitude'),
                 'default_lng' => get_settings('default_longitude'),
                 'existingZones' => $existing_coordinates,
+                'serviceLocations' => $serviceLocationsList,
                 'googleMapKey' => $googleMapKey,
                 'app_for' => env('APP_FOR'),
                 'settings' => $settings

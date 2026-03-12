@@ -22,6 +22,7 @@ export default {
         successMessage: String,
         alertMessage: String,
         existingZones: Array,
+        serviceLocations: { type: Array, default: () => [] },
         enable_maximum_distance_feature: Boolean,
         settings: Object,
         default_lat: [Number, String],
@@ -37,7 +38,7 @@ export default {
         const enable_peak_zone_feature = ref(props.settings.enable_peak_zone_feature == 1);
 
         const form = useForm({
-            service_location_id: zone.service_location_id,
+            service_location_id: zone.service_location_id != null ? String(zone.service_location_id) : '',
             languageFields: zone ? zone.languageFields || {} : {},
             unit: zone.unit,
             coordinates: zone.coordinates || [], // Initialize coordinates from zone data
@@ -50,14 +51,19 @@ export default {
             distance_price_percentage: zone.distance_price_percentage ?? (props.distance_price_percentage ? '' : 0),
         });
 
-        const serviceLocations = ref([]);
+        const serviceLocations = ref(Array.isArray(props.serviceLocations) ? [...props.serviceLocations] : []);
         let map, currentPolygon;
         let polygons = [];
 
         const bounds = L.latLngBounds();
         const fetchServiceLocations = async () => {
-            const response = await axios.get('/zones/list');
-            serviceLocations.value = response.data.results;
+            try {
+                const response = await axios.get('/zones/list');
+                const data = response.data?.results ?? response.data?.data ?? response.data;
+                serviceLocations.value = Array.isArray(data) ? data : [];
+            } catch (_) {
+                serviceLocations.value = props.serviceLocations || [];
+            }
         };
 
         const initializeForm = () => {
@@ -339,7 +345,7 @@ const initializeMap = () => {
                                 <label for="service_location" class="form-label">{{$t("service_location")}}</label>
                                 <select class="form-select" id="service_location" v-model="form.service_location_id">
                                     <option value="" disabled>{{$t('select_service_location')}}</option>
-                                    <option v-for="location in serviceLocations" :key="location.id" :value="location.id">{{ location.name }}</option>
+                                    <option v-for="location in serviceLocations" :key="location.id" :value="String(location.id)">{{ location.name }}</option>
                                 </select>
                                 <span v-if="form.errors.service_location_id" class="text-danger">{{ form.errors.service_location_id }}</span>
                             </div>
