@@ -54,7 +54,7 @@ export default {
           <BCol lg="12">
             <div class="text-center">
               <p class="mb-0 text-muted">
-                &copy;  Misoftwares
+                &copy;  wsal
               </p>
             </div>
           </BCol>

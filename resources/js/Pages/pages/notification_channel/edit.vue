@@ -585,7 +585,7 @@ export default {
                                         {{ stripHtmlTags(notification.footer_copyrights) }}
                                       </p>
                                       <p v-else style="font-family: 'Roboto', sans-serif; font-size: 14px;color: #98a6ad; margin: 0px;">
-                                        2021 Misoftwares & Rights Reserved
+                                        2021 wsal & Rights Reserved
                                       </p>
                                     </div>
 
