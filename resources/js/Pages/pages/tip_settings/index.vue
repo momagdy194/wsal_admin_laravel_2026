@@ -189,7 +189,7 @@ export default {
           </div>
         </BCardHeader>
       </BCard>
-      <BCol lg="6">
+      <BCol lg="12">
         <BCard no-body id="tasksList">
           <BCardHeader class="border-0"></BCardHeader>
           <BCardBody class="border border-dashed border-end-0 border-start-0">
@@ -219,7 +219,7 @@ export default {
           </BCardBody>
         </BCard>
       </BCol>
-      <BCol lg="6">
+      <BCol v-if="false" lg="6">
         <BCard no-body id="tasksList">
           <BCardHeader class="border-0"><h5>{{$t("mobile_view")}}</h5></BCardHeader>
           <BCardBody class="border border-dashed border-end-0 border-start-0">

@@ -192,7 +192,7 @@ export default {
     <Head title="Referral Translation" />
     <PageHeader :title="$t('referral-translation')" :pageTitle="$t('referral-translation')"  pageLink="/referral-translation"/>
     <BRow>      
-      <BCol lg="6">
+      <BCol v-if="false" lg="6">
         <BCard>          
           <BCardHeader class="border-0">
             <h5>{{$t('mobile_view')}} - {{ $t('user_referrals') }}</h5>
@@ -219,7 +219,7 @@ export default {
           </BCardBody>     
         </BCard>
         </BCol>
-        <BCol lg="6">
+        <BCol v-if="false" lg="6">
          <BCard style="">          
           <BCardHeader class="border-0">
             <h5>{{$t('mobile_view')}} - {{ $t('driver_referrals') }}</h5>
