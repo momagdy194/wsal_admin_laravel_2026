@@ -466,31 +466,29 @@ export default {
         }
         onMounted(async () => {
             let mapInitialized = false;
+            // Always fetch service locations so the dropdown appears (even when map key is missing)
+            fetchServiceLocations();
+            if (Object.keys(languages).length == 0) {
+                await fetchData();
+            }
             if (!googleMapKey) {
                 console.error(t('google_map_api_key_is_null_or_undefined'));
                 return;
             }
-            if (Object.keys(languages).length == 0) {
-                await fetchData();
-            }
-
             if (!document.querySelector(`script[src="https://maps.googleapis.com/maps/api/js?key=${googleMapKey}&libraries=places,drawing"]`)) {
                 const script = document.createElement('script');
                 script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapKey}&libraries=places,drawing`;
                 script.onload = () => {
                     if (!mapInitialized) {
                         initializeMap();
-                        fetchServiceLocations();
                         mapInitialized = true;
                     }
                 };
                 document.head.appendChild(script);
             } else if (!mapInitialized) {
                 initializeMap();
-                fetchServiceLocations();
                 mapInitialized = true;
             }
-            
         });
 
         return {
