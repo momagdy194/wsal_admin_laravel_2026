@@ -1241,6 +1241,11 @@ if (!function_exists('find_peak_zone')) {
  */
 
 if (!function_exists('find_zone')) {
+    /**
+     * Find zone that contains the given coordinates.
+     * Zone is returned only if: zone is active, its service location is active,
+     * and (when APP_FOR=demo) company_key matches request/auth.
+     */
     function find_zone($lat, $lng)
     {
         if ($lat === null || $lng === null || !is_numeric($lat) || !is_numeric($lng)) {
@@ -1248,9 +1253,13 @@ if (!function_exists('find_zone')) {
         }
         $point = new Point((float) $lat, (float) $lng);
 
-        $zone = Zone::whereContains('coordinates', $point)->whereHas('serviceLocation',function($query) {
-            $query->where('active',true);
-        })->where('active', 1)->first();
+        $zone = Zone::companyKey()
+            ->whereContains('coordinates', $point)
+            ->whereHas('serviceLocation', function ($query) {
+                $query->where('active', true);
+            })
+            ->where('active', 1)
+            ->first();
 
         return $zone;
     }
