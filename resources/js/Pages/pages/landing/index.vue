@@ -19,10 +19,23 @@ export default {
         landingHome: Object,
         landingHeader: Object,
     },
+    data() {
+        return {
+            Autoplay, Navigation, Pagination,
+            showOnlyLogo: true, // مؤقتاً: true = عرض اللوجو فقط
+        };
+    },
     computed: {
+    logoUrl() {
+        if (this.landingHeader?.header_logo) {
+            return `/storage/uploads/website/images/${this.landingHeader.header_logo}`;
+        }
+        const first = typeof window !== 'undefined' && window.headers?.[0];
+        return first?.header_logo_url || '/storage/uploads/website/images/rest.png';
+    },
     splitServices() {
       // Check if landingHome.data is a string and split it by commas
-      if (typeof this.landingHome.services === 'string') {
+      if (typeof this.landingHome?.services === 'string') {
         return this.landingHome.services.split(',');
       }
       // Return an empty array if data is not a string
@@ -30,18 +43,13 @@ export default {
     },
     splitAbout() {
       // Check if landingHome.data is a string and split it by commas
-      if (typeof this.landingHome.about_lists === 'string') {
+      if (typeof this.landingHome?.about_lists === 'string') {
         return this.landingHome.about_lists.split(',');
       }
       // Return an empty array if data is not a string
       return [];
     },
   },
-    data() {
-        return {
-            Autoplay, Navigation, Pagination,
-        };
-    },
     methods: {
         stripHtmlTags(content) {
             const parser = new DOMParser();
@@ -67,6 +75,11 @@ export default {
 <template>
     <div class="layout-wrapper landing">
         <Head :title="$t('home')" />
+        <!-- مؤقتاً: عرض اللوجو فقط -->
+        <div v-if="showOnlyLogo" class="landing-logo-only d-flex align-items-center justify-content-center min-vh-100 bg-light">
+            <img :src="logoUrl" alt="Logo" class="landing-logo-img" />
+        </div>
+        <template v-else>
         <LandingHeader :headers="landingHeader">
             
         </LandingHeader>
@@ -381,10 +394,13 @@ export default {
         </section>
 
 <LandingFooter></LandingFooter>
+        </template>
     </div>
 </template>
 
 <style>
+.landing-logo-only { background-color: var(--landing_header_bg, #f8f9fa); }
+.landing-logo-img { max-width: 280px; width: 100%; height: auto; object-fit: contain; }
 .icon-effect::before {
     background-color:  rgb(from var(--landing_header_act_text) r g b / 33%);
 }

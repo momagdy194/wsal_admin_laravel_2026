@@ -478,7 +478,7 @@ export default {
                                                                     </ul>                                                                    
                                                                 </div>
                                                             </li>
-                                                            <li ref="cmdSection"style="margin-top: 460px">
+                                                            <li ref="cmdSection" style="margin-top: 460px" v-if="false">
                                                                 <div class="first-list" >
                                                                     <div class="list-wrap" v-if="permissions.includes('cms-landing-website')">
                                                                         <BLink href="javascript:void(0);" class="menu-item ">
@@ -511,7 +511,7 @@ export default {
                                                                     </ul>                                                                    
                                                                 </div>
                                                             </li>
-                                                            <li ref="cmssinglelandingSection" style="margin-top: 380px;">
+                                                            <li ref="cmssinglelandingSection" style="margin-top: 380px;" v-if="false">
                                                                 <div class="first-list" >
                                                                     <div class="list-wrap" v-if="permissions.includes('single_landing_page')">
                                                                         <BLink href="javascript:void(0);" class="menu-item ">

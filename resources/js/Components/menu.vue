@@ -950,7 +950,7 @@ export default {
             </ul>
           </div>
         </li>
-        <li class="nav-item" v-if="permissions.includes('addons')">
+        <li class="nav-item" v-if="false">
           <a class="nav-link menu-link" href="#addons" data-bs-toggle="collapse" role="button"
             aria-expanded="false" aria-controls="cms">
             <i class="ri-add-circle-line"></i>
@@ -981,7 +981,7 @@ export default {
             </ul>
           </div>
         </li>
-        <li class="nav-item" v-if="permissions.includes('cms-landing-website')">
+        <li class="nav-item" v-if="false">
           <a class="nav-link menu-link" href="#cms" data-bs-toggle="collapse" role="button"
             aria-expanded="false" aria-controls="cms">
             <i class="ri-macbook-line"></i>
@@ -1029,7 +1029,7 @@ export default {
           </div>
         </li>
 
-        <li class="nav-item" v-if="permissions.includes('single_landing_page')">
+        <li class="nav-item" v-if="false">
           <a class="nav-link menu-link" href="#single-landing-page" data-bs-toggle="collapse" role="button"
             aria-expanded="false" aria-controls="single-landing-page">
             <i class="ri-macbook-line"></i>

@@ -14,18 +14,6 @@ import FormValidation from "@/Components/FormValidation.vue";
 
 
 export default {
-  data() {
-    return {
-      animationClass: 'slide-in-right',
-      activeStep: 0,
-      direction: 1,        // 1 = down, -1 = up
-      maxStep: 3,
-      stepHeight: 195,
-      userType: 'user',  
-      driverType: 'driver',
-      Autoplay, Navigation, Pagination,
-    }
-  },
   components: {
     Swiper,
     SwiperSlide,  
@@ -41,6 +29,29 @@ export default {
    driver_app:'',
    contact:'',
    singlelandingpage: Object,
+   singlelandingHeader: Object,
+  },
+  data() {
+    return {
+      animationClass: 'slide-in-right',
+      activeStep: 0,
+      direction: 1,
+      maxStep: 3,
+      stepHeight: 195,
+      userType: 'user',
+      driverType: 'driver',
+      Autoplay, Navigation, Pagination,
+      showOnlyLogo: true, // مؤقتاً: عرض اللوجو فقط
+    }
+  },
+  computed: {
+    logoUrl() {
+      if (this.singlelandingHeader?.header_logo) {
+        return `/storage/uploads/website/images/${this.singlelandingHeader.header_logo}`;
+      }
+      const first = typeof window !== 'undefined' && window.headers?.[0];
+      return first?.header_logo_url || '/storage/uploads/website/images/rest.png';
+    },
   },  
    setup(props) {
     const form = useForm({
@@ -279,6 +290,11 @@ export default {
 </script>
 <template>
   <div style="overflow:hidden;">
+  <!-- مؤقتاً: عرض اللوجو فقط -->
+  <div v-if="showOnlyLogo" class="landing-logo-only d-flex align-items-center justify-content-center min-vh-100 bg-light">
+    <img :src="logoUrl" alt="Logo" class="landing-logo-img" />
+  </div>
+  <template v-else>
   <!--Hero section -->
   <section class="hero-wrapper d-flex align-items-center">
     <LandingHeader /> 
@@ -828,9 +844,12 @@ export default {
   <section>
     <LandingFooter/>
 </section>
+  </template>
 </div>
 </template>
 <style>
+.landing-logo-only { background-color: var(--single_landing_header_bg, #f8f9fa); }
+.landing-logo-img { max-width: 280px; width: 100%; height: auto; object-fit: contain; }
   [data-aos] {
   overflow-x: hidden;
 }
