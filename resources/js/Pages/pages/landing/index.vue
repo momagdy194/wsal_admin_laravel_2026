@@ -27,11 +27,7 @@ export default {
     },
     computed: {
     logoUrl() {
-        if (this.landingHeader?.header_logo) {
-            return `/storage/uploads/website/images/${this.landingHeader.header_logo}`;
-        }
-        const first = typeof window !== 'undefined' && window.headers?.[0];
-        return first?.header_logo_url || '/storage/uploads/website/images/rest.png';
+        return 'https://wssal.net/storage/uploads/system-admin/logo/Nmz5cHNARgdjRnmA2Ff4eG4GvZRFzau9pPzEcPtw.png';
     },
     splitServices() {
       // Check if landingHome.data is a string and split it by commas
