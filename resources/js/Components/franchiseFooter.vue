@@ -5,14 +5,14 @@
                 <BCol cols="3">
                      <!-- {{ new Date().getFullYear() }} © {{$t("misoftwares")}} -->
                     <div class="text-sm-start  d-sm-block">
-                      {{ footerContent1 }}
+                      <!-- {{ footerContent1 }} -->
                     </div>
                 </BCol>
                 <BCol cols="5">
                     <!-- {{ new Date().getFullYear() }} © {{$t("misoftwares")}} -->
-                    <div class="text-sm-center  d-sm-block">
+                    <!-- <div class="text-sm-center  d-sm-block">
                       {{ footerContent2 }}
-                    </div>
+                    </div> -->
                 </BCol>
                 <BCol cols="4">
                     <div class="text-sm-end  d-sm-block">
