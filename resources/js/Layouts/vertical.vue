@@ -34,6 +34,9 @@ export default {
   },
   computed: {
     ...layoutComputed,
+    hideFooter() {
+      return this.$page?.url?.startsWith('/report/driver-duty-report') ?? false;
+    },
     sidebarSize: {
       get() {
         return this.$store ? this.$store.state.layout.sidebarSize : {} || {};
@@ -200,7 +203,7 @@ export default {
           <slot />
         </b-container>
       </div>
-      <Footer />
+      <Footer v-if="!hideFooter" />
     </div>
     <RightBar />
   </div>
