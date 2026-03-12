@@ -37,7 +37,7 @@ export default {
         const alertMessage = ref(props.alertMessage || '');
 
         const form = useForm({
-            service_location_id: zone.service_location_id,
+            service_location_id: zone.service_location_id != null ? String(zone.service_location_id) : '',
             languageFields:  zone ? zone.languageFields || {} : {}, // To hold data from the Tab component
             // name: zone.name,
             unit: zone.unit,
@@ -57,8 +57,19 @@ export default {
         const selectedPolygon = ref(null);
 
         const fetchServiceLocations = async () => {
-            const response = await axios.get('/zones/list');
-            serviceLocations.value = response.data.results;
+            try {
+                const response = await axios.get('/zones/list');
+                const data = response.data?.results ?? response.data?.data ?? response.data;
+                serviceLocations.value = Array.isArray(data) ? data : [];
+            } catch (e) {
+                try {
+                    const fallback = await axios.get('/service-locations/list');
+                    const data = fallback.data?.results ?? fallback.data?.data ?? fallback.data;
+                    serviceLocations.value = Array.isArray(data) ? data : (data?.items ? data.items : []);
+                } catch (_) {
+                    serviceLocations.value = [];
+                }
+            }
         };
 
 
@@ -534,7 +545,7 @@ export default {
                                 <label for="service_location" class="form-label">{{$t("service_location")}}</label>
                                 <select class="form-select" id="service_location" v-model="form.service_location_id">
                                     <option value="" disabled>{{$t('select_service_location')}}</option>
-                                    <option v-for="location in serviceLocations" :key="location.id" :value="location.id">{{ location.name }}</option>
+                                    <option v-for="location in serviceLocations" :key="location.id" :value="String(location.id)">{{ location.name }}</option>
                                 </select>
                                 <span v-if="form.errors.service_location_id" class="text-danger">{{ form.errors.service_location_id }}</span>
                             </div>

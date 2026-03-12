@@ -1538,14 +1538,18 @@ if(!function_exists('get_user_locations'))
         if(!$user){
             return [];
         }
-        
+
+        $service_location = collect();
+
         if($user->hasRole('super-admin')){
-        if($user->admin()->exists()){
+            if($user->admin()->exists()){
                 if($user->admin->serviceLocationDetail()->exists()){
-                   $service_location = ServiceLocation::where('active',true)->where('id',$user->admin->service_location_id)->get();
+                    $service_location = ServiceLocation::where('active',true)->where('id',$user->admin->service_location_id)->get();
                 }else{
-                   $service_location = ServiceLocation::where('active',true)->get();
+                    $service_location = ServiceLocation::where('active',true)->get();
                 }
+            }else{
+                $service_location = ServiceLocation::where('active',true)->get();
             }
         }elseif($user->owner()->exists()){
             $service_location = ServiceLocation::where('active',true)->where('id',$user->owner->service_location_id)->get();
@@ -1554,7 +1558,11 @@ if(!function_exists('get_user_locations'))
             $service_location = ServiceLocation::where('active',true)->where('id',$user->agent->service_location_id)->get();
         }
         else{
-           $service_location = ServiceLocation::where('active',true)->where('id',$user->admin->service_location_id)->get();
+            if($user->admin()->exists()){
+                $service_location = ServiceLocation::where('active',true)->where('id',$user->admin->service_location_id)->get();
+            }else{
+                $service_location = ServiceLocation::where('active',true)->get();
+            }
         }
         
         return $service_location;
