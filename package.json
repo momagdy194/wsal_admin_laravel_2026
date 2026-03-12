@@ -3,7 +3,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build --mode production"
+        "build": "NODE_OPTIONS='--max-old-space-size=4096' vite build --mode production"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^1.0.0",
