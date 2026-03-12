@@ -38,6 +38,14 @@ class ZoneType extends Model
     ];
 
     /**
+     * Default attribute values (avoids null for DB columns that are NOT NULL).
+     */
+    protected $attributes = [
+        'franchise_commision_type' => 0,
+        'franchise_commision' => 0,
+    ];
+
+    /**
      * The relationships that can be loaded with query string filtering includes.
      *
      * @var array

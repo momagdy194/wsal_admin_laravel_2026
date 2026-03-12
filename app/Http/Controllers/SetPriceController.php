@@ -138,8 +138,8 @@ class SetPriceController extends Controller
             'shared_cancel_fee' => $request->shared_cancel_fee,
             'agent_commision_type' =>$request->agent_commision_type,
             'agent_commision' =>$request->agent_commision,
-            'franchise_commision_type' =>$request->franchise_commision_type,
-            'franchise_commision' =>$request->franchise_commision,
+            'franchise_commision_type' => $request->franchise_commision_type ?? 0,
+            'franchise_commision' => $request->filled('franchise_commision') ? (float) $request->franchise_commision : 0,
             // 'minimum_trip_distane' => $request->minimum_trip_distane,
         ]);
 // dd($zoneType);
@@ -241,8 +241,8 @@ class SetPriceController extends Controller
             'shared_cancel_fee' => $request->shared_cancel_fee,
             'agent_commision_type' => $request->agent_commision_type,
             'agent_commision' => $request->agent_commision,
-            'franchise_commision_type' =>$request->franchise_commision_type,
-            'franchise_commision' =>$request->franchise_commision,
+            'franchise_commision_type' => $request->franchise_commision_type ?? 0,
+            'franchise_commision' => $request->filled('franchise_commision') ? (float) $request->franchise_commision : 0,
 
         ]);
         // dd($zoneType);
@@ -415,13 +415,8 @@ class SetPriceController extends Controller
         
         $created_params['agent_commision_type'] = $request->agent_commision_type;
         $created_params['agent_commision'] = $request->agent_commision;
-        $created_params['franchise_commision_type'] = $request->franchise_commision_type;
-        $created_params['franchise_commision'] = $request->franchise_commision;
-
-        $created_params['franchise_commision_type'] = $request->franchise_commision_type;
-        $created_params['franchise_commision'] = $request->franchise_commision;
-
-
+        $created_params['franchise_commision_type'] = $request->franchise_commision_type ?? 0;
+        $created_params['franchise_commision'] = $request->filled('franchise_commision') ? (float) $request->franchise_commision : 0;
 
         $packagePrice =  ZoneTypePackage::create($created_params);
         // dd($packagePrice);
@@ -475,10 +470,8 @@ class SetPriceController extends Controller
 
         $updated_params['agent_commision_type'] = $request->agent_commision_type;
         $updated_params['agent_commision'] = $request->agent_commision;
-
-        $updated_params['franchise_commision_type'] = $request->franchise_commision_type;
-        $updated_params['franchise_commision'] = $request->franchise_commision;
-
+        $updated_params['franchise_commision_type'] = $request->franchise_commision_type ?? 0;
+        $updated_params['franchise_commision'] = $request->filled('franchise_commision') ? (float) $request->franchise_commision : 0;
 
         $zoneTypePackage->update($updated_params);
 
