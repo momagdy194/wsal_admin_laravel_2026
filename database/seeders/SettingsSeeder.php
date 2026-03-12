@@ -249,14 +249,14 @@ class SettingsSeeder extends Seeder
         ],
         SettingSlug::FOOTER_CONTENT1 => [
             'category'=>SettingCategory::GENERAL,
-            'value' => '2024 © Misoftwares.',
+            'value' => '',
             'field' => SettingValueType::TEXT,
             'option_value' => null,
             'group_name' => null,
         ],
         SettingSlug::FOOTER_CONTENT2 => [
             'category'=>SettingCategory::GENERAL,
-            'value' => 'Design & Develop by Misoftwares',
+            'value' => '',
             'field' => SettingValueType::TEXT,
             'option_value' => null,
             'group_name' => null,
